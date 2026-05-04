@@ -669,21 +669,33 @@ export default function Sidebar({
     }
   }, [perfProbeOpen]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey)) return;
+      if (e.key.toLowerCase() !== 'd') return;
+      const target = e.target as HTMLElement | null;
+      if (target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      )) return;
+      e.preventDefault();
+      setPerfProbeOpen(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <>
     <aside className={`sidebar animate-slide-in ${isCollapsed ? 'collapsed' : ''}`}>
-      <button
-        type="button"
-        className="sidebar-brand sidebar-brand--button"
-        onClick={() => setPerfProbeOpen(true)}
-        data-tooltip="Performance probe"
-        data-tooltip-pos="right"
-      >
+      <div className="sidebar-brand" aria-hidden>
         {isCollapsed
           ? <PSmallLogo style={{ height: '32px', width: 'auto' }} />
           : <PsysonicLogo style={{ height: '28px', width: 'auto' }} />
         }
-      </button>
+      </div>
 
       <button
         className="collapse-btn"
