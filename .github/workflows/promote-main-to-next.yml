@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       source_branch:
-        description: "Source branch to promote into next (default main)"
+        description: "Source branch to promote into next (default main). Required ci-ok checks run only when this is main."
         required: false
         default: main
         type: string
@@ -16,6 +16,7 @@ on:
 
 jobs:
   validate-main:
+    if: inputs.source_branch == 'main'
     uses: ./.github/workflows/validate-main-green-ci.yml
     with:
       branch: ${{ inputs.source_branch }}
@@ -23,6 +24,7 @@ jobs:
 
   promote:
     needs: validate-main
+    if: ${{ !cancelled() && (needs.validate-main.result == 'success' || needs.validate-main.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,6 +32,10 @@ jobs:
     env:
       SOURCE_BRANCH: ${{ inputs.source_branch }}
     steps:
+      - name: note when CI gate was skipped
+        if: inputs.source_branch != 'main'
+        run: |
+          echo "Skipping required-check validation: source_branch is '${{ inputs.source_branch }}', not main."
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
