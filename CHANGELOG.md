@@ -349,6 +349,14 @@ Foundational work: faster reviews, narrower diffs, and a safety net under the pa
 * Row rendering moved into a memoized `PlaylistRow` with a stable callback bundle so virtualizer scroll updates do not re-render the full list.
 * Drag-and-drop reordering is preserved: drop-indicator overlay and edge auto-scroll during drags.
 
+### Favorites — virtualized songs tracklist for large collections
+
+**By [@artplan1](https://github.com/artplan1), PR [#805](https://github.com/Psychotoxical/psysonic/pull/805)**
+
+* Opening Favorites with 10 000+ starred songs no longer mounts every row into the DOM. The songs tracklist is windowed with `@tanstack/react-virtual` on the shared app scroll viewport — same shape as the playlist virtualization fix.
+* Row rendering moved into a memoized `FavoriteSongRow` with a stable callback bundle; `visibleTracks` is memoized once per filtered song list.
+* Drag-out, preview, orbit, context menu, bulk select, and column picker behaviour are unchanged.
+
 ## Changed
 
 ### Build — lazy-loaded routes and Vite chunk warnings
