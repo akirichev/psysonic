@@ -23,15 +23,18 @@ import {
   ARTIST_LIST_ROW_EST,
 } from '../utils/componentHelpers/artistsHelpers';
 import { useArtistsFiltering } from '../hooks/useArtistsFiltering';
+import { useBrowseArtistTextSearch } from '../hooks/useBrowseArtistTextSearch';
 import { useMainstageInpageHeaderTight } from '../hooks/useMainstageInpageHeaderTight';
 import { useArtistsInfiniteScroll } from '../hooks/useArtistsInfiniteScroll';
+import { useLibraryIndexStore } from '../store/libraryIndexStore';
+import { runLocalBrowseAllArtists } from '../utils/library/browseTextSearch';
 import { ArtistsGridView } from '../components/artists/ArtistsGridView';
 import { ArtistsListView } from '../components/artists/ArtistsListView';
 
 export default function Artists() {
   const perfFlags = usePerfProbeFlags();
   const { t } = useTranslation();
-  const [artists, setArtists] = useState<SubsonicArtist[]>([]);
+  const [catalogArtists, setCatalogArtists] = useState<SubsonicArtist[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [letterFilter, setLetterFilter] = useState(ALL_SENTINEL);
@@ -61,6 +64,14 @@ export default function Artists() {
   const openContextMenu = usePlayerStore(state => state.openContextMenu);
   const setShowArtistImages = useAuthStore(s => s.setShowArtistImages);
   const musicLibraryFilterVersion = useAuthStore(s => s.musicLibraryFilterVersion);
+  const serverId = useAuthStore(s => s.activeServerId);
+  const indexEnabled = useLibraryIndexStore(s => s.isIndexEnabled(serverId));
+  const { textSearchArtists, textSearchLoading, effectiveFilter } = useBrowseArtistTextSearch(
+    filter,
+    indexEnabled,
+    serverId,
+  );
+  const artists = textSearchArtists ?? catalogArtists;
 
   // ── Multi-selection ──────────────────────────────────────────────────────
   const [selectionMode, setSelectionMode] = useState(false);
@@ -82,12 +93,34 @@ export default function Artists() {
   const selectedArtists = artists.filter(a => selectedIds.has(a.id));
 
   useEffect(() => {
-    getArtists().then(data => { setArtists(data); setLoading(false); }).catch(() => setLoading(false));
-  }, [musicLibraryFilterVersion]);
+    let cancelled = false;
+    setLoading(true);
+    void (async () => {
+      if (indexEnabled && serverId) {
+        const local = await runLocalBrowseAllArtists(serverId);
+        if (!cancelled && local != null) {
+          setCatalogArtists(local);
+          setLoading(false);
+          return;
+        }
+      }
+      try {
+        const data = await getArtists();
+        if (!cancelled) setCatalogArtists(data);
+      } catch {
+        /* ignore */
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [musicLibraryFilterVersion, indexEnabled, serverId]);
 
   const {
     filtered, visible, hasMore, groups, letters, artistListFlatRows,
-  } = useArtistsFiltering({ artists, filter, letterFilter, starredOnly, visibleCount, viewMode });
+  } = useArtistsFiltering({ artists, filter: effectiveFilter, letterFilter, starredOnly, visibleCount, viewMode });
 
   const mainstageHeaderTight = useMainstageInpageHeaderTight(artistsScrollBodyEl, [
     filter,
@@ -207,6 +240,9 @@ export default function Artists() {
                 onChange={e => setFilter(e.target.value)}
                 id="artist-filter-input"
               />
+              {textSearchLoading && (
+                <div className="spinner" style={{ width: 16, height: 16, flexShrink: 0 }} />
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

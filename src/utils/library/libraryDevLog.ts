@@ -1,6 +1,6 @@
-/**
- * DevTools diagnostics for local library index + Live Search (DEV only).
+/** DevTools diagnostics for local library index + search (DEV only).
  * Filter console: `[psysonic][library]`
+ * Search one-liner: `search [surface] path=… winner=…` or `source=…`
  * Ring buffer: `window.__PSYSONIC_LIBRARY_DEBUG__`
  */
 import type { SyncStateDto } from '../../api/library';
@@ -14,8 +14,21 @@ export type LibrarySearchPath =
   | 'library_advanced_search'
   | 'search3'
   | 'search_race'
+  | 'browse_race'
+  | 'browse_local_fallback'
+  | 'browse_network_fallback'
+  | 'browse_race_miss'
   | 'skipped_not_ready'
   | 'local_empty_fallback';
+
+/** UI surface for unified search DevTools lines (`search [surface] …`). */
+export type LibrarySearchSurface =
+  | 'live_search'
+  | 'advanced_search'
+  | 'artists_browse'
+  | 'composers_browse'
+  | 'tracks_browse'
+  | 'search_results';
 
 export interface LibrarySearchDebugEntry {
   at: string;
@@ -35,6 +48,9 @@ export interface LibrarySearchDebugEntry {
   /** Winner when local + network ran in parallel. */
   raceWinner?: 'local' | 'network';
   raceWinnerMs?: number;
+  /** Direct (non-race) path source. */
+  source?: 'local' | 'network';
+  surface?: LibrarySearchSurface;
 }
 
 export interface LibrarySyncDebugEntry {
@@ -215,10 +231,39 @@ export function explainLibraryReady(status: SyncStateDto): string {
   return `syncPhase=${status.syncPhase}`;
 }
 
+export function formatLibrarySearchLine(entry: LibrarySearchDebugEntry): string {
+  const surface = entry.surface ?? '?';
+  const hits = entry.counts
+    ? ` hits=${entry.counts.artists}/${entry.counts.albums}/${entry.counts.songs}`
+    : '';
+  const fallback = entry.fallbackReason ? ` fallback=${entry.fallbackReason}` : '';
+  const invoke = entry.invokeMs != null ? ` invokeMs=${entry.invokeMs}` : '';
+  const debounce = entry.debounceMs != null ? ` debounceMs=${entry.debounceMs}` : '';
+  const error = entry.error ? ` error=${entry.error}` : '';
+
+  if (entry.raceWinner) {
+    return (
+      `search [${surface}] path=${entry.path} winner=${entry.raceWinner}` +
+      ` raceMs=${entry.raceWinnerMs ?? 0} totalMs=${entry.durationMs}` +
+      `${invoke}${debounce}${hits}${fallback}${error}`
+    );
+  }
+  if (entry.source) {
+    return (
+      `search [${surface}] path=${entry.path} source=${entry.source}` +
+      ` totalMs=${entry.durationMs}${invoke}${debounce}${hits}${fallback}${error}`
+    );
+  }
+  return (
+    `search [${surface}] path=${entry.path} totalMs=${entry.durationMs}` +
+    `${invoke}${debounce}${hits}${fallback}${error}`
+  );
+}
+
 export function logLibrarySearch(entry: LibrarySearchDebugEntry): void {
   if (!libraryDevEnabled()) return;
   pushRing('search', entry);
-  console.debug(PREFIX, 'search', entry);
+  console.debug(PREFIX, formatLibrarySearchLine(entry), entry);
 }
 
 export function logLibrarySync(entry: LibrarySyncDebugEntry): void {
