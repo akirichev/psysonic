@@ -182,6 +182,24 @@ Build release:
 npm run tauri:build
 ```
 
+## Local Windows release build (maintainer)
+
+The Windows installer is **not** signed by CI — the Certum SimplySign Cloud OV cert requires interactive OTP login and only works locally on Windows. The maintainer builds and signs the Windows release locally:
+
+1. Start **SimplySign Desktop** and log in (OTP via SimplySign Mobile). This makes the cloud cert available in `Cert:\CurrentUser\My`.
+2. `npm install && npm run tauri:build -- --bundles nsis`. The `--bundles nsis` flag is required — Tauri's default would also build an MSI, which rejects the `-dev` pre-release identifier. Tauri's `bundle.windows.signCommand` invokes `signtool` for the app `.exe`, every NSIS plugin DLL, and the final installer — all come out signed in one go.
+3. Verify the installer (which contains the signed app `.exe`):
+
+   ```powershell
+   & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.28000.0\x64\signtool.exe" verify /pa /v `
+     "src-tauri\target\release\bundle\nsis\Psysonic_*-setup.exe"
+   ```
+
+   Note: `src-tauri\target\release\psysonic.exe` ends up unsigned on disk — Tauri rewrites that file as a build artifact *after* signing. The signed copy is the one packed into the installer (verify by extracting the installer with 7-Zip if needed).
+4. Upload the signed `*-setup.exe` to the GitHub release.
+
+The signtool path and cert thumbprint are pinned in `src-tauri/tauri.conf.json` under `bundle.windows.signCommand` (object form — required because the signtool path contains whitespace). The cert renews ~2027-04-27.
+
 ---
 
 # Privacy
