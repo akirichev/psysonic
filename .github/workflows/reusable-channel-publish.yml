@@ -328,8 +328,9 @@ jobs:
 
   # Compile + bundle the Windows NSIS installer on every release to catch breakage
   # (Windows-only Rust cfg, Tauri config drift, NSIS template issues). Nothing is
-  # uploaded and signing is disabled — see comment on build-macos for why CI cannot
-  # sign Windows. The maintainer produces and uploads the signed installer locally.
+  # uploaded — see comment on build-macos for why CI cannot sign Windows. The base
+  # tauri.conf.json has no signCommand, so this produces an unsigned installer
+  # naturally; the maintainer signs and uploads locally via npm run tauri:build:signed-win.
   build-windows-check:
     if: ${{ inputs.build_platform_artifacts }}
     needs: create-release
@@ -359,7 +360,7 @@ jobs:
           VITE_LASTFM_API_KEY: ${{ secrets.VITE_LASTFM_API_KEY }}
           VITE_LASTFM_API_SECRET: ${{ secrets.VITE_LASTFM_API_SECRET }}
         run: |
-          npm run tauri:build -- --bundles nsis --config '{"bundle":{"windows":{"signCommand":null}}}'
+          npm run tauri:build -- --bundles nsis
 
   generate-manifest:
     if: ${{ inputs.build_platform_artifacts }}

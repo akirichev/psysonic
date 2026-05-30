@@ -184,21 +184,27 @@ npm run tauri:build
 
 ## Signed Windows installer (maintainer, manual)
 
-CI builds a Windows bundle on every release as a compile check, but does not sign or publish it — the Certum SimplySign Cloud OV cert requires interactive OTP login and cannot be driven from a hosted runner. The signed installer that ships in a release is therefore produced locally by the maintainer:
+CI builds a Windows bundle on every release as a compile check, but does not sign or publish it — the code-signing cert this project uses (Certum SimplySign Cloud OV) requires interactive OTP login and cannot be driven from a hosted runner. The signed installer that ships in a release is therefore produced locally by the maintainer.
 
-1. Start **SimplySign Desktop** and log in (OTP via SimplySign Mobile). This makes the cloud cert available in `Cert:\CurrentUser\My`.
-2. `npm install && npm run tauri:build -- --bundles nsis`. The `--bundles nsis` flag is required — Tauri's default would also build an MSI, which rejects the `-dev` pre-release identifier. Tauri's `bundle.windows.signCommand` invokes `signtool` for the app `.exe`, every NSIS plugin DLL, and the final installer — all come out signed in one go.
-3. Verify the installer (which contains the signed app `.exe`):
+`src-tauri/tauri.conf.json` intentionally does **not** pin a `signCommand`, so a regular `npm run tauri:build` works for everyone building from source (just produces an unsigned installer). Signing is opt-in via a separate override config:
 
-   ```powershell
-   & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.28000.0\x64\signtool.exe" verify /pa /v `
-     "src-tauri\target\release\bundle\nsis\Psysonic_*-setup.exe"
+1. Copy `src-tauri/tauri.windows.signing.example.json` to `src-tauri/tauri.windows.signing.json` (gitignored) and fill in your local `signtool` path, timestamp URL and cert SHA1 thumbprint. The object form (`{ "cmd": ..., "args": [...] }`) is required — Tauri's string form splits on whitespace and breaks if the `signtool` path contains spaces.
+2. Make the cert available. For SimplySign, start **SimplySign Desktop** and complete OTP login so the cert shows up under `Cert:\CurrentUser\My`.
+3. Build with the override merged in:
+
+   ```bash
+   npm run tauri:build:signed-win
    ```
 
-   Note: `src-tauri\target\release\psysonic.exe` ends up unsigned on disk — Tauri rewrites that file as a build artifact *after* signing. The signed copy is the one packed into the installer (verify by extracting the installer with 7-Zip if needed).
-4. Upload the signed `*-setup.exe` to the GitHub release.
+   That's a shortcut for `npm run tauri:build -- --bundles nsis --config src-tauri/tauri.windows.signing.json`. `--bundles nsis` is required because Tauri's default would also build an MSI, which rejects the `-dev` pre-release identifier. `signtool` is invoked for the app `.exe`, every NSIS plugin DLL, and the final installer — all come out signed in one pass.
+4. Verify the signed installer:
 
-The signtool path and cert thumbprint are pinned in `src-tauri/tauri.conf.json` under `bundle.windows.signCommand` (object form — required because the signtool path contains whitespace). The cert renews ~2027-04-27.
+   ```powershell
+   signtool verify /pa /v "src-tauri\target\release\bundle\nsis\Psysonic_*-setup.exe"
+   ```
+
+   Note: `src-tauri\target\release\psysonic.exe` ends up unsigned on disk — Tauri rewrites that file as a build artifact *after* signing. The signed copy is the one packed into the installer (extract with 7-Zip if you need to verify it directly).
+5. Upload the signed `*-setup.exe` to the GitHub release.
 
 ---
 
