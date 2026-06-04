@@ -660,6 +660,55 @@ mod tests {
     }
 
     #[test]
+    fn live_search_equals_query_returns_no_false_positives() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track(
+                    "s1",
+                    "t1",
+                    "Intro",
+                    "Smith & Myers",
+                    "Volume 1 & 2",
+                    "al_vol",
+                    "ar1",
+                ),
+                track("s1", "t2", "Hello", "Adele", "25", "al_25", "ar2"),
+                track("s1", "t3", "Track", "Y.O.M.C.", "Single", "al_yo", "ar3"),
+            ])
+            .unwrap();
+        for q in ["1=2", "1=1", "M=c"] {
+            let resp = run_live_search(&store, "s1", q, None, 5, 5, 10).unwrap();
+            assert!(
+                resp.tracks.is_empty() && resp.albums.is_empty() && resp.artists.is_empty(),
+                "query {q:?} must not fuzzy-match unrelated library rows"
+            );
+        }
+    }
+
+    #[test]
+    fn live_search_censorship_stars_in_title_is_searchable() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track(
+                    "s1",
+                    "t1",
+                    "***Flawless",
+                    "Beyoncé",
+                    "BEYONCÉ",
+                    "al1",
+                    "ar1",
+                ),
+                track("s1", "t2", "Other Song", "Artist", "Album", "al2", "ar2"),
+            ])
+            .unwrap();
+        let resp = run_live_search(&store, "s1", "***Flawless", None, 5, 5, 10).unwrap();
+        assert_eq!(resp.tracks.len(), 1);
+        assert_eq!(resp.tracks[0].title, "***Flawless");
+    }
+
+    #[test]
     fn live_search_multiword_album_matches_any_token_not_only_first() {
         let store = LibraryStore::open_in_memory();
         TrackRepository::new(&store)
