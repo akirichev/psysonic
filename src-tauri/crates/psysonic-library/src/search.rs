@@ -171,6 +171,11 @@ pub(crate) fn fts_album_title_prefix_match_query(raw: &str) -> Option<String> {
     fts_prefix_token_expr(raw).map(|tokens| format!("album : {tokens}"))
 }
 
+/// All Albums title search — any query word may prefix-match the album column.
+pub(crate) fn fts_album_title_prefix_any_token_match_query(raw: &str) -> Option<String> {
+    fts_prefix_token_or_expr(raw).map(|tokens| format!("album : ({tokens})"))
+}
+
 /// Live Search album match — any query word may hit album or album_artist (Navidrome parity).
 pub(crate) fn fts_album_prefix_any_token_match_query(raw: &str) -> Option<String> {
     fts_prefix_token_or_expr(raw).map(|tokens| {
@@ -349,6 +354,36 @@ pub(crate) fn like_contains(raw: &str) -> String {
     format!("%{escaped}%")
 }
 
+/// Whitespace-split tokens for substring LIKE (any non-empty segment).
+pub(crate) fn like_name_tokens(raw: &str) -> Vec<String> {
+    raw.split_whitespace()
+        .map(str::trim)
+        .filter(|t| !t.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+/// `(col LIKE ? OR …)` — any query word may match as a case-insensitive substring.
+pub(crate) fn like_any_token_contains_clause(column: &str, raw: &str) -> Option<(String, Vec<String>)> {
+    let tokens = like_name_tokens(raw);
+    if tokens.is_empty() {
+        return None;
+    }
+    let col = format!("{column} COLLATE NOCASE");
+    if tokens.len() == 1 {
+        return Some((
+            format!("{col} LIKE ? ESCAPE '\\'"),
+            vec![like_contains(&tokens[0])],
+        ));
+    }
+    let parts: Vec<String> = tokens
+        .iter()
+        .map(|_| format!("{col} LIKE ? ESCAPE '\\'"))
+        .collect();
+    let params: Vec<String> = tokens.iter().map(|t| like_contains(t)).collect();
+    Some((format!("({})", parts.join(" OR ")), params))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -489,6 +524,23 @@ mod tests {
             fts_album_title_prefix_match_query("metal").as_deref(),
             Some("album : \"metal\"*")
         );
+    }
+
+    #[test]
+    fn fts_album_title_prefix_any_token_match_query_or_words() {
+        assert_eq!(
+            fts_album_title_prefix_any_token_match_query("dark side").as_deref(),
+            Some("album : (\"dark\"* OR \"side\"*)")
+        );
+    }
+
+    #[test]
+    fn like_any_token_contains_clause_ors_words() {
+        let (sql, params) = like_any_token_contains_clause("a.name", "dark side").unwrap();
+        assert!(sql.contains(" OR "));
+        assert_eq!(params.len(), 2);
+        assert_eq!(params[0], "%dark%");
+        assert_eq!(params[1], "%side%");
     }
 
     #[test]

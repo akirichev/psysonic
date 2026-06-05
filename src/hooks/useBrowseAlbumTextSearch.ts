@@ -3,12 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BROWSE_TEXT_DEBOUNCE_NETWORK_MS,
   BROWSE_TEXT_DEBOUNCE_RACE_MS,
-  browseRaceCountsAlbums,
-  raceBrowseWithLocalFallback,
   runLocalBrowseAlbums,
   runNetworkBrowseAlbums,
 } from '../utils/library/browseTextSearch';
 import { isClusterMultiLibraryScopeBrowse } from '../utils/serverCluster/clusterLibraryScopes';
+import { isClusterMode } from '../utils/serverCluster/clusterScope';
 
 /**
  * Debounced album title search with local-vs-network race when the
@@ -53,33 +52,24 @@ export function useBrowseAlbumTextSearch(
         return;
       }
 
-      if (isClusterMultiLibraryScopeBrowse()) {
-        const albums = await runLocalBrowseAlbums(
-          serverId,
-          q,
-          undefined,
-          losslessOnly,
-          true,
-        );
-        if (isStale()) return;
-        setTextSearchAlbums(albums ?? []);
+      const skipReadyCheck = isClusterMode() || isClusterMultiLibraryScopeBrowse();
+      const localAlbums = await runLocalBrowseAlbums(
+        serverId,
+        q,
+        undefined,
+        losslessOnly,
+        skipReadyCheck,
+      );
+      if (isStale()) return;
+      if (localAlbums != null) {
+        setTextSearchAlbums(localAlbums);
         setTextSearchLoading(false);
         return;
       }
 
-      const outcome = await raceBrowseWithLocalFallback(
-        isStale,
-        () => runLocalBrowseAlbums(serverId, q, undefined, losslessOnly),
-        () => runNetworkBrowseAlbums(q),
-        {
-          surface: 'albums_browse',
-          query: q,
-          indexEnabled,
-          counts: browseRaceCountsAlbums,
-        },
-      );
+      const networkAlbums = await runNetworkBrowseAlbums(q);
       if (isStale()) return;
-      setTextSearchAlbums(outcome?.result ?? null);
+      setTextSearchAlbums(networkAlbums);
       setTextSearchLoading(false);
     })();
   }, [debouncedFilter, indexEnabled, serverId, losslessOnly, musicLibraryFilterVersion]);

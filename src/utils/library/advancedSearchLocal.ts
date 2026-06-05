@@ -37,7 +37,8 @@ import { isLosslessSuffix } from './losslessFormats';
 import { albumIsCompilation } from './albumCompilation';
 import { OXIMEDIA_MOOD_SEARCH_ENABLED } from './trackEnrichment';
 import { clusterAdvancedSearchLocal } from './clusterAdvancedSearchLocal';
-import { isClusterMode } from '../serverCluster/clusterScope';
+import { narrowedClusterMemberIds } from '../serverCluster/clusterAlbumBrowseMembers';
+import { getActiveClusterMemberIds, isClusterMode } from '../serverCluster/clusterScope';
 
 export const ADVANCED_SEARCH_YEAR_ALBUM_LIMIT = 100;
 
@@ -324,6 +325,20 @@ export async function runLocalAdvancedSearch(
     );
     const run = async () => {
       if (isClusterMode()) {
+        // Mirror All Albums browse: one narrowed member → per-server SQL scope
+        // (`libraryScopeIds` on that member), not cluster merge without scopes.
+        const narrowed = narrowedClusterMemberIds(getActiveClusterMemberIds());
+        if (narrowed.length === 1) {
+          const scopedReq = buildRequest(
+            narrowed[0]!,
+            opts,
+            entityTypesFor(opts.resultType),
+            songsLimit,
+            0,
+            skipTotals,
+          );
+          return libraryAdvancedSearch(scopedReq);
+        }
         return await clusterAdvancedSearchLocal({
           query: req.query,
           entityTypes: req.entityTypes,

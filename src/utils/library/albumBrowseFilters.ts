@@ -130,9 +130,16 @@ export function filterAlbumsByNameTextQuery(
   albums: SubsonicAlbum[],
   query: string,
 ): SubsonicAlbum[] {
-  const needle = query.trim().toLowerCase();
-  if (!needle) return albums;
-  return albums.filter(a => a.name.toLowerCase().includes(needle));
+  const tokens = query
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (tokens.length === 0) return albums;
+  return albums.filter(a => {
+    const name = a.name.toLowerCase();
+    return tokens.some(token => name.includes(token));
+  });
 }
 
 export function countGenresFromAlbums(albums: SubsonicAlbum[]): GenreFilterOption[] {

@@ -68,7 +68,15 @@ pub fn run_cluster_advanced_search(
     }
 
     let merged_tracks = merge_tracks_by_cluster_key(store, all_tracks)?;
-    let merged_albums = merge_albums_by_album_key(store, all_albums)?;
+    let merged_albums = if req
+        .query
+        .as_ref()
+        .is_some_and(|q| !q.trim().is_empty())
+    {
+        dedupe_album_search_hits(all_albums)
+    } else {
+        merge_albums_by_album_key(store, all_albums)?
+    };
     let merged_artists = merge_artists_by_artist_key(store, all_artists)?;
 
     let totals = if req.skip_totals {
@@ -144,6 +152,19 @@ fn merge_tracks_by_cluster_key(
         }
     }
     Ok(out)
+}
+
+/// Text search — keep distinct `(server_id, album_id)` rows; do not collapse
+/// same-server albums that share an `album_key` (tribute / variant titles).
+fn dedupe_album_search_hits(albums: Vec<LibraryAlbumDto>) -> Vec<LibraryAlbumDto> {
+    let mut seen = HashSet::new();
+    let mut out = Vec::new();
+    for album in albums {
+        if seen.insert((album.server_id.clone(), album.id.clone())) {
+            out.push(album);
+        }
+    }
+    out
 }
 
 fn merge_albums_by_album_key(
@@ -366,6 +387,139 @@ mod tests {
         assert_eq!(resp.totals.tracks, 1);
         assert_eq!(resp.totals.albums, 0);
         assert_eq!(resp.totals.artists, 0);
+    }
+
+    fn insert_album(store: &LibraryStore, server: &str, id: &str, name: &str) {
+        store
+            .with_conn("misc", |c| {
+                c.execute(
+                    "INSERT INTO album (server_id, id, name, synced_at, raw_json) \
+                     VALUES (?1, ?2, ?3, 1, '{}')",
+                    rusqlite::params![server, id, name],
+                )
+            })
+            .unwrap();
+    }
+
+    #[test]
+    fn cluster_text_search_respects_per_member_library_scope() {
+        let store = LibraryStore::open_in_memory();
+        let mut in_scope = track("s1", "t1", "Band", "art-1", "Metallica", "alb-in");
+        in_scope.library_id = Some("lib-a".into());
+        let mut out_scope = track("s1", "t2", "Band", "art-2", "Metallica Tribute", "alb-out");
+        out_scope.library_id = Some("lib-b".into());
+        TrackRepository::new(&store)
+            .upsert_batch(&[in_scope, out_scope])
+            .unwrap();
+        rebuild_all_cluster_keys(&store).unwrap();
+
+        let mut scopes = HashMap::new();
+        scopes.insert("s1".into(), vec!["lib-a".into()]);
+
+        let resp = run_cluster_advanced_search(
+            &store,
+            LibraryClusterAdvancedSearchRequest {
+                servers_ordered: vec!["s1".into()],
+                query: Some("metallica".into()),
+                entity_types: vec![EntityKind::Album],
+                filters: Vec::new(),
+                starred_only: None,
+                restrict_album_ids: None,
+                restrict_album_scopes: HashMap::new(),
+                query_album_title_only: Some(true),
+                sort: Vec::new(),
+                limit: 50,
+                offset: 0,
+                skip_totals: false,
+                library_scopes: scopes,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(resp.albums.len(), 1);
+        assert_eq!(resp.albums[0].id, "alb-in");
+    }
+
+    #[test]
+    fn cluster_metallica_text_search_unions_table_and_track_catalog() {
+        let store = LibraryStore::open_in_memory();
+        insert_album(&store, "s1", "al_self", "Metallica");
+        store
+            .with_conn("misc", |c| {
+                c.execute(
+                    "UPDATE album SET song_count = 10 WHERE server_id = 's1' AND id = 'al_self'",
+                    [],
+                )
+            })
+            .unwrap();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track("s1", "t1", "Apocalyptica", "art-1", "Plays Metallica Vol. 2", "al_plays"),
+                track("s1", "t2", "Various", "art-2", "The Metallica Blacklist", "al_black"),
+                track("s1", "t3", "Pink Floyd", "art-3", "Wish You Were Here", "al_wish"),
+            ])
+            .unwrap();
+        rebuild_all_cluster_keys(&store).unwrap();
+
+        let resp = run_cluster_advanced_search(
+            &store,
+            LibraryClusterAdvancedSearchRequest {
+                servers_ordered: vec!["s1".into()],
+                query: Some("metallica".into()),
+                entity_types: vec![EntityKind::Album],
+                filters: Vec::new(),
+                starred_only: None,
+                restrict_album_ids: None,
+                restrict_album_scopes: HashMap::new(),
+                query_album_title_only: Some(true),
+                sort: Vec::new(),
+                limit: 50,
+                offset: 0,
+                skip_totals: false,
+                library_scopes: HashMap::new(),
+            },
+        )
+        .unwrap();
+
+        let ids: Vec<&str> = resp.albums.iter().map(|a| a.id.as_str()).collect();
+        assert_eq!(ids.len(), 3, "expected {ids:?}");
+        assert!(ids.contains(&"al_self"));
+        assert!(ids.contains(&"al_plays"));
+        assert!(ids.contains(&"al_black"));
+    }
+
+    #[test]
+    fn text_search_keeps_distinct_same_server_albums_with_shared_album_key() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track("s1", "t1", "Band", "art-1", "Metallica", "alb-1"),
+                track("s1", "t2", "Band", "art-2", "Plays Metallica Vol. 2", "alb-2"),
+            ])
+            .unwrap();
+        rebuild_all_cluster_keys(&store).unwrap();
+
+        let resp = run_cluster_advanced_search(
+            &store,
+            LibraryClusterAdvancedSearchRequest {
+                servers_ordered: vec!["s1".into()],
+                query: Some("metallica".into()),
+                entity_types: vec![EntityKind::Album],
+                filters: Vec::new(),
+                starred_only: None,
+                restrict_album_ids: None,
+                restrict_album_scopes: HashMap::new(),
+                query_album_title_only: Some(true),
+                sort: Vec::new(),
+                limit: 50,
+                offset: 0,
+                skip_totals: false,
+                library_scopes: HashMap::new(),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(resp.albums.len(), 2);
     }
 
     #[test]

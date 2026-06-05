@@ -22,8 +22,10 @@ use crate::filter::{self, EntityKind, FilterOp, SqlFragment};
 use crate::repos;
 use crate::search::{
     aliased_track_columns, aliased_track_columns_resolved_bpm, bpm_resolved_expr,
-    fts_album_prefix_match_query, fts_album_title_prefix_match_query, fts_column_prefix_query, fts_query_meets_min_len,
-    fts_track_prefix_match_query, library_scope_filter_sql, like_contains, PAGE_LIMIT_MAX,
+    fts_album_prefix_any_token_match_query, fts_album_title_prefix_any_token_match_query,
+    fts_column_prefix_query, fts_query_meets_min_len, fts_track_prefix_match_query,
+    library_scope_filter_sql, like_any_token_contains_clause, like_contains, like_name_tokens,
+    PAGE_LIMIT_MAX,
 };
 use crate::store::LibraryStore;
 
@@ -356,17 +358,87 @@ fn server_has_indexed_tracks(store: &LibraryStore, server_id: &str) -> Result<bo
 
 fn fts_album_text_match_query(req: &LibraryAdvancedSearchRequest, text: &str) -> Option<String> {
     if req.query_album_title_only == Some(true) {
-        fts_album_title_prefix_match_query(text)
+        fts_album_title_prefix_any_token_match_query(text)
     } else {
-        fts_album_prefix_match_query(text)
+        fts_album_prefix_any_token_match_query(text)
     }
 }
 
-/// Synced `album` rows + LIKE/scope filters — avoids FTS over the full track index.
+fn push_album_name_like_any_token(
+    w: &mut WhereBuilder,
+    column: &str,
+    text: &str,
+    applied: &mut BTreeSet<String>,
+) {
+    let Some((sql, params)) = like_any_token_contains_clause(column, text) else {
+        return;
+    };
+    w.push_params(
+        &sql,
+        params.into_iter().map(SqlValue::Text).collect(),
+    );
+    applied.insert("text".to_string());
+}
+
+/// `album` row or any child track tag may carry the searchable title.
+fn push_album_table_text_match(
+    w: &mut WhereBuilder,
+    text: &str,
+    applied: &mut BTreeSet<String>,
+) {
+    let tokens = like_name_tokens(text);
+    if tokens.is_empty() {
+        return;
+    }
+    let mut parts = Vec::new();
+    let mut params = Vec::new();
+    for token in tokens {
+        let pat = like_contains(&token);
+        parts.push(
+            "(a.name COLLATE NOCASE LIKE ? ESCAPE '\\' \
+             OR EXISTS (SELECT 1 FROM track t_mt \
+               WHERE t_mt.server_id = a.server_id AND t_mt.album_id = a.id \
+                 AND t_mt.deleted = 0 \
+                 AND t_mt.album COLLATE NOCASE LIKE ? ESCAPE '\\'))".to_string(),
+        );
+        params.push(SqlValue::Text(pat.clone()));
+        params.push(SqlValue::Text(pat));
+    }
+    w.push_params(&format!("({})", parts.join(" OR ")), params);
+    applied.insert("text".to_string());
+}
+
+/// Track group match: hot `t.album` tag or synced `album.name`.
+fn push_track_group_text_match(
+    w: &mut WhereBuilder,
+    text: &str,
+    applied: &mut BTreeSet<String>,
+) {
+    let tokens = like_name_tokens(text);
+    if tokens.is_empty() {
+        return;
+    }
+    let mut parts = Vec::new();
+    let mut params = Vec::new();
+    for token in tokens {
+        let pat = like_contains(&token);
+        parts.push(
+            "(t.album COLLATE NOCASE LIKE ? ESCAPE '\\' \
+             OR EXISTS (SELECT 1 FROM album a_mt \
+               WHERE a_mt.server_id = t.server_id AND a_mt.id = t.album_id \
+                 AND a_mt.name COLLATE NOCASE LIKE ? ESCAPE '\\'))".to_string(),
+        );
+        params.push(SqlValue::Text(pat.clone()));
+        params.push(SqlValue::Text(pat));
+    }
+    w.push_params(&format!("({})", parts.join(" OR ")), params);
+    applied.insert("text".to_string());
+}
+
+/// Synced `album` rows + scope filters — plain browse only (no free-text query).
 fn try_build_album_from_table(
     store: &LibraryStore,
     req: &LibraryAdvancedSearchRequest,
-    text: Option<&str>,
     scalar: &[&LibraryFilterClause],
     limit: u32,
     offset: u32,
@@ -381,14 +453,111 @@ fn try_build_album_from_table(
     if !crate::album_browse::album_table_usable(store, &req.server_id)? {
         return Ok(None);
     }
-    let table = build_album_from_table(store, req, text, scalar, limit, offset, skip_totals, applied)?;
-    if text.is_some() {
-        return Ok(Some(table));
-    }
+    let table = build_album_from_table(store, req, None, scalar, limit, offset, skip_totals, applied)?;
     if !table.0.is_empty() || table.1 > 0 {
         return Ok(Some(table));
     }
     Ok(None)
+}
+
+fn album_text_hit_key(a: &LibraryAlbumDto) -> (String, String) {
+    (a.server_id.clone(), a.id.clone())
+}
+
+/// Prefer synced `album` rows; fill gaps from FTS / track-derived groups.
+fn merge_album_text_hits(
+    table: Vec<LibraryAlbumDto>,
+    fts: Vec<LibraryAlbumDto>,
+    tracks: Vec<LibraryAlbumDto>,
+) -> Vec<LibraryAlbumDto> {
+    let mut by_key: std::collections::HashMap<(String, String), LibraryAlbumDto> =
+        std::collections::HashMap::new();
+    for a in tracks {
+        by_key.entry(album_text_hit_key(&a)).or_insert(a);
+    }
+    for a in fts {
+        by_key.entry(album_text_hit_key(&a)).or_insert(a);
+    }
+    for a in table {
+        by_key.insert(album_text_hit_key(&a), a);
+    }
+    let mut out: Vec<LibraryAlbumDto> = by_key.into_values().collect();
+    out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    out
+}
+
+/// All Albums text search — union `album` LIKE, track FTS, and track GROUP BY
+/// (substring + prefix). The `album`-table fast path alone misses titles that
+/// only appear on track rows (Navidrome parity / Live Search).
+#[allow(clippy::too_many_arguments)]
+fn build_album_text_search(
+    store: &LibraryStore,
+    req: &LibraryAdvancedSearchRequest,
+    text: &str,
+    scalar: &[&LibraryFilterClause],
+    limit: u32,
+    offset: u32,
+    skip_totals: bool,
+    applied: &mut BTreeSet<String>,
+) -> Result<(Vec<LibraryAlbumDto>, u32), String> {
+    applied.insert("text".to_string());
+    let fetch = limit.saturating_add(offset).clamp(1, PAGE_LIMIT_MAX);
+    let scope_ids = effective_library_scope_ids(req);
+    let mut scratch = BTreeSet::new();
+
+    let mut table = Vec::new();
+    // Match `list_albums`: multi-folder scope uses track GROUP BY, not album+EXISTS.
+    if scope_ids.len() <= 1
+        && !scalar_requires_lossless_track_grouping(scalar)
+        && !scalar_requires_track_derived_entities(scalar)
+        && crate::album_browse::album_table_usable(store, &req.server_id)?
+    {
+        table = build_album_from_table(
+            store,
+            req,
+            Some(text),
+            scalar,
+            fetch,
+            0,
+            true,
+            &mut scratch,
+        )?
+        .0;
+    }
+
+    let mut fts = Vec::new();
+    let mut tracks = Vec::new();
+    if server_has_indexed_tracks(store, &req.server_id)? {
+        if fts_query_meets_min_len(text) {
+            if let Some(q) = fts_album_text_match_query(req, text) {
+                fts = build_album_from_fts(
+                    store, req, &q, scalar, fetch, 0, true, &mut scratch,
+                )?
+                .0;
+            }
+        }
+        tracks = build_album_from_tracks(
+            store,
+            req,
+            Some(text),
+            scalar,
+            fetch,
+            0,
+            true,
+            &mut scratch,
+            true,
+        )?
+        .0;
+    }
+
+    let merged = merge_album_text_hits(table, fts, tracks);
+    let total = merged.len() as u32;
+    let page = merged
+        .into_iter()
+        .skip(offset as usize)
+        .take(limit as usize)
+        .collect();
+    Ok((page, if skip_totals { 0 } else { total }))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -412,17 +581,19 @@ fn build_album(
     if req.starred_only == Some(true) {
         return build_album_from_table(store, req, text, scalar, limit, offset, skip_totals, applied);
     }
+    if let Some(t) = text {
+        return build_album_text_search(
+            store, req, t, scalar, limit, offset, skip_totals, applied,
+        );
+    }
     if let Some(table) = try_build_album_from_table(
-        store, req, text, scalar, limit, offset, skip_totals, applied,
+        store, req, scalar, limit, offset, skip_totals, applied,
     )? {
         return Ok(table);
     }
     if server_has_indexed_tracks(store, &req.server_id)? {
-        if let Some(q) = text.and_then(|t| fts_album_text_match_query(req, t)) {
-            return build_album_from_fts(store, req, &q, scalar, limit, offset, skip_totals, applied);
-        }
         return build_album_from_tracks(
-            store, req, text, scalar, limit, offset, skip_totals, applied, false,
+            store, req, None, scalar, limit, offset, skip_totals, applied, false,
         );
     }
     if !scalar_requires_track_derived_entities(scalar) {
@@ -455,8 +626,7 @@ fn build_album_from_table(
     w.push_param("a.server_id = ?", SqlValue::Text(req.server_id.clone()));
     push_album_table_library_scope(&mut w, "a", &effective_library_scope_ids(req));
     if let Some(t) = text {
-        w.push_param("a.name LIKE ? ESCAPE '\\'", SqlValue::Text(like_contains(t)));
-        applied.insert("text".to_string());
+        push_album_table_text_match(&mut w, t, applied);
     }
     for c in scalar {
         if let Some(frag) = resolve_clause(c, EntityKind::Album)? {
@@ -519,8 +689,7 @@ fn build_album_from_tracks(
     }
     push_library_scope_where(&mut w, "t", &effective_library_scope_ids(req));
     if let Some(t) = text {
-        w.push_param("t.album LIKE ? ESCAPE '\\'", SqlValue::Text(like_contains(t)));
-        applied.insert("text".to_string());
+        push_track_group_text_match(&mut w, t, applied);
     }
     for c in scalar {
         if let Some(frag) = resolve_clause(c, EntityKind::Track)? {
@@ -539,7 +708,9 @@ fn build_album_from_tracks(
         applied,
     );
 
-    let select = "t.server_id, t.album_id, MAX(t.album), MAX(t.artist), MAX(t.artist_id), \
+    let select = "t.server_id, t.album_id, \
+        MAX(COALESCE((SELECT a2.name FROM album a2 WHERE a2.server_id = t.server_id AND a2.id = t.album_id), t.album)), \
+        MAX(t.artist), MAX(t.artist_id), \
         COUNT(*), SUM(t.duration_sec), MAX(t.year), MAX(t.genre), MAX(t.cover_art_id), \
         MAX(t.starred_at), MAX(t.synced_at)";
     let order = album_order_from_track_groups(&req.sort).unwrap_or_else(|| {
@@ -682,107 +853,94 @@ fn build_album_from_fts(
     applied: &mut BTreeSet<String>,
 ) -> Result<(Vec<LibraryAlbumDto>, u32), String> {
     applied.insert("text".to_string());
-    let need = limit.saturating_add(offset) as i64;
-    let pool = (need.saturating_mul(8)).clamp(64, 2_000);
+    let fetch = limit.saturating_add(offset).clamp(1, PAGE_LIMIT_MAX);
+    let pool = fts_candidate_pool_size(fetch, 0);
     let scope_ids = effective_library_scope_ids(req);
 
-    let mut w = WhereBuilder::new();
-    w.push_params(
-        &format!(
-            "t.rowid IN ({})",
-            scoped_fts_rowid_subquery_sql(pool, &scope_ids)
-        ),
-        {
-            let mut p = vec![SqlValue::Text(fts.to_string())];
-            p.extend(scoped_fts_subquery_bind(&req.server_id, &scope_ids));
-            p
-        },
-    );
-    w.push_raw("t.deleted = 0");
-    w.push_param("t.server_id = ?", SqlValue::Text(req.server_id.clone()));
-    w.push_raw("t.album_id IS NOT NULL AND t.album_id != ''");
-    push_library_scope_where(&mut w, "t", &scope_ids);
+    let mut extra = WhereBuilder::new();
+    extra.push_raw("t.deleted = 0");
+    extra.push_param("t.server_id = ?", SqlValue::Text(req.server_id.clone()));
+    extra.push_raw("t.album_id IS NOT NULL AND t.album_id != ''");
+    push_library_scope_where(&mut extra, "t", &scope_ids);
     for c in scalar {
         if let Some(frag) = resolve_clause(c, EntityKind::Track)? {
             applied.insert(c.field.clone());
-            w.push(frag);
+            extra.push(frag);
         }
     }
     if req.starred_only == Some(true) {
-        w.push_raw("t.starred_at IS NOT NULL");
+        extra.push_raw("t.starred_at IS NOT NULL");
         applied.insert("starred".to_string());
     }
     push_album_id_allowlist(
-        &mut w,
+        &mut extra,
         "t.album_id",
         req.restrict_album_ids.as_deref(),
         applied,
     );
+    let extra_sql = extra.where_sql();
 
-    let where_sql = w.where_sql();
+    let scope_tail = if let (Some(clause), _) = library_scope_filter_sql("t_fts", &scope_ids) {
+        format!(" AND {clause}")
+    } else {
+        String::new()
+    };
     store.with_read_conn(|conn| {
         let sql = format!(
-            "SELECT t.server_id, t.album_id, t.album, t.artist, t.artist_id, t.year, \
+            "SELECT t.server_id, t.album_id, \
+                    COALESCE(a.name, t.album), t.artist, t.artist_id, t.year, \
                     t.genre, t.cover_art_id, t.starred_at, t.synced_at \
-             FROM track t \
-             WHERE {where_sql}"
+             FROM (\
+               SELECT f.rowid, bm25(track_fts) AS fts_rank \
+               FROM track_fts f \
+               JOIN track t_fts ON t_fts.rowid = f.rowid \
+               WHERE track_fts MATCH ? \
+                 AND t_fts.server_id = ? \
+                 AND t_fts.deleted = 0{scope_tail} \
+               ORDER BY fts_rank \
+               LIMIT {pool}\
+             ) fts_pick \
+             JOIN track t ON t.rowid = fts_pick.rowid \
+             LEFT JOIN album a ON a.server_id = t.server_id AND a.id = t.album_id \
+             WHERE {extra_sql} \
+             GROUP BY t.album_id \
+             ORDER BY MIN(fts_pick.fts_rank) \
+             LIMIT ? OFFSET ?",
         );
-        let params = w.params.clone();
+        let mut params: Vec<SqlValue> = Vec::new();
+        params.push(SqlValue::Text(fts.to_string()));
+        params.extend(scoped_fts_subquery_bind(&req.server_id, &scope_ids));
+        params.extend(extra.params);
+        params.push(SqlValue::Integer(fetch as i64));
+        params.push(SqlValue::Integer(offset as i64));
+
         let mut stmt = conn.prepare(&sql)?;
-        let rows: Vec<AlbumBrowseTrackRow> =
-            stmt.query_map(rusqlite::params_from_iter(params.iter()), |r| {
-                Ok((
-                    r.get(0)?,
-                    r.get(1)?,
-                    r.get(2)?,
-                    r.get(3)?,
-                    r.get(4)?,
-                    r.get(5)?,
-                    r.get(6)?,
-                    r.get(7)?,
-                    r.get(8)?,
-                    r.get(9)?,
-                ))
+        let albums: Vec<LibraryAlbumDto> = stmt
+            .query_map(rusqlite::params_from_iter(params.iter()), |r| {
+                Ok(LibraryAlbumDto {
+                    server_id: r.get(0)?,
+                    id: r.get(1)?,
+                    name: r.get(2)?,
+                    artist: r.get(3)?,
+                    artist_id: r.get(4)?,
+                    song_count: None,
+                    duration_sec: None,
+                    year: r.get(5)?,
+                    genre: r.get(6)?,
+                    cover_art_id: r.get(7)?,
+                    starred_at: r.get(8)?,
+                    synced_at: r.get(9)?,
+                    raw_json: Value::Null,
+                })
             })?
             .collect::<rusqlite::Result<Vec<_>>>()?;
-
-        let mut seen = HashSet::new();
-        let mut deduped: Vec<LibraryAlbumDto> = Vec::new();
-        for (server_id, album_id, album, artist, artist_id, year, genre, cover_art_id, starred_at, synced_at) in rows {
-            if !seen.insert(album_id.clone()) {
-                continue;
-            }
-            deduped.push(LibraryAlbumDto {
-                server_id,
-                id: album_id,
-                name: album,
-                artist,
-                artist_id,
-                song_count: None,
-                duration_sec: None,
-                year,
-                genre,
-                cover_art_id,
-                starred_at,
-                synced_at,
-                raw_json: Value::Null,
-            });
-            if deduped.len() >= need as usize {
-                break;
-            }
-        }
 
         let total = if skip_totals {
             0
         } else {
-            deduped.len() as u32
+            albums.len() as u32
         };
-        let page = deduped
-            .into_iter()
-            .skip(offset as usize)
-            .take(limit as usize)
-            .collect();
-        Ok((page, total))
+        Ok((albums, total))
     })
 }
 
@@ -1466,6 +1624,17 @@ mod tests {
             .unwrap();
     }
 
+    fn mark_album_catalog_row(store: &LibraryStore, server: &str, id: &str) {
+        store
+            .with_conn("misc", |c| {
+                c.execute(
+                    "UPDATE album SET song_count = 1 WHERE server_id = ?1 AND id = ?2",
+                    rusqlite::params![server, id],
+                )
+            })
+            .unwrap();
+    }
+
     fn insert_artist(store: &LibraryStore, server: &str, id: &str, name: &str) {
         store
             .with_conn("misc", |c| {
@@ -1547,6 +1716,8 @@ mod tests {
         let store = LibraryStore::open_in_memory();
         insert_album(&store, "s1", "al1", "Aurora Nights", None, None);
         insert_album(&store, "s1", "al2", "Other", None, None);
+        mark_album_catalog_row(&store, "s1", "al1");
+        mark_album_catalog_row(&store, "s1", "al2");
         insert_artist(&store, "s1", "ar1", "Aurora Quartet");
         let mut r = req("s1", &[EntityKind::Album, EntityKind::Artist]);
         r.query = Some("aurora".into());
@@ -1555,6 +1726,169 @@ mod tests {
         assert_eq!(resp.albums[0].id, "al1");
         assert_eq!(resp.artists.len(), 1);
         assert_eq!(resp.artists[0].id, "ar1");
+    }
+
+    #[test]
+    fn album_title_search_matches_any_query_word_via_like() {
+        let store = LibraryStore::open_in_memory();
+        insert_album(&store, "s1", "al_moon", "The Dark Side of the Moon", None, None);
+        insert_album(&store, "s1", "al_other", "Wish You Were Here", None, None);
+        mark_album_catalog_row(&store, "s1", "al_moon");
+        mark_album_catalog_row(&store, "s1", "al_other");
+        let mut r = req("s1", &[EntityKind::Album]);
+        r.query = Some("moon side".into());
+        r.query_album_title_only = Some(true);
+        let resp = run_advanced_search(&store, &r).unwrap();
+        assert_eq!(resp.albums.len(), 1);
+        assert_eq!(resp.albums[0].id, "al_moon");
+    }
+
+    #[test]
+    fn album_title_search_matches_later_word_only() {
+        let store = LibraryStore::open_in_memory();
+        insert_album(&store, "s1", "al_moon", "The Dark Side of the Moon", None, None);
+        mark_album_catalog_row(&store, "s1", "al_moon");
+        let mut r = req("s1", &[EntityKind::Album]);
+        r.query = Some("moon".into());
+        r.query_album_title_only = Some(true);
+        let resp = run_advanced_search(&store, &r).unwrap();
+        assert_eq!(resp.albums.len(), 1);
+        assert_eq!(resp.albums[0].id, "al_moon");
+    }
+
+    #[test]
+    fn album_title_search_matches_synced_name_when_track_tag_differs() {
+        let store = LibraryStore::open_in_memory();
+        insert_album(
+            &store,
+            "s1",
+            "al_kerrang",
+            "Kerrang! Metallica Master of Puppets Revisited",
+            None,
+            None,
+        );
+        mark_album_catalog_row(&store, "s1", "al_kerrang");
+        let mut tr = track("s1", "t1", "A", "Various", "Master of Puppets Revisited");
+        tr.album_id = Some("al_kerrang".into());
+        TrackRepository::new(&store).upsert_batch(&[tr]).unwrap();
+        let mut r = req("s1", &[EntityKind::Album]);
+        r.query = Some("metallica".into());
+        r.query_album_title_only = Some(true);
+        let resp = run_advanced_search(&store, &r).unwrap();
+        assert_eq!(resp.albums.len(), 1);
+        assert_eq!(resp.albums[0].id, "al_kerrang");
+    }
+
+    fn track_with_lib(
+        server: &str,
+        id: &str,
+        album_id: &str,
+        album: &str,
+        library_id: Option<&str>,
+    ) -> TrackRow {
+        let mut t = track(server, id, "A", "art-1", album);
+        t.album_id = Some(album_id.into());
+        t.library_id = library_id.map(str::to_string);
+        t
+    }
+
+    #[test]
+    fn album_title_text_search_respects_single_library_scope() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track_with_lib("s1", "t1", "al-in", "Metallica", Some("lib-a")),
+                track_with_lib("s1", "t2", "al-out", "Metallica Covers", Some("lib-b")),
+            ])
+            .unwrap();
+        insert_album(&store, "s1", "al-in", "Metallica", None, None);
+        insert_album(&store, "s1", "al-out", "Metallica Covers", None, None);
+        mark_album_catalog_row(&store, "s1", "al-in");
+        mark_album_catalog_row(&store, "s1", "al-out");
+        let mut r = req("s1", &[EntityKind::Album]);
+        r.query = Some("metallica".into());
+        r.query_album_title_only = Some(true);
+        r.library_scope_ids = Some(vec!["lib-a".into()]);
+        let resp = run_advanced_search(&store, &r).unwrap();
+        assert_eq!(resp.albums.len(), 1);
+        assert_eq!(resp.albums[0].id, "al-in");
+    }
+
+    #[test]
+    fn album_title_text_search_unions_multi_library_scope() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track_with_lib("s1", "t1", "al-a", "Alpha Metallica", Some("lib-a")),
+                track_with_lib("s1", "t2", "al-b", "Beta Metallica", Some("lib-b")),
+                track_with_lib("s1", "t3", "al-c", "Gamma Other", Some("lib-c")),
+            ])
+            .unwrap();
+        insert_album(&store, "s1", "al-a", "Alpha Metallica", None, None);
+        insert_album(&store, "s1", "al-b", "Beta Metallica", None, None);
+        mark_album_catalog_row(&store, "s1", "al-a");
+        mark_album_catalog_row(&store, "s1", "al-b");
+        let mut r = req("s1", &[EntityKind::Album]);
+        r.query = Some("metallica".into());
+        r.query_album_title_only = Some(true);
+        r.library_scope_ids = Some(vec!["lib-a".into(), "lib-b".into()]);
+        let resp = run_advanced_search(&store, &r).unwrap();
+        let ids: Vec<&str> = resp.albums.iter().map(|a| a.id.as_str()).collect();
+        assert_eq!(ids.len(), 2, "expected {ids:?}");
+        assert!(ids.contains(&"al-a"));
+        assert!(ids.contains(&"al-b"));
+    }
+
+    #[test]
+    fn album_title_text_search_unions_sparse_table_and_track_catalog() {
+        let store = LibraryStore::open_in_memory();
+        insert_album(&store, "s1", "al_self", "Metallica", None, None);
+        store
+            .with_conn("misc", |c| {
+                c.execute(
+                    "UPDATE album SET song_count = 10 WHERE server_id = 's1' AND id = 'al_self'",
+                    [],
+                )
+            })
+            .unwrap();
+        let mut plays = track("s1", "t1", "A", "Apocalyptica", "Plays Metallica Vol. 2");
+        plays.album_id = Some("al_plays".into());
+        let mut blacklist = track("s1", "t2", "B", "Various", "The Metallica Blacklist");
+        blacklist.album_id = Some("al_black".into());
+        let mut other = track("s1", "t3", "C", "Pink Floyd", "Wish You Were Here");
+        other.album_id = Some("al_wish".into());
+        TrackRepository::new(&store)
+            .upsert_batch(&[plays, blacklist, other])
+            .unwrap();
+        let mut r = req("s1", &[EntityKind::Album]);
+        r.query = Some("metallica".into());
+        r.query_album_title_only = Some(true);
+        let resp = run_advanced_search(&store, &r).unwrap();
+        let ids: Vec<&str> = resp.albums.iter().map(|a| a.id.as_str()).collect();
+        assert_eq!(ids.len(), 3);
+        assert!(ids.contains(&"al_self"));
+        assert!(ids.contains(&"al_plays"));
+        assert!(ids.contains(&"al_black"));
+    }
+
+    #[test]
+    fn album_title_search_fts_matches_any_word_on_track_catalog() {
+        let store = LibraryStore::open_in_memory();
+        let mut moon = track("s1", "t1", "Breathe", "Pink Floyd", "The Dark Side of the Moon");
+        moon.album_id = Some("al_moon".into());
+        let mut other = track("s1", "t2", "Shine", "Pink Floyd", "Wish You Were Here");
+        other.album_id = Some("al_wish".into());
+        TrackRepository::new(&store)
+            .upsert_batch(&[moon, other])
+            .unwrap();
+        let mut r = req("s1", &[EntityKind::Album]);
+        r.query = Some("wish moon".into());
+        r.query_album_title_only = Some(true);
+        let resp = run_advanced_search(&store, &r).unwrap();
+        let ids: Vec<&str> = resp.albums.iter().map(|a| a.id.as_str()).collect();
+        assert_eq!(ids.len(), 2);
+        assert!(ids.contains(&"al_moon"));
+        assert!(ids.contains(&"al_wish"));
     }
 
     #[test]

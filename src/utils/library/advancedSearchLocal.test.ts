@@ -10,6 +10,7 @@ import {
   trackToSong,
   tryRunLocalAdvancedSearch,
 } from './advancedSearchLocal';
+import { invalidateLibraryReadyCache } from './libraryReady';
 import * as albumBrowseNetwork from './albumBrowseNetwork';
 
 const opts = (over: Partial<Parameters<typeof runLocalAdvancedSearch>[1]> = {}) => ({
@@ -38,6 +39,8 @@ const ready = () =>
 describe('runLocalAdvancedSearch', () => {
   beforeEach(() => {
     useLibraryIndexStore.setState({ masterEnabled: true });
+    invalidateLibraryReadyCache();
+    useAuthStore.setState({ activeClusterId: null, clusters: [] });
   });
 
   it('returns null (→ network fallback) when the index is not ready', async () => {
@@ -50,6 +53,30 @@ describe('runLocalAdvancedSearch', () => {
     useLibraryIndexStore.setState({ masterEnabled: false });
     const res = await runLocalAdvancedSearch('s1', opts({ query: 'x' }), 100);
     expect(res).toBeNull();
+  });
+
+  it('uses single-server advanced search when cluster scope narrows to one member', async () => {
+    useAuthStore.setState({
+      activeClusterId: 'cluster-1',
+      clusters: [{ id: 'cluster-1', name: 'C', serverIds: ['s1', 's2'] }],
+      musicLibraryFilterByServer: { s1: ['lib7'] },
+    });
+    ready();
+    let captured: unknown;
+    onInvoke('library_advanced_search', (args) => {
+      captured = args;
+      return {
+        artists: [],
+        albums: [],
+        tracks: [],
+        totals: { artists: 0, albums: 0, tracks: 0 },
+        source: 'local',
+      };
+    });
+    await runLocalAdvancedSearch('s1', opts({ query: 'metallica', resultType: 'albums' }), 100);
+    expect(captured).toMatchObject({
+      request: { serverId: expect.any(String), libraryScopeIds: ['lib7'] },
+    });
   });
 
   it('passes libraryScope from the sidebar music library filter', async () => {

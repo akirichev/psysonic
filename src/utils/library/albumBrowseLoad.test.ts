@@ -168,9 +168,10 @@ describe('filterAlbumsByNameTextQuery', () => {
     { id: '3', name: 'Random Title', artist: 'Abbey Road Band', artistId: 'b', songCount: 1, duration: 1 },
   ];
 
-  it('matches album title only, not artist name', () => {
+  it('matches any query word in album title only, not artist name', () => {
     expect(filterAlbumsByNameTextQuery(albums, 'abbey').map(a => a.id)).toEqual(['1']);
     expect(filterAlbumsByNameTextQuery(albums, 'beatles').map(a => a.id)).toEqual(['2']);
+    expect(filterAlbumsByNameTextQuery(albums, 'road abbey').map(a => a.id)).toEqual(['1']);
   });
 });
 
