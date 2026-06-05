@@ -1,43 +1,41 @@
 /**
  * Album browse — filter layering (every path must follow this order):
  *
- * 1. **Library scope** (sidebar picker) — SQL `libraryScopeIds` and/or REST album allowlist
- * 2. **Album attributes** (AND) — year, lossless, compilation, starred*
- * 3. **Genre** (OR union) — one `genre = ?` query per selected genre, results merged
- * 4. **Starred allowlist** — `restrictAlbumIds` when intersecting server favorites
- * 5. **Finalize** — always re-apply library scope allowlist on album rows (REST fallback)
- *
- * *Starred uses step 4 when server favorite ids are supplied; otherwise step 2 SQL filter.
+ * 1. **Library scope** — SQL `libraryScopeIds` on tracks with missing `library_id`
+ * 2. **Scoped album allowlist** — cached `getAlbumList2` ids (SQL `IN` when ≤900, else post-filter)
+ * 3. **Album attributes** (AND) — year, lossless, compilation, starred*
+ * 4. **Genre** (OR union) — one `genre = ?` query per selected genre, results merged
+ * 5. **Starred allowlist** — favorites `restrictAlbumIds` (intersected with step 2)
  */
 import {
   libraryAdvancedSearch,
   libraryListAlbumsByGenre,
+  libraryListLosslessAlbums,
   type LibraryFilterClause,
 } from '../../api/library';
 import type { SubsonicAlbum } from '../../api/subsonicTypes';
 import { libraryScopeInvokeArgs } from '../musicLibraryFilter';
 import {
-  filterAlbumsToServerLibraryScope,
-  filterClusterAlbumsToLibraryScope,
+  filterAlbumsByScopedAllowlist,
   intersectAlbumRestrictIds,
-  resolveScopedAlbumRestrictIds,
+  resolveScopedAlbumAllowlist,
+  scopedSqlAlbumAllowlist,
 } from './albumBrowseLibraryScope';
 import { dedupeById } from '../dedupeById';
 import { albumToAlbum } from './advancedSearchLocal';
-import { sharedServerFilters } from './albumBrowseFilters';
+import { albumBrowseIsPureLossless, sharedServerFilters } from './albumBrowseFilters';
 import { albumSortClauses, sortSubsonicAlbums } from './albumBrowseSort';
 import type { AlbumBrowsePageResult, AlbumBrowseQuery } from './albumBrowseTypes';
 import { GENRE_ALBUM_FETCH_LIMIT } from './albumBrowseTypes';
+
 export type AlbumBrowseInvokeContext = {
   scopeArgs: ReturnType<typeof libraryScopeInvokeArgs>;
-  effectiveRestrict: string[] | undefined;
-  /** Passed to `libraryAdvancedSearch` / `libraryListAlbumsByGenre`. */
-  invokeScope:
-    | { restrictAlbumIds: string[] }
-    | ReturnType<typeof libraryScopeInvokeArgs>;
+  invokeScope: ReturnType<typeof libraryScopeInvokeArgs> & {
+    restrictAlbumIds?: string[];
+  };
+  scopedAllowlist: Set<string> | null;
   useServerStarredIds: boolean;
   starredOnly: boolean | undefined;
-  /** Step 2 — year, lossless, compilation, starred (when not using allowlist). */
   attributeFilters: LibraryFilterClause[];
 };
 
@@ -47,37 +45,27 @@ export async function resolveAlbumBrowseInvokeContext(
   restrictAlbumIds?: string[],
 ): Promise<AlbumBrowseInvokeContext> {
   const scopeArgs = libraryScopeInvokeArgs(serverId);
-  const scopedRestrict = await resolveScopedAlbumRestrictIds(serverId);
-  const effectiveRestrict = intersectAlbumRestrictIds(restrictAlbumIds, scopedRestrict);
+  const scopedAllowlist = await resolveScopedAlbumAllowlist(serverId);
+  const allowlistArr = scopedAllowlist ? [...scopedAllowlist] : undefined;
+  const scopeSqlAllowlist = scopedSqlAlbumAllowlist(scopedAllowlist);
   const useServerStarredIds = restrictAlbumIds != null;
-  const invokeScope = effectiveRestrict != null
-    ? { restrictAlbumIds: effectiveRestrict }
-    : scopeArgs;
+  const favoriteAllowlist = useServerStarredIds
+    ? intersectAlbumRestrictIds(restrictAlbumIds, allowlistArr)
+    : undefined;
+  const sqlRestrict = favoriteAllowlist ?? scopeSqlAllowlist;
+  const invokeScope = {
+    ...scopeArgs,
+    ...(sqlRestrict?.length ? { restrictAlbumIds: sqlRestrict } : {}),
+  };
 
   return {
     scopeArgs,
-    effectiveRestrict,
     invokeScope,
+    scopedAllowlist,
     useServerStarredIds,
     starredOnly: useServerStarredIds ? undefined : (query.starredOnly || undefined),
     attributeFilters: sharedServerFilters(query, useServerStarredIds),
   };
-}
-
-/** Step 5 — enforce sidebar library scope on every album row. */
-export async function finalizeSingleServerAlbumBrowse(
-  serverId: string,
-  albums: SubsonicAlbum[],
-  effectiveRestrict?: string[],
-): Promise<SubsonicAlbum[]> {
-  return filterAlbumsToServerLibraryScope(serverId, albums, effectiveRestrict);
-}
-
-/** Step 5 (cluster) — per-member scoped allowlists. */
-export async function finalizeClusterAlbumBrowse(
-  albums: SubsonicAlbum[],
-): Promise<SubsonicAlbum[]> {
-  return filterClusterAlbumsToLibraryScope(albums);
 }
 
 function genreEqFilter(genre: string): LibraryFilterClause {
@@ -126,12 +114,12 @@ export async function searchSingleServerAlbumBrowse(
   const ctx = await resolveAlbumBrowseInvokeContext(serverId, query, restrictAlbumIds);
   const sort = albumSortClauses(query.sort);
 
-  const finish = async (
+  const finish = (
     albums: SubsonicAlbum[],
     hasMore: boolean,
-  ): Promise<AlbumBrowsePageResult> => {
-    let out = await finalizeSingleServerAlbumBrowse(serverId, albums, ctx.effectiveRestrict);
-    if (ctx.useServerStarredIds) out = markServerStarredAlbums(out);
+  ): AlbumBrowsePageResult => {
+    const scoped = filterAlbumsByScopedAllowlist(albums, ctx.scopedAllowlist);
+    const out = ctx.useServerStarredIds ? markServerStarredAlbums(scoped) : scoped;
     return { albums: out, hasMore };
   };
 
@@ -139,9 +127,8 @@ export async function searchSingleServerAlbumBrowse(
     if (offset > 0) return { albums: [], hasMore: false };
     try {
       const merged = await fetchMultiGenreAlbumUnion(serverId, query, ctx);
-      const finished = await finish(merged, false);
       return {
-        albums: sortSubsonicAlbums(finished.albums, query.sort),
+        albums: sortSubsonicAlbums(finish(merged, false).albums, query.sort),
         hasMore: false,
       };
     } catch {
@@ -184,6 +171,18 @@ export async function searchSingleServerAlbumBrowse(
   }
 
   try {
+    if (albumBrowseIsPureLossless(query)) {
+      const resp = await libraryListLosslessAlbums({
+        serverId,
+        ...ctx.scopeArgs,
+        restrictAlbumIds: ctx.invokeScope.restrictAlbumIds,
+        sort,
+        limit: pageSize,
+        offset,
+      });
+      if (resp.source !== 'local') return null;
+      return finish(resp.albums.map(albumToAlbum), resp.hasMore);
+    }
     const resp = await libraryAdvancedSearch({
       serverId,
       ...ctx.invokeScope,

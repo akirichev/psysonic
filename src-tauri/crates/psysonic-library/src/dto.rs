@@ -619,6 +619,14 @@ pub struct LibraryLosslessAlbumsRequest {
     pub server_id: String,
     #[serde(default)]
     pub library_scope: Option<String>,
+    /// Multiple music-folder ids (OR). Preferred over `library_scope` when length > 1.
+    #[serde(default)]
+    pub library_scope_ids: Option<Vec<String>>,
+    #[serde(default)]
+    pub sort: Vec<LibrarySortClause>,
+    /// Navidrome-scoped album ids from getAlbumList2 (authoritative when track `library_id` is sparse).
+    #[serde(default)]
+    pub restrict_album_ids: Option<Vec<String>>,
     #[serde(default = "default_lossless_limit")]
     pub limit: u32,
     #[serde(default)]
@@ -713,6 +721,9 @@ pub struct LibraryClusterAdvancedSearchRequest {
     pub starred_only: Option<bool>,
     #[serde(default)]
     pub restrict_album_ids: Option<Vec<String>>,
+    /// Per-member album allowlists from getAlbumList2 (`server_id` → album ids).
+    #[serde(default)]
+    pub restrict_album_scopes: HashMap<String, Vec<String>>,
     #[serde(default)]
     pub query_album_title_only: Option<bool>,
     #[serde(default)]

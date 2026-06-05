@@ -23,8 +23,21 @@ export function albumBrowseMultiGenreBrowse(query: AlbumBrowseQuery): boolean {
 }
 
 /** Lazy catalog slice mode — plain unfiltered browse (comp/year/genre/starred via server path). */
-export function albumBrowseUseSliceCatalog(query: AlbumBrowseQuery): boolean {
+export function albumBrowseUseSliceCatalog(
+  query: AlbumBrowseQuery,
+  libraryScopeActive = false,
+): boolean {
+  if (libraryScopeActive) return false;
   return !albumBrowseHasServerFilters(query);
+}
+
+/** Lossless-only All Albums browse — dedicated `library_list_lossless_albums` path. */
+export function albumBrowseIsPureLossless(query: AlbumBrowseQuery): boolean {
+  return query.losslessOnly
+    && !query.starredOnly
+    && query.year == null
+    && query.compFilter === 'all'
+    && query.genres.length === 0;
 }
 
 /** Favorites need the local index when combined with lossless or genre (AND). */

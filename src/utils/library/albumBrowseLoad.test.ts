@@ -3,6 +3,7 @@ import type { SubsonicAlbum } from '../../api/subsonicTypes';
 import {
   albumBrowseHasGenreFilter,
   albumBrowseHasServerFilters,
+  albumBrowseIsPureLossless,
   albumBrowseMultiGenreBrowse,
   albumBrowseStarredNeedsLocalIntersect,
   albumBrowseUseSliceCatalog,
@@ -43,6 +44,16 @@ describe('albumBrowseLoad', () => {
     expect(albumBrowseHasGenreFilter({ ...base, genres: ['Rock'] })).toBe(true);
   });
 
+  it('detects pure lossless browse', () => {
+    expect(albumBrowseIsPureLossless({ ...base, losslessOnly: true })).toBe(true);
+    expect(albumBrowseIsPureLossless({ ...base, losslessOnly: true, year: { from: 1990 } })).toBe(
+      false,
+    );
+    expect(albumBrowseIsPureLossless({ ...base, losslessOnly: true, genres: ['Rock'] })).toBe(
+      false,
+    );
+  });
+
   it('slice catalog only for plain browse', () => {
     expect(albumBrowseUseSliceCatalog(base)).toBe(true);
     expect(albumBrowseUseSliceCatalog({ ...base, compFilter: 'only' })).toBe(true);
@@ -50,6 +61,7 @@ describe('albumBrowseLoad', () => {
     expect(albumBrowseUseSliceCatalog({ ...base, year: { from: 1990 } })).toBe(false);
     expect(albumBrowseUseSliceCatalog({ ...base, losslessOnly: true })).toBe(false);
     expect(albumBrowseUseSliceCatalog({ ...base, starredOnly: true })).toBe(false);
+    expect(albumBrowseUseSliceCatalog(base, true)).toBe(false);
   });
 
   it('multi-genre disables offset pagination', () => {

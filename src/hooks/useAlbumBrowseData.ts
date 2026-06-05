@@ -29,6 +29,8 @@ import {
   type GenreFilterOption,
 } from '../utils/library/albumBrowseLoad';
 import { libraryScopeIdsForServer } from '../api/subsonicClient';
+import { isClusterLibraryScopeNarrowed } from '../utils/serverCluster/clusterLibraryScopes';
+import { isClusterMode } from '../utils/serverCluster/clusterScope';
 import {
   ALBUM_YEAR_FILTER_DEBOUNCE_MS,
   resolveAlbumYearBounds,
@@ -171,7 +173,9 @@ export function useAlbumBrowseData({
   const genreFiltered = albumBrowseHasGenreFilter(browseQuery);
   const multiGenreBrowse = albumBrowseMultiGenreBrowse(browseQuery);
   const serverFilterActive = albumBrowseHasServerFilters(browseQuery);
-  const libraryScopeActive = libraryScopeIdsForServer(serverId) != null;
+  const libraryScopeActive = isClusterMode()
+    ? isClusterLibraryScopeNarrowed()
+    : libraryScopeIdsForServer(serverId) != null;
   const narrowGenreList = yearFilterActive || losslessOnly || starredOnly || compFilterActive;
   /** When true, GenreFilterBar uses `genreCatalogOptions` instead of server `getGenres()`. */
   const genreCatalogActive = narrowGenreList || (indexEnabled && libraryScopeActive);
@@ -336,7 +340,7 @@ export function useAlbumBrowseData({
           );
           if (cancelled || generation !== loadGenerationRef.current) return;
           if (first != null) {
-            if (!albumBrowseUseSliceCatalog(browseQuery)) {
+            if (!albumBrowseUseSliceCatalog(browseQuery, libraryScopeActive)) {
               setBrowseMode('page');
               setAlbums(first.albums);
               setHasMore(first.hasMore);

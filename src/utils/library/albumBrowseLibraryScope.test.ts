@@ -64,6 +64,15 @@ describe('filterClusterAlbumsToLibraryScope', () => {
       album('other', 'srv-a'),
       album('any', 'srv-b'),
     ]);
-    expect(out.map(a => a.id)).toEqual(['in-scope', 'any']);
+    expect(out.map(a => a.id)).toEqual(['in-scope']);
+  });
+
+  it('drops albums from unscoped cluster members when another member is narrowed', async () => {
+    albumIdsInLibraryScope.mockResolvedValue(new Set(['a1']));
+    const out = await filterClusterAlbumsToLibraryScope([
+      album('a1', 'srv-a'),
+      album('b1', 'srv-b'),
+    ]);
+    expect(out.map(a => a.id)).toEqual(['a1']);
   });
 });

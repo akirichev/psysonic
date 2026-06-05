@@ -7,14 +7,22 @@ pub const LOSSLESS_SUFFIXES: &[&str] = &[
     "flac", "wav", "wave", "aiff", "aif", "dsf", "dff", "ape", "wv", "shn", "tta",
 ];
 
-/// `LOWER(alias.suffix) IN ('flac', …)` for SQL WHERE clauses.
+/// Effective suffix — hot `track.suffix`, then Navidrome `raw_json.suffix`.
+pub fn track_suffix_expr(table_alias: &str) -> String {
+    format!(
+        "LOWER(COALESCE(NULLIF({table_alias}.suffix, ''), \
+         CAST(json_extract({table_alias}.raw_json, '$.suffix') AS TEXT), ''))"
+    )
+}
+
+/// `track_suffix_expr IN ('flac', …)` for SQL WHERE clauses.
 pub fn track_is_lossless_sql(table_alias: &str) -> String {
     let list = LOSSLESS_SUFFIXES
         .iter()
         .map(|s| format!("'{s}'"))
         .collect::<Vec<_>>()
         .join(", ");
-    format!("LOWER({table_alias}.suffix) IN ({list})")
+    format!("{} IN ({list})", track_suffix_expr(table_alias))
 }
 
 /// Album has at least one indexed lossless track (same allowlist as browse).
@@ -50,6 +58,6 @@ mod tests {
         let sql = track_is_lossless_sql("t");
         assert!(sql.contains("'flac'"));
         assert!(sql.contains("'tta'"));
-        assert!(sql.starts_with("LOWER(t.suffix) IN ("));
+        assert!(sql.contains("json_extract(t.raw_json, '$.suffix')"));
     }
 }

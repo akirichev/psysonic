@@ -2,10 +2,8 @@ import type { SubsonicAlbum } from '../../api/subsonicTypes';
 import { dedupeById } from '../dedupeById';
 import { albumToAlbum } from './advancedSearchLocal';
 import { sharedServerFilters } from './albumBrowseFilters';
-import {
-  finalizeClusterAlbumBrowse,
-  searchSingleServerAlbumBrowse,
-} from './albumBrowseExecution';
+import { searchSingleServerAlbumBrowse } from './albumBrowseExecution';
+import { filterClusterAlbumsToLibraryScope } from './albumBrowseLibraryScope';
 import { albumSortClauses, sortSubsonicAlbums } from './albumBrowseSort';
 import { libraryIsReady } from './libraryReady';
 import type { AlbumBrowsePageResult, AlbumBrowseQuery } from './albumBrowseTypes';
@@ -39,7 +37,7 @@ async function runClusterAlbumBrowse(
   const sort = albumSortClauses(query.sort);
 
   const finish = async (albums: SubsonicAlbum[], hasMore: boolean) => {
-    let out = await finalizeClusterAlbumBrowse(albums);
+    let out = await filterClusterAlbumsToLibraryScope(albums);
     if (useServerStarredIds) out = markServerStarredAlbums(out);
     return { albums: out, hasMore };
   };
@@ -64,7 +62,7 @@ async function runClusterAlbumBrowse(
     if (pages.some(p => !p)) return { albums: [], hasMore: false };
     const merged = dedupeById(pages.flatMap(p => p!.albums.map(albumToAlbum)));
     return {
-      albums: sortSubsonicAlbums(await finalizeClusterAlbumBrowse(merged), query.sort),
+      albums: sortSubsonicAlbums((await finish(merged, false)).albums, query.sort),
       hasMore: false,
     };
   }
@@ -85,8 +83,10 @@ async function runClusterAlbumBrowse(
     skipTotals: true,
   });
   if (!resp) return { albums: [], hasMore: false };
-  return finish(resp.albums.map(albumToAlbum), resp.albums.length === pageSize);
+  return await finish(resp.albums.map(albumToAlbum), resp.albums.length === pageSize);
 }
+
+
 
 /** Local index: layered filters — see `albumBrowseExecution.ts`. */
 export async function runLocalAlbumBrowse(

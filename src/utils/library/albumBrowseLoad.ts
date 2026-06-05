@@ -12,6 +12,7 @@ export type {
 export {
   albumBrowseHasGenreFilter,
   albumBrowseHasServerFilters,
+  albumBrowseIsPureLossless,
   albumBrowseMultiGenreBrowse,
   albumBrowseUseSliceCatalog,
   filterAlbumsByCompilation,
@@ -19,7 +20,11 @@ export {
 } from './albumBrowseFilters';
 export { runLocalAlbumBrowse } from './albumBrowseLocal';
 
-import { albumBrowseHasServerFilters, countGenresFromAlbums, filterAlbumsByCompilation } from './albumBrowseFilters';
+import {
+  albumBrowseHasServerFilters,
+  countGenresFromAlbums,
+  filterAlbumsByCompilation,
+} from './albumBrowseFilters';
 import { runLocalAlbumBrowse } from './albumBrowseLocal';
 import { fetchAlbumBrowseNetwork } from './albumBrowseNetwork';
 import { fetchStarredAlbumBrowse } from './albumBrowseStarredFetch';
@@ -113,6 +118,9 @@ export async function fetchAlbumBrowsePage(
   if (indexEnabled && serverId) {
     const local = await runLocalAlbumBrowse(serverId, query, offset, pageSize);
     if (local != null) return local;
+    if (albumBrowseHasServerFilters(query)) {
+      return { albums: [], hasMore: false };
+    }
   }
 
   return fetchAlbumBrowseNetwork(query, offset, pageSize);

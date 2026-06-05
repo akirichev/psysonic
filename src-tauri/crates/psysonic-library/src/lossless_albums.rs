@@ -2,9 +2,12 @@
 //!
 //! Mirrors the frontend allowlist in `src/utils/library/losslessFormats.ts`.
 
-use crate::dto::{LibraryAlbumDto, LibraryLosslessAlbumsRequest, LibraryLosslessAlbumsResponse};
+use crate::dto::{
+    LibraryAlbumDto, LibraryLosslessAlbumsRequest, LibraryLosslessAlbumsResponse, LibrarySortClause,
+    SortDir,
+};
 use crate::lossless_formats::track_is_lossless_sql;
-use crate::search::library_scope_equals_sql;
+use crate::search::library_scope_filter_sql;
 use crate::store::LibraryStore;
 use rusqlite::types::Value as SqlValue;
 use serde_json::Value;
@@ -13,6 +16,45 @@ fn trimmed_nonempty(s: Option<&str>) -> Option<String> {
     s.map(str::trim)
         .filter(|s| !s.is_empty())
         .map(String::from)
+}
+
+fn effective_lossless_scope_ids(req: &LibraryLosslessAlbumsRequest) -> Vec<String> {
+    if let Some(ids) = &req.library_scope_ids {
+        let trimmed: Vec<_> = ids
+            .iter()
+            .filter(|s| !s.trim().is_empty())
+            .cloned()
+            .collect();
+        if !trimmed.is_empty() {
+            return trimmed;
+        }
+    }
+    trimmed_nonempty(req.library_scope.as_deref())
+        .map(|s| vec![s])
+        .unwrap_or_default()
+}
+
+fn lossless_album_order(sort: &[LibrarySortClause]) -> String {
+    let mut keys: Vec<String> = Vec::new();
+    for s in sort {
+        let col = match s.field.as_str() {
+            "name" => "COALESCE(a.name, la.album_name) COLLATE NOCASE",
+            "artist" => "COALESCE(a.artist, la.artist) COLLATE NOCASE",
+            _ => continue,
+        };
+        let dir = match s.dir {
+            SortDir::Asc => "ASC",
+            SortDir::Desc => "DESC",
+        };
+        keys.push(format!("{col} {dir}"));
+    }
+    if keys.is_empty() {
+        return "ORDER BY la.max_bit_depth DESC, \
+          COALESCE(a.name, la.album_name) COLLATE NOCASE ASC, la.album_id ASC"
+            .to_string();
+    }
+    keys.push("la.album_id ASC".to_string());
+    format!("ORDER BY {}", keys.join(", "))
 }
 
 /// Paginated lossless albums for one server. Returns empty when the index has
@@ -37,12 +79,25 @@ pub fn list_lossless_albums(
     ];
     let mut params: Vec<SqlValue> = vec![SqlValue::Text(req.server_id.clone())];
 
-    if let Some(scope) = trimmed_nonempty(req.library_scope.as_deref()) {
-        let clause = library_scope_equals_sql("t");
-        where_clauses.push(clause);
-        params.push(SqlValue::Text(scope));
+    let scope_ids = effective_lossless_scope_ids(req);
+    if !scope_ids.is_empty() {
+        let match_expr = crate::search::library_scope_match_sql("t");
+        where_clauses.push(format!("({match_expr}) IS NOT NULL AND TRIM({match_expr}) != ''"));
+        if let (Some(clause), scope_params) = library_scope_filter_sql("t", &scope_ids) {
+            where_clauses.push(clause);
+            for p in scope_params {
+                params.push(p);
+            }
+        }
     }
+    push_album_id_allowlist(
+        &mut where_clauses,
+        &mut params,
+        "t.album_id",
+        req.restrict_album_ids.as_deref(),
+    );
 
+    let order_sql = lossless_album_order(&req.sort);
     let where_sql = where_clauses.join(" AND ");
     let sql = format!(
         "SELECT \
@@ -81,9 +136,7 @@ pub fn list_lossless_albums(
            GROUP BY t.server_id, t.album_id \
          ) la \
          LEFT JOIN album a ON a.server_id = la.server_id AND a.id = la.album_id \
-         ORDER BY la.max_bit_depth DESC, \
-           COALESCE(a.name, la.album_name) COLLATE NOCASE ASC, \
-           la.album_id ASC \
+         {order_sql} \
          LIMIT ? OFFSET ?"
     );
 
@@ -104,6 +157,26 @@ pub fn list_lossless_albums(
         has_more,
         source: "local".to_string(),
     })
+}
+
+fn push_album_id_allowlist(
+    where_clauses: &mut Vec<String>,
+    params: &mut Vec<SqlValue>,
+    column: &str,
+    ids: Option<&[String]>,
+) {
+    let Some(ids) = ids else {
+        return;
+    };
+    if ids.is_empty() {
+        where_clauses.push("1 = 0".to_string());
+        return;
+    }
+    let placeholders = (0..ids.len()).map(|_| "?").collect::<Vec<_>>().join(", ");
+    where_clauses.push(format!("{column} IN ({placeholders})"));
+    for id in ids {
+        params.push(SqlValue::Text(id.clone()));
+    }
 }
 
 fn empty_response() -> LibraryLosslessAlbumsResponse {
@@ -203,6 +276,9 @@ mod tests {
         LibraryLosslessAlbumsRequest {
             server_id: server.into(),
             library_scope: None,
+            library_scope_ids: None,
+            sort: Vec::new(),
+            restrict_album_ids: None,
             limit,
             offset,
         }
@@ -269,6 +345,79 @@ mod tests {
         let resp = list_lossless_albums(&store, &scoped).unwrap();
         assert_eq!(resp.albums.len(), 1);
         assert_eq!(resp.albums[0].id, "al1");
+    }
+
+    #[test]
+    fn library_scope_ids_union_narrows_results() {
+        let store = LibraryStore::open_in_memory();
+        let mut a = track_with_suffix("s1", "t1", "al1", "A", "flac", 16);
+        a.library_id = Some("lib1".into());
+        let mut b = track_with_suffix("s1", "t2", "al2", "B", "flac", 16);
+        b.library_id = Some("lib2".into());
+        let mut c = track_with_suffix("s1", "t3", "al3", "C", "flac", 16);
+        c.library_id = Some("lib3".into());
+        TrackRepository::new(&store)
+            .upsert_batch(&[a, b, c])
+            .unwrap();
+
+        let mut scoped = req("s1", 50, 0);
+        scoped.library_scope_ids = Some(vec!["lib1".into(), "lib3".into()]);
+        let resp = list_lossless_albums(&store, &scoped).unwrap();
+        assert_eq!(resp.albums.len(), 2);
+        assert_eq!(resp.albums[0].id, "al1");
+        assert_eq!(resp.albums[1].id, "al3");
+    }
+
+    #[test]
+    fn name_sort_overrides_bit_depth_default() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track_with_suffix("s1", "t1", "al_z", "Zulu", "flac", 24),
+                track_with_suffix("s1", "t2", "al_a", "Alpha", "flac", 16),
+            ])
+            .unwrap();
+
+        let mut sorted = req("s1", 50, 0);
+        sorted.sort = vec![LibrarySortClause {
+            field: "name".into(),
+            dir: SortDir::Asc,
+        }];
+        let resp = list_lossless_albums(&store, &sorted).unwrap();
+        assert_eq!(resp.albums[0].id, "al_a");
+        assert_eq!(resp.albums[1].id, "al_z");
+    }
+
+    #[test]
+    fn matches_suffix_from_raw_json_when_column_null() {
+        let store = LibraryStore::open_in_memory();
+        let mut row = track_with_suffix("s1", "t1", "al_json", "Json", "mp3", 0);
+        row.suffix = None;
+        row.raw_json = r#"{"suffix":"flac","bitDepth":24}"#.into();
+        TrackRepository::new(&store)
+            .upsert_batch(&[row])
+            .unwrap();
+
+        let resp = list_lossless_albums(&store, &req("s1", 50, 0)).unwrap();
+        assert_eq!(resp.albums.len(), 1);
+        assert_eq!(resp.albums[0].id, "al_json");
+    }
+
+    #[test]
+    fn restrict_album_ids_narrows_lossless_results() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[
+                track_with_suffix("s1", "t1", "al_keep", "Keep", "flac", 24),
+                track_with_suffix("s1", "t2", "al_drop", "Drop", "flac", 24),
+            ])
+            .unwrap();
+
+        let mut restricted = req("s1", 50, 0);
+        restricted.restrict_album_ids = Some(vec!["al_keep".into()]);
+        let resp = list_lossless_albums(&store, &restricted).unwrap();
+        assert_eq!(resp.albums.len(), 1);
+        assert_eq!(resp.albums[0].id, "al_keep");
     }
 
     #[test]

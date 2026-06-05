@@ -384,6 +384,9 @@ export function libraryLiveSearch(request: LibraryLiveSearchRequest): Promise<Li
 export interface LibraryLosslessAlbumsRequest {
   serverId: string;
   libraryScope?: string | null;
+  libraryScopeIds?: string[] | null;
+  restrictAlbumIds?: string[] | null;
+  sort?: LibrarySortClause[];
   limit?: number;
   offset?: number;
 }
@@ -403,6 +406,9 @@ export function libraryListLosslessAlbums(
     request: {
       serverId: indexKey,
       libraryScope: request.libraryScope ?? undefined,
+      libraryScopeIds: request.libraryScopeIds ?? undefined,
+      restrictAlbumIds: request.restrictAlbumIds ?? undefined,
+      sort: request.sort,
       limit: request.limit,
       offset: request.offset,
     },
@@ -710,6 +716,8 @@ export interface LibraryClusterAdvancedSearchRequest {
   filters?: LibraryFilterClause[];
   starredOnly?: boolean | null;
   restrictAlbumIds?: string[] | null;
+  /** Per-member getAlbumList2 allowlists (`serverId` → album ids). */
+  restrictAlbumScopes?: Record<string, string[]>;
   queryAlbumTitleOnly?: boolean | null;
   sort?: LibrarySortClause[];
   limit: number;
@@ -729,6 +737,7 @@ export function libraryClusterAdvancedSearch(
       filters: request.filters ?? [],
       starredOnly: request.starredOnly ?? undefined,
       restrictAlbumIds: request.restrictAlbumIds ?? undefined,
+      restrictAlbumScopes: mapClusterLibraryScopesToIndexKeys(request.restrictAlbumScopes) ?? {},
       queryAlbumTitleOnly: request.queryAlbumTitleOnly ?? undefined,
       sort: request.sort ?? [],
       limit: request.limit,

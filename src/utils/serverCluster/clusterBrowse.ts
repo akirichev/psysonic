@@ -15,6 +15,7 @@ import { dedupeById } from '../dedupeById';
 import { albumToAlbum, artistToArtist, trackToSong } from '../library/advancedSearchLocal';
 import { albumBrowseHasServerFilters } from '../library/albumBrowseFilters';
 import type { AlbumBrowsePageResult, AlbumBrowseQuery } from '../library/albumBrowseTypes';
+import { filterClusterAlbumsToLibraryScope } from '../library/albumBrowseLibraryScope';
 import { buildClusterLibraryScopes, isClusterLibraryScopeNarrowed } from './clusterLibraryScopes';
 import { getActiveClusterId, isClusterMode } from './clusterScope';
 import { getClusterMergeMemberIds } from './representative';
@@ -80,8 +81,12 @@ export async function clusterBrowseAlbumsPage(
       offset,
       libraryScopes: buildClusterLibraryScopes(members),
     });
+    let albums = resp.albums.map(albumToAlbum);
+    if (isClusterLibraryScopeNarrowed()) {
+      albums = await filterClusterAlbumsToLibraryScope(albums);
+    }
     return {
-      albums: resp.albums.map(albumToAlbum),
+      albums,
       hasMore: resp.hasMore,
     };
   } catch {

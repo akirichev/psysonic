@@ -48,7 +48,12 @@ pub fn run_cluster_advanced_search(
             entity_types: req.entity_types.clone(),
             filters: req.filters.clone(),
             starred_only: req.starred_only,
-            restrict_album_ids: req.restrict_album_ids.clone(),
+            restrict_album_ids: req
+                .restrict_album_scopes
+                .get(server_id)
+                .filter(|ids| !ids.is_empty())
+                .cloned()
+                .or_else(|| req.restrict_album_ids.clone()),
             query_album_title_only: req.query_album_title_only,
             sort: req.sort.clone(),
             limit: per_server_limit,
@@ -345,6 +350,7 @@ mod tests {
                 filters: Vec::new(),
                 starred_only: None,
                 restrict_album_ids: None,
+                restrict_album_scopes: HashMap::new(),
                 query_album_title_only: None,
                 sort: Vec::new(),
                 limit: 50,
@@ -383,6 +389,7 @@ mod tests {
                 filters: Vec::new(),
                 starred_only: None,
                 restrict_album_ids: None,
+                restrict_album_scopes: HashMap::new(),
                 query_album_title_only: None,
                 sort: Vec::new(),
                 limit: 1,
