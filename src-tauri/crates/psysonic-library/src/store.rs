@@ -7,6 +7,8 @@ use std::time::Duration;
 use rusqlite::{params, Connection, OpenFlags};
 use tauri::Manager;
 
+use crate::server_cluster::{attach_cluster_database, attach_cluster_database_uri, cluster_db_path};
+
 /// Current head of the embedded migrations. Bump each time a new
 /// `migrations/NNN_*.sql` is added.
 pub const LIBRARY_DB_SCHEMA_VERSION: i64 = 1;
@@ -40,9 +42,17 @@ pub(crate) enum MigrationOutcome {
 /// In-memory tests share one DB across the read/write pair in a single store.
 static IN_MEMORY_DB_COUNTER: AtomicU64 = AtomicU64::new(0);
 
-fn in_memory_uri() -> String {
+fn in_memory_uri(prefix: &str) -> String {
     let n = IN_MEMORY_DB_COUNTER.fetch_add(1, Ordering::Relaxed);
-    format!("file:psysonic_library_mem_{n}?mode=memory&cache=shared")
+    format!("file:psysonic_{prefix}_mem_{n}?mode=memory&cache=shared")
+}
+
+fn in_memory_library_uri() -> String {
+    in_memory_uri("library")
+}
+
+fn in_memory_cluster_uri() -> String {
+    in_memory_uri("cluster")
 }
 
 pub struct LibraryStore {
@@ -67,10 +77,12 @@ impl LibraryStore {
         let write_conn = Connection::open(db_path).map_err(|e| e.to_string())?;
         configure_write_connection(&write_conn).map_err(|e| e.to_string())?;
         run_migrations(&write_conn).map_err(|e| e.to_string())?;
+        attach_cluster_file(&write_conn, db_path).map_err(|e| e.to_string())?;
         checkpoint_wal_conn(&write_conn, "open").map_err(|e| e.to_string())?;
         let read_conn = Connection::open_with_flags(db_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
             .map_err(|e| e.to_string())?;
         configure_read_connection(&read_conn).map_err(|e| e.to_string())?;
+        attach_cluster_file(&read_conn, db_path).map_err(|e| e.to_string())?;
         Ok(Self {
             write_conn: Mutex::new(write_conn),
             read_conn: Mutex::new(read_conn),
@@ -80,12 +92,15 @@ impl LibraryStore {
 
     /// Build an in-memory DB with the production schema applied.
     pub fn open_in_memory() -> Self {
-        let uri = in_memory_uri();
+        let uri = in_memory_library_uri();
+        let cluster_uri = in_memory_cluster_uri();
         let write_conn = Connection::open(&uri).expect("in-memory write connection");
         configure_write_connection(&write_conn).expect("write pragmas");
         run_migrations(&write_conn).expect("schema migration");
+        attach_cluster_database_uri(&write_conn, &cluster_uri).expect("cluster attach write");
         let read_conn = Connection::open(&uri).expect("in-memory read connection");
         configure_read_connection(&read_conn).expect("read pragmas");
+        attach_cluster_database_uri(&read_conn, &cluster_uri).expect("cluster attach read");
         Self {
             write_conn: Mutex::new(write_conn),
             read_conn: Mutex::new(read_conn),
@@ -217,9 +232,11 @@ impl LibraryStore {
 
         let reopened_write = Connection::open(active_path).map_err(|e| e.to_string())?;
         configure_write_connection(&reopened_write).map_err(|e| e.to_string())?;
+        attach_cluster_file(&reopened_write, active_path).map_err(|e| e.to_string())?;
         let reopened_read = Connection::open_with_flags(active_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
             .map_err(|e| e.to_string())?;
         configure_read_connection(&reopened_read).map_err(|e| e.to_string())?;
+        attach_cluster_file(&reopened_read, active_path).map_err(|e| e.to_string())?;
         *write_conn = reopened_write;
         *read_conn = reopened_read;
         Ok(Some(backup))
@@ -253,9 +270,11 @@ impl LibraryStore {
 
         let reopened_write = Connection::open(active_path).map_err(|e| e.to_string())?;
         configure_write_connection(&reopened_write).map_err(|e| e.to_string())?;
+        attach_cluster_file(&reopened_write, active_path).map_err(|e| e.to_string())?;
         let reopened_read = Connection::open_with_flags(active_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
             .map_err(|e| e.to_string())?;
         configure_read_connection(&reopened_read).map_err(|e| e.to_string())?;
+        attach_cluster_file(&reopened_read, active_path).map_err(|e| e.to_string())?;
         *write_conn = reopened_write;
         *read_conn = reopened_read;
         Ok(())
@@ -283,6 +302,10 @@ fn log_write_op(op: &str, lock_wait_ms: u128, exec_ms: u128) {
     } else if lock_wait_ms >= 50 || exec_ms >= 200 {
         crate::app_eprintln!("[library-db] write op={op} lock_wait_ms={lock_wait_ms} exec_ms={exec_ms}");
     }
+}
+
+fn attach_cluster_file(conn: &Connection, library_db_path: &Path) -> rusqlite::Result<()> {
+    attach_cluster_database(conn, &cluster_db_path(library_db_path))
 }
 
 fn library_db_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -477,6 +500,39 @@ fn handle_breaking_schema_bump(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn cluster_db_attached_on_open_in_memory() {
+        use crate::server_cluster::ATTACH_ALIAS;
+
+        let store = LibraryStore::open_in_memory();
+        let count: i64 = store
+            .with_conn("misc", |c| {
+                c.query_row(
+                    &format!(
+                        "SELECT COUNT(*) FROM {ATTACH_ALIAS}.sqlite_master \
+                         WHERE type='table' AND name='track_cluster_key'"
+                    ),
+                    [],
+                    |r| r.get(0),
+                )
+            })
+            .unwrap();
+        assert_eq!(count, 1);
+
+        let read_count: i64 = store
+            .with_read_conn(|c| {
+                c.query_row(
+                    &format!(
+                        "SELECT COUNT(*) FROM {ATTACH_ALIAS}.cluster_meta WHERE key = 'norm_version'"
+                    ),
+                    [],
+                    |r| r.get(0),
+                )
+            })
+            .unwrap();
+        assert_eq!(read_count, 1);
+    }
 
     #[test]
     fn read_conn_sees_committed_writes_from_write_conn() {

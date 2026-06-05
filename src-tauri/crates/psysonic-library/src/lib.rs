@@ -33,6 +33,7 @@ pub mod payload;
 pub mod repos;
 pub mod runtime;
 pub mod search;
+pub mod server_cluster;
 pub mod store;
 pub mod sync;
 pub(crate) mod track_fts;
