@@ -267,7 +267,9 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
     });
   }, [album?.id]);
 
-  const heroCoverRef = useAlbumCoverRef(album?.id, album?.coverArt);
+  const heroCoverRef = useAlbumCoverRef(album?.id, album?.coverArt, undefined, {
+    clusterSeedServerId: album?.clusterSeedServerId,
+  });
   const bgHandle = useCoverArt(heroCoverRef, HERO_BG_CSS_PX, {
     surface: 'dense',
     ensurePriority: 'high',
@@ -293,7 +295,7 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
       className="hero"
       role="banner"
       aria-label={t('hero.eyebrow')}
-      onClick={() => navigateToAlbum(album.id)}
+      onClick={() => navigateToAlbum(album.id, { seedServerId: album.clusterSeedServerId })}
       style={{ cursor: 'pointer' }}
     >
       {enableCoverArtBackground && !perfFlags.disableMainstageHeroBackdrop && heroInView && <HeroBg url={stableBgUrl.current} />}

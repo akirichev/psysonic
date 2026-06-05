@@ -103,7 +103,7 @@ export default function SongContextItems(props: ContextMenuItemsProps) {
               )}
               <div className="context-menu-divider" />
               {song.albumId && (
-                <div className="context-menu-item" onClick={() => handleAction(() => navigateToAlbum(song.albumId!))}>
+                <div className="context-menu-item" onClick={() => handleAction(() => navigateToAlbum(song.albumId!, { seedServerId: song.clusterBrowseServerId }))}>
                   <Disc3 size={14} /> {t('contextMenu.openAlbum')}
                 </div>
               )}
@@ -161,7 +161,7 @@ export default function SongContextItems(props: ContextMenuItemsProps) {
               <div className="context-menu-item" onClick={() => handleAction(() => copyShareLink('track', song.id))}>
                 <Share2 size={14} /> {t('contextMenu.shareLink')}
               </div>
-              <div className="context-menu-item" onClick={() => handleAction(() => openSongInfo(song.id))}>
+              <div className="context-menu-item" onClick={() => handleAction(() => openSongInfo(song.id, song.clusterBrowseServerId))}>
                 <Info size={14} /> {t('contextMenu.songInfo')}
               </div>
               {playlistId && playlistSongIndex !== undefined && (
@@ -246,7 +246,7 @@ export default function SongContextItems(props: ContextMenuItemsProps) {
               </div>
               <div className="context-menu-divider" />
               {song.albumId && (
-                <div className="context-menu-item" onClick={() => handleAction(() => navigateToAlbum(song.albumId!))}>
+                <div className="context-menu-item" onClick={() => handleAction(() => navigateToAlbum(song.albumId!, { seedServerId: song.clusterBrowseServerId }))}>
                   <Disc3 size={14} /> {t('contextMenu.openAlbum')}
                 </div>
               )}
@@ -298,7 +298,7 @@ export default function SongContextItems(props: ContextMenuItemsProps) {
               <div className="context-menu-item" onClick={() => handleAction(() => copyShareLink('track', song.id))}>
                 <Share2 size={14} /> {t('contextMenu.shareLink')}
               </div>
-              <div className="context-menu-item" onClick={() => handleAction(() => openSongInfo(song.id))}>
+              <div className="context-menu-item" onClick={() => handleAction(() => openSongInfo(song.id, song.clusterBrowseServerId))}>
                 <Info size={14} /> {t('contextMenu.songInfo')}
               </div>
               <div className="context-menu-divider" />

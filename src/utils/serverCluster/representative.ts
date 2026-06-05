@@ -47,11 +47,13 @@ export async function getClusterMergeMemberIds(clusterId: string): Promise<strin
   const { useAuthStore } = await import('../../store/authStore');
   const cluster = useAuthStore.getState().clusters.find(c => c.id === clusterId);
   if (!cluster) return [];
-  const out: string[] = [];
-  for (const server of getClusterMemberProfiles(cluster)) {
-    if (!isServerLikelyReachable(server.id)) continue;
-    if (!(await libraryIsReady(server.id))) continue;
-    out.push(server.id);
-  }
-  return out;
+  const members = getClusterMemberProfiles(cluster);
+  const ready = await Promise.all(
+    members.map(async server => {
+      if (!isServerLikelyReachable(server.id)) return null;
+      if (!(await libraryIsReady(server.id))) return null;
+      return server.id;
+    }),
+  );
+  return ready.filter((id): id is string => id != null);
 }

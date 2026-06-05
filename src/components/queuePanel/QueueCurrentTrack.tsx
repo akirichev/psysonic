@@ -17,6 +17,7 @@ import { PlaybackBufferingOverlay } from '../playback/PlaybackBufferingOverlay';
 import { CoverArtImage } from '../../cover/CoverArtImage';
 import { OpenArtistRefInline } from '../OpenArtistRefInline';
 import { usePlaybackTrackCoverRef } from '../../cover/useLibraryCoverRef';
+import { useNavigateToAlbum } from '../../hooks/useNavigateToAlbum';
 import { usePlayerStore } from '../../store/playerStore';
 import { resolveTrackArtistRefs } from '../../utils/playback/trackArtistRefs';
 
@@ -53,6 +54,7 @@ export function QueueCurrentTrack({
   lufsTgtBtnRef, lufsTgtMenuRef, lufsTgtPopStyle, t,
 }: Props) {
   const showBufferingOverlay = usePlayerStore(s => s.isPlaybackBuffering);
+  const navigateToAlbum = useNavigateToAlbum();
   const coverRef = usePlaybackTrackCoverRef(currentTrack);
   const artistRefs = resolveTrackArtistRefs(currentTrack);
   const enrichment = useQueueTrackEnrichment(currentTrack.id);
@@ -234,7 +236,7 @@ export function QueueCurrentTrack({
           </div>
           <div
             className={`queue-current-sub truncate${currentTrack.albumId ? ' is-link' : ''}`}
-            onClick={() => currentTrack.albumId && navigate(`/album/${currentTrack.albumId}`)}
+            onClick={() => currentTrack.albumId && navigateToAlbum(currentTrack.albumId, { seedServerId: currentTrack.clusterBrowseServerId })}
           >{currentTrack.album}</div>
           {currentTrack.year && (
             <div className="queue-current-sub">{currentTrack.year}</div>

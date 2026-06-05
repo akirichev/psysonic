@@ -117,7 +117,7 @@ function SongRow({ song, showBpm }: Props) {
           <span
             className="track-artist-link"
             style={{ cursor: 'pointer' }}
-            onClick={(e) => { e.stopPropagation(); navigateToAlbum(song.albumId!); }}
+            onClick={(e) => { e.stopPropagation(); navigateToAlbum(song.albumId!, { seedServerId: song.clusterBrowseServerId }); }}
             title={song.album}
           >{song.album}</span>
         ) : <span title={song.album}>{song.album}</span>}

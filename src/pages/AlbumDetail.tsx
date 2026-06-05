@@ -6,7 +6,7 @@ import type { SubsonicSong } from '../api/subsonicTypes';
 import { songToTrack } from '../utils/playback/songToTrack';
 import { shuffleArray } from '../utils/playback/shuffleArray';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
@@ -26,8 +26,10 @@ import { useCoverArt } from '../cover/useCoverArt';
 import {
   forgetAlbumDistinctDiscCovers,
   rememberAlbumDistinctDiscCovers,
+  coverScopeForServerProfileId,
 } from '../cover/ref';
 import { useAlbumCoverRef } from '../cover/useLibraryCoverRef';
+import { readClusterSeedServerId } from '../utils/navigation/albumDetailNavigation';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '../utils/ui/toast';
 import { useSelectionStore } from '../store/selectionStore';
@@ -45,6 +47,7 @@ export default function AlbumDetail() {
   const perfFlags = usePerfProbeFlags();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const losslessOnly = isLosslessMode(searchParams);
   const auth = useAuthStore();
@@ -104,8 +107,10 @@ export default function AlbumDetail() {
 const handlePlayAll = () => {
      if (!album || !effectiveSongs) return;
      const albumGenre = album.album.genre;
+     const seedSid = album.album.clusterSeedServerId;
      const tracks = effectiveSongs.map(s => {
        const t = songToTrack(s);
+       if (!t.clusterBrowseServerId && seedSid) t.clusterBrowseServerId = seedSid;
        if (!t.genre && albumGenre) t.genre = albumGenre;
        return t;
      });
@@ -115,8 +120,10 @@ const handlePlayAll = () => {
 const handleEnqueueAll = () => {
      if (!album || !effectiveSongs) return;
      const albumGenre = album.album.genre;
+     const seedSid = album.album.clusterSeedServerId;
      const tracks = effectiveSongs.map(s => {
        const t = songToTrack(s);
+       if (!t.clusterBrowseServerId && seedSid) t.clusterBrowseServerId = seedSid;
        if (!t.genre && albumGenre) t.genre = albumGenre;
        return t;
      });
@@ -126,8 +133,10 @@ const handleEnqueueAll = () => {
 const handleShuffleAll = () => {
      if (!album || !effectiveSongs) return;
      const albumGenre = album.album.genre;
+     const seedSid = album.album.clusterSeedServerId;
      const tracks = effectiveSongs.map(s => {
        const t = songToTrack(s);
+       if (!t.clusterBrowseServerId && seedSid) t.clusterBrowseServerId = seedSid;
        if (!t.genre && albumGenre) t.genre = albumGenre;
        return t;
      });
@@ -141,12 +150,15 @@ const handleShuffleAll = () => {
      if (orbitActive) { queueHint(); return; }
      if (!album || !effectiveSongs) return;
      const albumGenre = album.album.genre;
+     const seedSid = album.album.clusterSeedServerId;
      const tracks = effectiveSongs.map(s => {
        const t = songToTrack(s);
+       if (!t.clusterBrowseServerId && seedSid) t.clusterBrowseServerId = seedSid;
        if (!t.genre && albumGenre) t.genre = albumGenre;
        return t;
      });
      const track = tracks.find(t => t.id === song.id) || songToTrack(song);
+     if (!track.clusterBrowseServerId && seedSid) track.clusterBrowseServerId = seedSid;
      playTrack(track, tracks);
    };
 
@@ -281,11 +293,17 @@ const handleShuffleAll = () => {
     userRatingOverrides,
   });
 
+  const albumSeedServerId = album?.album.clusterSeedServerId ?? readClusterSeedServerId(location.state);
+  const albumCoverScope = useMemo(
+    () => coverScopeForServerProfileId(albumSeedServerId),
+    [albumSeedServerId],
+  );
+
   const albumCoverRefResolved = useAlbumCoverRef(
     album?.album.id,
     album?.album.coverArt,
     undefined,
-    { libraryResolve: true },
+    { libraryResolve: true, clusterSeedServerId: albumSeedServerId },
   );
   const albumCover = useCoverArt(albumCoverRefResolved, 400, { surface: 'sparse' });
   const resolvedCoverUrl = albumCover.src || null;
@@ -318,6 +336,7 @@ const handleShuffleAll = () => {
         headerArtistRefs={headerArtistRefs}
         songs={songs}
         coverArtId={info.coverArt}
+        coverServerScope={albumCoverScope}
         resolvedCoverUrl={resolvedCoverUrl}
         isStarred={isStarred}
         downloadProgress={null}

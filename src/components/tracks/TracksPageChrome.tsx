@@ -164,7 +164,7 @@ export default function TracksPageChrome({
                   <span
                     className={hero.albumId ? 'track-artist-link' : ''}
                     style={{ cursor: hero.albumId ? 'pointer' : 'default' }}
-                    onClick={() => hero.albumId && navigateToAlbum(hero.albumId)}
+                    onClick={() => hero.albumId && navigateToAlbum(hero.albumId, { seedServerId: hero.clusterBrowseServerId })}
                   >{hero.album}</span>
                 </>
               )}

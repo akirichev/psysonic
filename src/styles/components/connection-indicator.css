@@ -38,6 +38,11 @@
   box-shadow: 0 0 6px 2px rgba(166, 227, 161, 0.55);
 }
 
+.connection-led--degraded {
+  background: #f9e2af;
+  box-shadow: 0 0 6px 2px rgba(249, 226, 175, 0.55);
+}
+
 .connection-led--disconnected {
   background: #f38ba8;
   box-shadow: 0 0 6px 2px rgba(243, 139, 168, 0.55);

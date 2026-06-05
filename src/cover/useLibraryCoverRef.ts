@@ -7,14 +7,16 @@ import {
   albumCoverRefForPlayback,
   albumCoverRefForSong,
   artistCoverRef,
+  coverScopeForServerProfileId,
+  resolveCoverScopeForPlaybackTrack,
   resolveDistinctDiscCoversForAlbum,
-  resolvePlaybackCoverScope,
 } from './ref';
 import {
   resolveAlbumCoverRefFromLibrary,
   resolveArtistCoverRefFromLibrary,
   resolveTrackCoverRefFromLibrary,
 } from './resolveEntryLibrary';
+import type { Track } from '../store/playerStoreTypes';
 import { COVER_SCOPE_ACTIVE, coverScopeKey, type CoverArtRef, type CoverServerScope } from './types';
 
 function coverRefsEqual(a: CoverArtRef, b: CoverArtRef): boolean {
@@ -43,7 +45,17 @@ export type LibraryCoverRefOptions = {
    * detail headers and queue rows that need per-disc slots from SQLite.
    */
   libraryResolve?: boolean;
+  /** Cluster browse row — pin cover HTTP/disk to this library member. */
+  clusterSeedServerId?: string | null;
 };
+
+function coverScopeWithClusterSeed(
+  serverScope: CoverServerScope,
+  clusterSeedServerId?: string | null,
+): CoverServerScope {
+  if (!clusterSeedServerId) return serverScope;
+  return coverScopeForServerProfileId(clusterSeedServerId, serverScope);
+}
 
 /** Album grid / card — sync fallback, then local library index when indexed. */
 export function useAlbumCoverRef(
@@ -53,7 +65,11 @@ export function useAlbumCoverRef(
   options?: LibraryCoverRefOptions,
 ): CoverArtRef | null {
   const libraryResolve = options?.libraryResolve !== false;
-  const scopeKey = coverScopeKey(serverScope);
+  const resolvedScope = useMemo(
+    () => coverScopeWithClusterSeed(serverScope, options?.clusterSeedServerId),
+    [serverScope, options?.clusterSeedServerId],
+  );
+  const scopeKey = coverScopeKey(resolvedScope);
   const distinctDiscCovers = useMemo(
     () => resolveDistinctDiscCoversForAlbum(albumId ?? '', fallbackCoverArt),
     [albumId, fallbackCoverArt],
@@ -61,8 +77,8 @@ export function useAlbumCoverRef(
   const syncRef = useMemo(() => {
     const id = albumId?.trim();
     if (!id) return null;
-    return albumCoverRef(id, fallbackCoverArt, { serverScope, distinctDiscCovers });
-  }, [albumId, fallbackCoverArt, scopeKey, serverScope, distinctDiscCovers]);
+    return albumCoverRef(id, fallbackCoverArt, { serverScope: resolvedScope, distinctDiscCovers });
+  }, [albumId, fallbackCoverArt, scopeKey, resolvedScope, distinctDiscCovers]);
 
   const [ref, setRef] = useState<CoverArtRef | null>(syncRef);
 
@@ -72,7 +88,7 @@ export function useAlbumCoverRef(
     const id = albumId?.trim();
     if (!id) return;
     let cancelled = false;
-    void resolveAlbumCoverRefFromLibrary(id, fallbackCoverArt, serverScope).then(next => {
+    void resolveAlbumCoverRefFromLibrary(id, fallbackCoverArt, resolvedScope).then(next => {
       if (!cancelled) {
         setRef(prev => (prev && coverRefsEqual(prev, next) ? prev : next));
       }
@@ -80,7 +96,7 @@ export function useAlbumCoverRef(
     return () => {
       cancelled = true;
     };
-  }, [albumId, fallbackCoverArt, scopeKey, syncRef, libraryResolve]);
+  }, [albumId, fallbackCoverArt, scopeKey, syncRef, libraryResolve, resolvedScope]);
 
   return libraryResolve ? ref : syncRef;
 }
@@ -93,12 +109,16 @@ export function useArtistCoverRef(
   options?: LibraryCoverRefOptions,
 ): CoverArtRef | null {
   const libraryResolve = options?.libraryResolve !== false;
-  const scopeKey = coverScopeKey(serverScope);
+  const resolvedScope = useMemo(
+    () => coverScopeWithClusterSeed(serverScope, options?.clusterSeedServerId),
+    [serverScope, options?.clusterSeedServerId],
+  );
+  const scopeKey = coverScopeKey(resolvedScope);
   const syncRef = useMemo(() => {
     const id = artistId?.trim();
     if (!id) return null;
-    return artistCoverRef(id, fallbackCoverArt, serverScope);
-  }, [artistId, fallbackCoverArt, scopeKey, serverScope]);
+    return artistCoverRef(id, fallbackCoverArt, resolvedScope);
+  }, [artistId, fallbackCoverArt, scopeKey, resolvedScope]);
 
   const [ref, setRef] = useState<CoverArtRef | null>(syncRef);
 
@@ -108,7 +128,7 @@ export function useArtistCoverRef(
     const id = artistId?.trim();
     if (!id) return;
     let cancelled = false;
-    void resolveArtistCoverRefFromLibrary(id, fallbackCoverArt, serverScope).then(next => {
+    void resolveArtistCoverRefFromLibrary(id, fallbackCoverArt, resolvedScope).then(next => {
       if (!cancelled) {
         setRef(prev => (prev && coverRefsEqual(prev, next) ? prev : next));
       }
@@ -116,19 +136,24 @@ export function useArtistCoverRef(
     return () => {
       cancelled = true;
     };
-  }, [artistId, fallbackCoverArt, scopeKey, syncRef, libraryResolve]);
+  }, [artistId, fallbackCoverArt, scopeKey, syncRef, libraryResolve, resolvedScope]);
 
   return libraryResolve ? ref : syncRef;
 }
 
 /** Track row / song card — album-scoped; multi-CD from library when indexed. */
 export function useTrackCoverRef(
-  song: Pick<SubsonicSong, 'id' | 'albumId' | 'coverArt' | 'discNumber'> | null | undefined,
+  song: Pick<SubsonicSong, 'id' | 'albumId' | 'coverArt' | 'discNumber' | 'clusterBrowseServerId'> | null | undefined,
   serverScope: CoverServerScope = COVER_SCOPE_ACTIVE,
   options?: LibraryCoverRefOptions,
 ): CoverArtRef | undefined {
   const libraryResolve = options?.libraryResolve !== false;
-  const scopeKey = coverScopeKey(serverScope);
+  const browseServerId = song?.clusterBrowseServerId;
+  const resolvedScope = useMemo(
+    () => (browseServerId ? coverScopeForServerProfileId(browseServerId, serverScope) : serverScope),
+    [browseServerId, serverScope],
+  );
+  const scopeKey = coverScopeKey(resolvedScope);
   const songId = song?.id;
   const albumId = song?.albumId;
   const coverArt = song?.coverArt;
@@ -151,8 +176,9 @@ export function useTrackCoverRef(
     return albumCoverRefForSong(
       { id: songId, albumId, coverArt, discNumber },
       distinctDiscCovers,
+      resolvedScope,
     );
-  }, [songId, albumId, coverArt, discNumber, distinctDiscCovers]);
+  }, [songId, albumId, coverArt, discNumber, distinctDiscCovers, resolvedScope]);
 
   const [ref, setRef] = useState<CoverArtRef | undefined>(syncRef);
 
@@ -165,7 +191,7 @@ export function useTrackCoverRef(
     let cancelled = false;
     void resolveTrackCoverRefFromLibrary(
       { ...song, id: trackId, albumId: al },
-      serverScope,
+      resolvedScope,
       distinctDiscCovers,
     ).then(next => {
       if (!cancelled) {
@@ -190,16 +216,18 @@ export function useTrackCoverRef(
     return () => {
       cancelled = true;
     };
-  }, [song, songId, albumId, coverArt, discNumber, scopeKey, syncRef, libraryResolve, distinctDiscCovers]);
+  }, [song, songId, albumId, coverArt, discNumber, scopeKey, syncRef, libraryResolve, distinctDiscCovers, resolvedScope]);
 
   return libraryResolve ? ref : syncRef;
 }
 
 /** Now playing / queue — playback server scope + library-backed multi-CD. */
 export function usePlaybackTrackCoverRef(
-  track: Parameters<typeof albumCoverRefForPlayback>[0] | null | undefined,
+  track: (Parameters<typeof albumCoverRefForPlayback>[0] & Pick<Track, 'clusterBrowseServerId'>) | null | undefined,
 ): CoverArtRef | undefined {
   const queueServerId = usePlayerStore(s => s.queueServerId);
+  const queueIndex = usePlayerStore(s => s.queueIndex);
+  const queueRefServerId = usePlayerStore(s => s.queueItems[s.queueIndex]?.serverId ?? null);
   const queueLength = usePlayerStore(s => s.queueItems.length);
   const activeServerId = useAuthStore(s => s.activeServerId);
   const serversFingerprint = useAuthStore(s =>
@@ -209,8 +237,17 @@ export function usePlaybackTrackCoverRef(
   );
 
   const scope = useMemo(
-    () => resolvePlaybackCoverScope(),
-    [queueServerId, queueLength, activeServerId, serversFingerprint],
+    () => resolveCoverScopeForPlaybackTrack(track, queueRefServerId),
+    [
+      track,
+      track?.clusterBrowseServerId,
+      queueRefServerId,
+      queueServerId,
+      queueIndex,
+      queueLength,
+      activeServerId,
+      serversFingerprint,
+    ],
   );
   const scopeKey = coverScopeKey(scope);
 

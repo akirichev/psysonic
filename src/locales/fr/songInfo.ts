@@ -24,4 +24,5 @@ export const songInfo = {
   replayGainPeak: 'RG Crête de piste',
   mono: 'Mono',
   stereo: 'Stéréo',
+  clusterServer: 'Serveur',
 };

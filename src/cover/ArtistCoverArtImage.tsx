@@ -6,6 +6,7 @@ export type ArtistCoverArtImageProps = Omit<CoverArtImageProps, 'coverRef'> & {
   artistId: string;
   coverArt?: string | null;
   serverScope?: CoverServerScope;
+  clusterSeedServerId?: string | null;
   libraryResolve?: boolean;
 };
 
@@ -13,6 +14,7 @@ export function ArtistCoverArtImage({
   artistId,
   coverArt,
   serverScope,
+  clusterSeedServerId,
   libraryResolve = false,
   ...rest
 }: ArtistCoverArtImageProps) {
@@ -20,7 +22,7 @@ export function ArtistCoverArtImage({
     artistId,
     coverArt,
     serverScope ?? COVER_SCOPE_ACTIVE,
-    { libraryResolve },
+    { libraryResolve, clusterSeedServerId },
   );
   if (!coverRef) return null;
   return <CoverArtImage coverRef={coverRef} {...rest} />;

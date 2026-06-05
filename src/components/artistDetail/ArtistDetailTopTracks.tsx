@@ -16,10 +16,12 @@ interface Props {
   marginTop: string;
   playTopSongWithContinuation: (startIndex: number) => Promise<void>;
   losslessOnly?: boolean;
+  clusterSeedServerId?: string;
 }
 
 export default function ArtistDetailTopTracks({
   topSongs, albums, marginTop, playTopSongWithContinuation, losslessOnly = false,
+  clusterSeedServerId,
 }: Props) {
   const { t } = useTranslation();
   const currentTrack = usePlayerStore(s => s.currentTrack);
@@ -96,7 +98,9 @@ export default function ArtistDetailTopTracks({
           </button>
           {(() => {
             const albumForCover = topSongAlbumForCover(song, albums);
-            return albumForCover ? <ArtistTopTrackCover album={albumForCover} /> : null;
+            return albumForCover ? (
+              <ArtistTopTrackCover album={albumForCover} clusterSeedServerId={song.clusterBrowseServerId ?? clusterSeedServerId} />
+            ) : null;
           })()}
           <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             <div className="track-title">{song.title}</div>

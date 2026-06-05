@@ -3,6 +3,7 @@ import { listen, emitTo } from '@tauri-apps/api/event';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
 import { resolveQueueTrack } from './library/queueTrackView';
+import { getCurrentTrackStreamServerId } from './playback/playbackServer';
 import type { SubsonicOpenArtistRef } from '../api/subsonicTypes';
 
 export const MINI_WINDOW_LABEL = 'mini';
@@ -266,7 +267,9 @@ export function initMiniPlayerBridgeOnMain(): () => void {
     w.unminimize().catch(() => {});
     w.show().catch(() => {});
     w.setFocus().catch(() => {});
-    usePlayerStore.getState().openSongInfo(id);
+    const st = usePlayerStore.getState();
+    const serverId = st.currentTrack?.id === id ? getCurrentTrackStreamServerId() : undefined;
+    st.openSongInfo(id, serverId);
   });
 
   return () => {

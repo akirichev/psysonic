@@ -1,8 +1,11 @@
 import { getPlaybackServerId } from '../utils/playback/playbackServer';
 import { useAuthStore } from '../store/authStore';
-import { findServerByIdOrIndexKey } from '../utils/server/serverLookup';
+import { usePlayerStore } from '../store/playerStore';
+import { findServerByIdOrIndexKey, resolveServerIdForIndexKey } from '../utils/server/serverLookup';
 import type { SubsonicSong } from '../api/subsonicTypes';
+import type { Track } from '../store/playerStoreTypes';
 import type { CoverArtId, CoverArtRef, CoverCacheKind, CoverServerScope } from './types';
+import { COVER_SCOPE_ACTIVE } from './types';
 import {
   albumHasDistinctDiscCovers,
   coverEntryToRef,
@@ -185,6 +188,23 @@ export function coverArtRef(
   return albumCoverRef(id, id, serverScope);
 }
 
+/** Pin cover HTTP/disk scope to a specific library member (cluster browse rows). */
+export function coverScopeForServerProfileId(
+  serverId: string | undefined | null,
+  fallback: CoverServerScope = COVER_SCOPE_ACTIVE,
+): CoverServerScope {
+  if (!serverId?.trim()) return fallback;
+  const server = findServerByIdOrIndexKey(serverId);
+  if (!server) return fallback;
+  return {
+    kind: 'server',
+    serverId: server.id,
+    url: server.url,
+    username: server.username,
+    password: server.password,
+  };
+}
+
 export function resolvePlaybackCoverScope(): CoverServerScope {
   const playbackSid = getPlaybackServerId();
   const activeSid = useAuthStore.getState().activeServerId;
@@ -201,4 +221,28 @@ export function resolvePlaybackCoverScope(): CoverServerScope {
     }
   }
   return { kind: 'playback' };
+}
+
+/** Playback / queue cover scope — per-track cluster member when queue spans servers. */
+export function resolveCoverScopeForPlaybackTrack(
+  track: Pick<Track, 'clusterBrowseServerId'> | null | undefined,
+  queueRefServerId?: string | null,
+): CoverServerScope {
+  const fromTrack = coverScopeForServerProfileId(track?.clusterBrowseServerId);
+  if (fromTrack.kind === 'server') return fromTrack;
+  if (queueRefServerId) {
+    const sid = resolveServerIdForIndexKey(queueRefServerId);
+    const fromQueue = coverScopeForServerProfileId(sid);
+    if (fromQueue.kind === 'server') return fromQueue;
+  }
+  return resolvePlaybackCoverScope();
+}
+
+/** Playback integrations (MPRIS, Discord, prewarm) — current track's cluster member. */
+export function resolvePlaybackCoverScopeForCurrentTrack(): CoverServerScope {
+  const st = usePlayerStore.getState();
+  return resolveCoverScopeForPlaybackTrack(
+    st.currentTrack,
+    st.queueItems[st.queueIndex]?.serverId,
+  );
 }

@@ -111,7 +111,10 @@ export default function QueueItemContextItems(props: ContextMenuItemsProps) {
               <div className="context-menu-item" onClick={() => handleAction(() => copyShareLink('track', song.id))}>
                 <Share2 size={14} /> {t('contextMenu.shareLink')}
               </div>
-              <div className="context-menu-item" onClick={() => handleAction(() => openSongInfo(song.id))}>
+              <div className="context-menu-item" onClick={() => handleAction(() => openSongInfo(
+                song.id,
+                song.clusterBrowseServerId ?? queue[queueIndex ?? -1]?.serverId,
+              ))}>
                 <Info size={14} /> {t('contextMenu.songInfo')}
               </div>
             </>

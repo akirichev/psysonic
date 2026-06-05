@@ -4,7 +4,7 @@ import { useTrackCoverRef } from './useLibraryCoverRef';
 import { COVER_SCOPE_ACTIVE, type CoverServerScope } from './types';
 
 export type TrackCoverArtImageProps = Omit<CoverArtImageProps, 'coverRef'> & {
-  song: Pick<SubsonicSong, 'id' | 'albumId' | 'coverArt' | 'discNumber'>;
+  song: Pick<SubsonicSong, 'id' | 'albumId' | 'coverArt' | 'discNumber' | 'clusterBrowseServerId'>;
   serverScope?: CoverServerScope;
   /** Default false for browse rails; true for queue/player rows needing per-disc art. */
   libraryResolve?: boolean;

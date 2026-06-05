@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, Layers } from 'lucide-react';
 import { ConnectionStatus } from '../hooks/useConnectionStatus';
+import { useClusterConnectionLed } from '../hooks/useClusterConnectionLed';
 import { useAuthStore } from '../store/authStore';
 import { switchActiveCluster, switchActiveServer } from '../utils/server/switchActiveServer';
 import { showToast } from '../utils/ui/toast';
 import { serverListDisplayLabel } from '../utils/server/serverDisplayName';
 import type { ServerCluster } from '../utils/serverCluster/types';
-import ClusterMergeBanner from './ClusterMergeBanner';
 
 interface Props {
   status: ConnectionStatus;
@@ -35,6 +35,9 @@ export default function ConnectionIndicator({ status, isLan, serverName }: Props
   const activeCluster = activeClusterId
     ? clusters.find(cluster => cluster.id === activeClusterId) ?? null
     : null;
+  const clusterLed = useClusterConnectionLed(activeCluster);
+  const effectiveStatus =
+    activeCluster && clusterLed.ledStatus !== null ? clusterLed.ledStatus : status;
 
   const updateMenuPosition = useCallback(() => {
     const el = hostRef.current;
@@ -120,13 +123,19 @@ export default function ConnectionIndicator({ status, isLan, serverName }: Props
   };
 
   const label = isLan ? 'LAN' : t('connection.extern');
-  const tooltip = multi
-    ? t('connection.switchScopeHint')
-    : status === 'connected'
+  const metaTooltip = multi ? t('connection.switchScopeHint') : undefined;
+  const statusTooltip =
+    effectiveStatus === 'connected'
       ? t('connection.connectedTo', { server: serverName })
-      : status === 'disconnected'
+      : effectiveStatus === 'disconnected'
         ? t('connection.disconnectedFrom', { server: serverName })
-        : t('connection.checking');
+        : effectiveStatus === 'degraded'
+          ? t('connection.connectedTo', { server: serverName })
+          : t('connection.checking');
+  const clusterActive = Boolean(activeCluster);
+  const ledTooltip = clusterActive
+    ? (clusterLed.ledTooltip ?? t('connection.checking'))
+    : statusTooltip;
 
   const renderMenuItem = (id: string, labelText: string, active: boolean, onClick: () => void, icon?: React.ReactNode) => (
     <button
@@ -157,14 +166,21 @@ export default function ConnectionIndicator({ status, isLan, serverName }: Props
         className="connection-indicator"
         style={{ cursor: 'pointer' }}
         onClick={onTriggerClick}
-        data-tooltip={tooltip}
-        data-tooltip-pos="bottom"
         role={multi ? 'button' : undefined}
         aria-haspopup={multi ? 'menu' : undefined}
         aria-expanded={multi ? menuOpen : undefined}
       >
-        <div className={`connection-led connection-led--${status}`} />
-        <div className="connection-meta">
+        <div
+          className={`connection-led connection-led--${effectiveStatus}`}
+          data-tooltip={ledTooltip}
+          data-tooltip-pos="bottom"
+          {...(clusterActive ? { 'data-tooltip-wrap': true } : {})}
+        />
+        <div
+          className="connection-meta"
+          data-tooltip={metaTooltip}
+          data-tooltip-pos="bottom"
+        >
           <span className="connection-type">{label}</span>
           <span className="connection-server" style={{ display: 'flex', alignItems: 'center', gap: 4, maxWidth: 120 }}>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{serverName}</span>
@@ -174,7 +190,6 @@ export default function ConnectionIndicator({ status, isLan, serverName }: Props
           </span>
         </div>
       </div>
-      {activeCluster && <ClusterMergeBanner cluster={activeCluster} />}
       {multi &&
         menuOpen &&
         typeof document !== 'undefined' &&

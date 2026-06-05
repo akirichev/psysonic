@@ -2,9 +2,7 @@ import { uploadArtistImage } from '../api/subsonicPlaylists';
 import { useCoverArt } from '../cover/useCoverArt';
 import { useArtistCoverRef } from '../cover/useLibraryCoverRef';
 import { setRating, star, unstar } from '../api/subsonicStarRating';
-import { getAlbum } from '../api/subsonicLibrary';
 import type { SubsonicArtist, SubsonicAlbum, SubsonicSong, SubsonicArtistInfo } from '../api/subsonicTypes';
-import { songToTrack } from '../utils/playback/songToTrack';
 import { useEffect, useState, useRef, Fragment, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import AlbumCard from '../components/AlbumCard';
@@ -33,6 +31,8 @@ import {
 import { useArtistDetailData } from '../hooks/useArtistDetailData';
 import { useArtistSimilarArtists } from '../hooks/useArtistSimilarArtists';
 import {
+  buildArtistTopSongPlayQueue,
+  fetchArtistCatalogTracks,
   runArtistDetailPlayAll, runArtistDetailShuffle, runArtistDetailStartRadio,
 } from '../utils/componentHelpers/runArtistDetailPlay';
 import {
@@ -137,29 +137,12 @@ export default function ArtistDetail() {
   };
 
   const playTopSongWithContinuation = async (startIndex: number) => {
-    if (!artist || albums.length === 0) return;
+    if (!artist || topSongs.length === 0) return;
     setPlayAllLoading(true);
     try {
-      // Get all artist tracks ordered by album and track number
-      const results = await Promise.all(albums.map(a => getAlbum(a.id)));
-      const sorted = [...results].sort((a, b) => (a.album.year ?? 0) - (b.album.year ?? 0));
-      const allTracks = sorted.flatMap(r => [...r.songs].sort((a, b) => (a.track ?? 0) - (b.track ?? 0))).map(songToTrack);
-
-      // Top songs from clicked index onward
-      const topTracksFromIndex = topSongs.slice(startIndex).map(songToTrack);
-
-      // Track IDs for deduplication
-      const topSongIds = new Set(topSongs.map(s => s.id));
-
-      // Filter remaining tracks to exclude top songs (prevent duplicates)
-      const remainingTracks = allTracks.filter(tr => !topSongIds.has(tr.id));
-
-      // Build queue: remaining top songs + rest of artist catalog
-      const queue = [...topTracksFromIndex, ...remainingTracks];
-      
-      if (queue.length > 0) {
-        playTrack(queue[0], queue);
-      }
+      const catalogTracks = albums.length > 0 ? await fetchArtistCatalogTracks(albums) : [];
+      const queue = buildArtistTopSongPlayQueue(topSongs, startIndex, catalogTracks);
+      if (queue.length > 0) playTrack(queue[0], queue);
     } finally {
       setPlayAllLoading(false);
     }
@@ -173,6 +156,7 @@ export default function ArtistDetail() {
   const coverId = artist ? (artist.coverArt || artist.id) : '';
   const artistCoverRefResolved = useArtistCoverRef(artist?.id, artist?.coverArt, undefined, {
     libraryResolve: true,
+    clusterSeedServerId: artist?.clusterSeedServerId,
   });
   const artistCoverFallback = useCoverArt(artistCoverRefResolved, 80, { surface: 'sparse' });
 
@@ -346,6 +330,7 @@ export default function ArtistDetail() {
               marginTop={sectionMt('topTracks')}
               playTopSongWithContinuation={playTopSongWithContinuation}
               losslessOnly={losslessOnly}
+              clusterSeedServerId={artist.clusterSeedServerId}
             />
           );
 

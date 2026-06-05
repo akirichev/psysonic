@@ -73,6 +73,15 @@ pub fn compute_track_cluster_keys(
     })
 }
 
+/// Stable cross-server artist merge key from display name alone (spec §2.5).
+pub fn artist_key_from_display_name(name: &str) -> Option<String> {
+    let norm = norm_field(name);
+    if norm.is_empty() {
+        return None;
+    }
+    Some(hash_parts(&[&norm], None))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,6 +117,13 @@ mod tests {
         assert!(compute_track_cluster_keys(Some("A"), None, "", "Album").is_none());
         assert!(compute_track_cluster_keys(Some("A"), None, "Title", "").is_none());
         assert!(compute_track_cluster_keys(None, None, "Title", "Album").is_none());
+    }
+
+    #[test]
+    fn artist_key_from_display_name_matches_track_derived_key() {
+        let from_track = compute_track_cluster_keys(Some("Pink Floyd"), None, "x", "y").unwrap();
+        let from_name = artist_key_from_display_name("Pink Floyd").unwrap();
+        assert_eq!(from_track.artist_key, from_name);
     }
 
     #[test]

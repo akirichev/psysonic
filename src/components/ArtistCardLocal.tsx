@@ -18,7 +18,10 @@ interface Props {
 export default function ArtistCardLocal({ artist, linkQuery, libraryResolve = false }: Props) {
   const { t } = useTranslation();
   const navigateToArtist = useNavigateToArtist();
-  const coverRef = useArtistCoverRef(artist.id, artist.coverArt, undefined, { libraryResolve });
+  const coverRef = useArtistCoverRef(artist.id, artist.coverArt, undefined, {
+    libraryResolve,
+    clusterSeedServerId: artist.clusterSeedServerId,
+  });
 
   return (
     <div

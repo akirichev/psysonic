@@ -5,8 +5,17 @@ import { COVER_ARTIST_TOP_TRACK_CSS_PX } from '../../cover/layoutSizes';
 import type { TopSongAlbumCoverSource } from './topSongAlbumForCover';
 
 /** 32px album thumb — same cover ref path as {@link AlbumCard} on artist pages. */
-export default function ArtistTopTrackCover({ album }: { album: TopSongAlbumCoverSource }) {
-  const coverRef = useAlbumCoverRef(album.id, album.coverArt, undefined, { libraryResolve: false });
+export default function ArtistTopTrackCover({
+  album,
+  clusterSeedServerId,
+}: {
+  album: TopSongAlbumCoverSource;
+  clusterSeedServerId?: string;
+}) {
+  const coverRef = useAlbumCoverRef(album.id, album.coverArt, undefined, {
+    libraryResolve: false,
+    clusterSeedServerId,
+  });
   if (!coverRef) return null;
 
   return (

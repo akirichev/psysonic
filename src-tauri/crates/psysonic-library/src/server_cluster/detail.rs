@@ -13,6 +13,7 @@ use crate::search::aliased_track_columns;
 use crate::store::LibraryStore;
 
 use super::db::ATTACH_ALIAS;
+use super::keys::artist_key_from_display_name;
 use super::list_albums::list_merged_albums;
 use super::merge::{solo_partition_key, DURATION_TOLERANCE_SEC};
 use super::priority::{in_list_sql, priority_case_sql};
@@ -96,8 +97,8 @@ fn member_album_pairs(
         }
     }
 
-    let (in_placeholders, mut in_params) = in_list_sql(servers_ordered);
-    let (priority_sql, mut priority_params) = priority_case_sql("t.server_id", servers_ordered);
+    let (in_placeholders, in_params) = in_list_sql(servers_ordered);
+    let (priority_sql, priority_params) = priority_case_sql("t.server_id", servers_ordered);
     let sql = format!(
         "SELECT DISTINCT t.server_id, t.album_id, ({priority_sql}) AS priority_rank
            FROM track t
@@ -110,8 +111,8 @@ fn member_album_pairs(
           ORDER BY priority_rank, t.server_id, t.album_id"
     );
     let mut params: Vec<SqlValue> = Vec::new();
-    params.append(&mut priority_params);
-    params.append(&mut in_params);
+    params.extend(priority_params);
+    params.extend(in_params);
     params.push(SqlValue::Text(merge_key.to_string()));
 
     store.with_read_conn(|conn| {
@@ -231,7 +232,7 @@ fn merged_tracks_for_album_pairs(
     if pairs.is_empty() {
         return Ok(Vec::new());
     }
-    let (priority_sql, mut priority_params) = priority_case_sql("t.server_id", servers_ordered);
+    let (priority_sql, priority_params) = priority_case_sql("t.server_id", servers_ordered);
     let pair_clauses: Vec<String> = pairs
         .iter()
         .map(|_| "(t.server_id = ? AND t.album_id = ?)".to_string())
@@ -289,7 +290,7 @@ fn merged_tracks_for_album_pairs(
     );
 
     let mut params: Vec<SqlValue> = Vec::new();
-    params.append(&mut priority_params);
+    params.extend(priority_params);
     for (sid, aid, _) in pairs {
         params.push(SqlValue::Text(sid.clone()));
         params.push(SqlValue::Text(aid.clone()));
@@ -406,6 +407,9 @@ fn resolve_artist_seed(
         let exists: bool = store.with_read_conn(|conn| {
             conn.query_row(
                 "SELECT EXISTS(
+                   SELECT 1 FROM artist ar
+                    WHERE ar.server_id = ?1 AND ar.id = ?2
+                 ) OR EXISTS(
                    SELECT 1 FROM track
                     WHERE server_id = ?1 AND deleted = 0
                       AND (artist_id = ?2 OR artist = ?2)
@@ -526,8 +530,8 @@ fn merged_albums_for_artist_key(
     if servers_ordered.is_empty() {
         return Ok(Vec::new());
     }
-    let (in_placeholders, mut in_params) = in_list_sql(servers_ordered);
-    let (priority_sql, mut priority_params) = priority_case_sql("t.server_id", servers_ordered);
+    let (in_placeholders, in_params) = in_list_sql(servers_ordered);
+    let (priority_sql, priority_params) = priority_case_sql("t.server_id", servers_ordered);
     let sql = format!(
         "WITH candidates AS (
            SELECT
@@ -585,8 +589,8 @@ fn merged_albums_for_artist_key(
         ORDER BY COALESCE(a.name, t.album) COLLATE NOCASE",
     );
     let mut params: Vec<SqlValue> = Vec::new();
-    params.append(&mut priority_params);
-    params.append(&mut in_params);
+    params.extend(priority_params);
+    params.extend(in_params);
     params.push(SqlValue::Text(artist_key.to_string()));
 
     store.with_read_conn(|conn| {
@@ -625,8 +629,8 @@ fn merged_top_tracks_for_artist_key(
     if servers_ordered.is_empty() {
         return Ok(Vec::new());
     }
-    let (in_placeholders, mut in_params) = in_list_sql(servers_ordered);
-    let (priority_sql, mut priority_params) = priority_case_sql("t.server_id", servers_ordered);
+    let (in_placeholders, in_params) = in_list_sql(servers_ordered);
+    let (priority_sql, priority_params) = priority_case_sql("t.server_id", servers_ordered);
     let cols = aliased_track_columns("t");
     let sql = format!(
         "WITH candidates AS (
@@ -681,9 +685,168 @@ fn merged_top_tracks_for_artist_key(
         tol = DURATION_TOLERANCE_SEC,
     );
     let mut params: Vec<SqlValue> = Vec::new();
-    params.append(&mut priority_params);
-    params.append(&mut in_params);
+    params.extend(priority_params);
+    params.extend(in_params);
     params.push(SqlValue::Text(artist_key.to_string()));
+    params.push(SqlValue::Integer(limit as i64));
+
+    store.with_read_conn(|conn| {
+        let mut stmt = conn.prepare(&sql)?;
+        let rows = stmt.query_map(rusqlite::params_from_iter(params.iter()), |r| {
+            repos::row_to_track_row(r).map(|row| LibraryTrackDto::from_row(&row))
+        })?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+    })
+    .map_err(|e| e.to_string())
+}
+
+/// Album rows for an artist when cluster-key merge yields nothing — match the
+/// `album` table (and track-only albums) by artist id or display name.
+fn fallback_albums_for_artist_scope(
+    store: &LibraryStore,
+    servers_ordered: &[String],
+    artist_ref: &str,
+    artist_name: &str,
+) -> Result<Vec<LibraryAlbumDto>, String> {
+    if servers_ordered.is_empty() {
+        return Ok(Vec::new());
+    }
+    let (in_placeholders, in_params) = in_list_sql(servers_ordered);
+    let album_sql = format!(
+        "SELECT
+           a.server_id,
+           a.id,
+           a.name,
+           a.artist,
+           a.artist_id,
+           a.song_count,
+           a.duration_sec,
+           a.year,
+           a.genre,
+           a.cover_art_id,
+           a.starred_at,
+           a.synced_at,
+           a.raw_json
+         FROM album a
+        WHERE a.server_id IN ({in_placeholders})
+          AND (a.artist_id = ? OR a.artist = ? OR a.artist = ?)
+        ORDER BY a.name COLLATE NOCASE, a.server_id",
+    );
+    let mut album_params: Vec<SqlValue> = Vec::new();
+    album_params.extend(in_params.clone());
+    album_params.push(SqlValue::Text(artist_ref.to_string()));
+    album_params.push(SqlValue::Text(artist_ref.to_string()));
+    album_params.push(SqlValue::Text(artist_name.to_string()));
+
+    let from_table: Vec<LibraryAlbumDto> = store.with_read_conn(|conn| {
+        let mut stmt = conn.prepare(&album_sql)?;
+        let rows = stmt.query_map(rusqlite::params_from_iter(album_params.iter()), map_album_dto_row)?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+    })?;
+    if !from_table.is_empty() {
+        return Ok(from_table);
+    }
+
+    let (priority_sql, priority_params) = priority_case_sql("t.server_id", servers_ordered);
+    let track_sql = format!(
+        "WITH picks AS (
+           SELECT t.server_id, t.album_id, MIN(t.rowid) AS tid
+             FROM track t
+            WHERE t.deleted = 0
+              AND t.server_id IN ({in_placeholders})
+              AND t.album_id IS NOT NULL AND t.album_id != ''
+              AND (t.artist_id = ? OR t.artist = ? OR t.artist_id = ?)
+            GROUP BY t.server_id, t.album_id
+         )
+         SELECT
+           t.server_id,
+           t.album_id,
+           COALESCE(a.name, t.album),
+           COALESCE(a.artist, t.artist),
+           COALESCE(a.artist_id, t.artist_id),
+           COALESCE(a.song_count, (
+             SELECT COUNT(*) FROM track c
+              WHERE c.server_id = t.server_id AND c.album_id = t.album_id AND c.deleted = 0
+           )),
+           COALESCE(a.duration_sec, (
+             SELECT COALESCE(SUM(c.duration_sec), 0) FROM track c
+              WHERE c.server_id = t.server_id AND c.album_id = t.album_id AND c.deleted = 0
+           )),
+           COALESCE(a.year, t.year),
+           COALESCE(a.genre, t.genre),
+           COALESCE(a.cover_art_id, t.cover_art_id),
+           COALESCE(a.starred_at, t.starred_at),
+           COALESCE(a.synced_at, t.synced_at),
+           a.raw_json
+         FROM picks p
+         JOIN track t ON t.rowid = p.tid
+         LEFT JOIN album a ON a.server_id = t.server_id AND a.id = t.album_id
+        ORDER BY ({priority_sql}), COALESCE(a.name, t.album) COLLATE NOCASE",
+    );
+    let mut track_params: Vec<SqlValue> = Vec::new();
+    track_params.extend(in_params);
+    track_params.push(SqlValue::Text(artist_ref.to_string()));
+    track_params.push(SqlValue::Text(artist_name.to_string()));
+    track_params.push(SqlValue::Text(artist_ref.to_string()));
+    track_params.extend(priority_params);
+
+    store.with_read_conn(|conn| {
+        let mut stmt = conn.prepare(&track_sql)?;
+        let rows = stmt.query_map(rusqlite::params_from_iter(track_params.iter()), map_album_dto_row)?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+    })
+    .map_err(|e| e.to_string())
+}
+
+fn map_album_dto_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<LibraryAlbumDto> {
+    let raw: Option<String> = r.get(12)?;
+    Ok(LibraryAlbumDto {
+        server_id: r.get(0)?,
+        id: r.get(1)?,
+        name: r.get(2)?,
+        artist: r.get(3)?,
+        artist_id: r.get(4)?,
+        song_count: r.get(5)?,
+        duration_sec: r.get(6)?,
+        year: r.get(7)?,
+        genre: r.get(8)?,
+        cover_art_id: r.get(9)?,
+        starred_at: r.get(10)?,
+        synced_at: r.get(11)?,
+        raw_json: raw
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or(Value::Null),
+    })
+}
+
+fn fallback_top_tracks_for_artist_scope(
+    store: &LibraryStore,
+    servers_ordered: &[String],
+    artist_ref: &str,
+    artist_name: &str,
+    limit: u32,
+) -> Result<Vec<LibraryTrackDto>, String> {
+    if servers_ordered.is_empty() {
+        return Ok(Vec::new());
+    }
+    let (in_placeholders, in_params) = in_list_sql(servers_ordered);
+    let (priority_sql, priority_params) = priority_case_sql("t.server_id", servers_ordered);
+    let sql = format!(
+        "SELECT {cols}
+           FROM track t
+          WHERE t.deleted = 0
+            AND t.server_id IN ({in_placeholders})
+            AND (t.artist_id = ? OR t.artist = ? OR t.artist_id = ?)
+          ORDER BY ({priority_sql}), COALESCE(t.play_count, 0) DESC, t.title COLLATE NOCASE
+          LIMIT ?",
+        cols = aliased_track_columns("t"),
+    );
+    let mut params: Vec<SqlValue> = Vec::new();
+    params.extend(priority_params);
+    params.extend(in_params);
+    params.push(SqlValue::Text(artist_ref.to_string()));
+    params.push(SqlValue::Text(artist_name.to_string()));
+    params.push(SqlValue::Text(artist_ref.to_string()));
     params.push(SqlValue::Integer(limit as i64));
 
     store.with_read_conn(|conn| {
@@ -708,8 +871,6 @@ pub fn cluster_artist_detail(
         return Err("artist not found in cluster scope".to_string());
     };
 
-    let artist_key = artist_key_for_pair(store, &seed_sid, &seed_aid)?;
-
     let owner_sid = seed_sid.clone();
     let owner_aid = seed_aid.clone();
 
@@ -717,17 +878,39 @@ pub fn cluster_artist_detail(
         .or_else(|| fallback_artist_from_tracks(store, &owner_sid, &owner_aid).ok().flatten())
         .ok_or_else(|| "artist metadata missing".to_string())?;
 
-    let albums = if let Some(ref key) = artist_key {
+    let mut artist_key = artist_key_for_pair(store, &owner_sid, &owner_aid)?;
+    if artist_key.is_none() {
+        artist_key = artist_key_from_display_name(&artist.name);
+    }
+
+    let mut albums = if let Some(ref key) = artist_key {
         merged_albums_for_artist_key(store, servers_ordered, key)?
     } else {
         Vec::new()
     };
+    if albums.is_empty() {
+        albums = fallback_albums_for_artist_scope(
+            store,
+            servers_ordered,
+            &owner_aid,
+            &artist.name,
+        )?;
+    }
 
-    let top_tracks = if let Some(ref key) = artist_key {
+    let mut top_tracks = if let Some(ref key) = artist_key {
         merged_top_tracks_for_artist_key(store, servers_ordered, key, TOP_TRACKS_LIMIT)?
     } else {
         Vec::new()
     };
+    if top_tracks.is_empty() {
+        top_tracks = fallback_top_tracks_for_artist_scope(
+            store,
+            servers_ordered,
+            &owner_aid,
+            &artist.name,
+            TOP_TRACKS_LIMIT,
+        )?;
+    }
 
     Ok(LibraryClusterArtistDetailResponse {
         artist,

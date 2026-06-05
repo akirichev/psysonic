@@ -6,6 +6,7 @@ export type AlbumCoverArtImageProps = Omit<CoverArtImageProps, 'coverRef'> & {
   albumId: string;
   coverArt?: string | null;
   serverScope?: CoverServerScope;
+  clusterSeedServerId?: string | null;
   /** Live search: use API `coverArt` ids only (avoids library IPC per row). */
   libraryResolve?: boolean;
 };
@@ -14,6 +15,7 @@ export function AlbumCoverArtImage({
   albumId,
   coverArt,
   serverScope,
+  clusterSeedServerId,
   libraryResolve = false,
   ...rest
 }: AlbumCoverArtImageProps) {
@@ -21,7 +23,7 @@ export function AlbumCoverArtImage({
     albumId,
     coverArt,
     serverScope ?? COVER_SCOPE_ACTIVE,
-    { libraryResolve },
+    { libraryResolve, clusterSeedServerId },
   );
   if (!coverRef) return null;
   return <CoverArtImage coverRef={coverRef} {...rest} />;

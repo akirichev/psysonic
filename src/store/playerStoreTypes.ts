@@ -227,7 +227,7 @@ export interface PlayerState {
   ) => void;
   closeContextMenu: () => void;
 
-  songInfoModal: { isOpen: boolean; songId: string | null };
-  openSongInfo: (songId: string) => void;
+  songInfoModal: { isOpen: boolean; songId: string | null; serverId: string | null };
+  openSongInfo: (songId: string, serverId?: string | null) => void;
   closeSongInfo: () => void;
 }

@@ -65,7 +65,7 @@ function SongCard({
   const handleAlbumClick = (e: React.MouseEvent) => {
     if (!song.albumId) return;
     e.stopPropagation();
-    navigateToAlbum(song.albumId);
+    navigateToAlbum(song.albumId, { seedServerId: song.clusterBrowseServerId });
   };
 
   return (

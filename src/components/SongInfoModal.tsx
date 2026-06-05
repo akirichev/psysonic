@@ -1,4 +1,4 @@
-import { getSong } from '../api/subsonicLibrary';
+import { getSongForServer } from '../api/subsonicLibrary';
 import { libraryGetFacts } from '../api/library';
 import type { SubsonicSong } from '../api/subsonicTypes';
 import React, { useEffect, useState } from 'react';
@@ -22,6 +22,7 @@ import {
   type ParsedTrackEnrichment,
 } from '../utils/library/trackEnrichment';
 import i18n from '../i18n';
+import { useClusterMemberDisplayLabel } from '../hooks/useClusterMemberDisplayLabel';
 
 function formatSize(bytes?: number): string | null {
   if (!bytes) return null;
@@ -90,8 +91,9 @@ export default function SongInfoModal() {
     setEnrichment(null);
     setAbsolutePath(null);
     const songId = songInfoModal.songId;
+    const streamServerId = songInfoModal.serverId ?? useAuthStore.getState().activeServerId ?? '';
     void (async () => {
-      const s = await getSong(songId);
+      const s = streamServerId ? await getSongForServer(streamServerId, songId) : null;
       if (cancelled) return;
       setSong(s);
       setLoading(false);
@@ -99,8 +101,7 @@ export default function SongInfoModal() {
         setEnrichment(null);
         return;
       }
-      const auth = useAuthStore.getState();
-      const sid = auth.activeServerId;
+      const sid = streamServerId;
       const indexEnabled = sid ? useLibraryIndexStore.getState().isIndexEnabled(sid) : false;
       if (sid && indexEnabled && await libraryIsReady(sid)) {
         try {
@@ -115,11 +116,11 @@ export default function SongInfoModal() {
         setEnrichment(null);
       }
     })();
-    // Try the native API in parallel; only when the active server is Navidrome
+    // Try the native API in parallel; only when the stream server is Navidrome
     // and we have credentials. Failures are silent — modal falls back to
     // whatever the Subsonic `path` field carried (typically nothing).
+    const sid = streamServerId;
     const auth = useAuthStore.getState();
-    const sid = auth.activeServerId;
     const profile = sid ? auth.servers.find(p => p.id === sid) : null;
     const identity = sid ? auth.subsonicServerIdentityByServer[sid] : undefined;
     const isNavidrome = identity?.type?.trim().toLowerCase() === 'navidrome';
@@ -130,7 +131,9 @@ export default function SongInfoModal() {
       });
     }
     return () => { cancelled = true; };
-  }, [songInfoModal.isOpen, songInfoModal.songId]);
+  }, [songInfoModal.isOpen, songInfoModal.songId, songInfoModal.serverId]);
+
+  const clusterServerLabel = useClusterMemberDisplayLabel(songInfoModal.serverId);
 
   useEffect(() => {
     if (!songInfoModal.isOpen) return;
@@ -189,6 +192,9 @@ export default function SongInfoModal() {
                 <CopyableFieldRow label={t('songInfo.songTitle')} text={song.title} />
                 <CopyableFieldRow label={t('songInfo.artist')} text={song.artist} />
                 <CopyableFieldRow label={t('songInfo.album')} text={song.album} />
+                {clusterServerLabel && (
+                  <Row label={t('songInfo.clusterServer')} value={clusterServerLabel} />
+                )}
                 {song.albumArtist && song.albumArtist !== song.artist && (
                   <Row label={t('songInfo.albumArtist')} value={song.albumArtist} />
                 )}

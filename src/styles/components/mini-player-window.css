@@ -599,6 +599,12 @@ html[data-perf-disable-home-artwork-clip="true"] .home-lite-artwork .song-card-c
   letter-spacing: -0.01em;
   text-align: left;
 }
+.np-info-cluster-server {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  text-align: left;
+}
 .np-info-artist-bio {
   margin: 0;
   font-size: 13px;

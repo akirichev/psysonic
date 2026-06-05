@@ -16,6 +16,7 @@ export const nowPlayingInfo = {
   enableBandsintownPromptDesc: 'Opcional. Carga conciertos del artista actual vía la API pública de Bandsintown.',
   enableBandsintownPrivacy: 'Al activar, el nombre del artista actual se envía a la API de Bandsintown para obtener fechas de gira. No se envían datos de cuenta ni personales.',
   enableBandsintownAction: 'Activar',
+  clusterServer: 'Servidor',
   role: {
     artist: 'Artista',
     albumArtist: 'Artista del álbum',

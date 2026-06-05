@@ -16,6 +16,7 @@ export const nowPlayingInfo = {
   enableBandsintownPromptDesc: 'Optional. Loads concerts for the current artist via the public Bandsintown API.',
   enableBandsintownPrivacy: 'When enabled, the name of the currently playing artist is sent to the Bandsintown API to fetch tour dates. No account or personal data leaves your device.',
   enableBandsintownAction: 'Enable',
+  clusterServer: 'Server',
   role: {
     artist: 'Artist',
     albumArtist: 'Album artist',

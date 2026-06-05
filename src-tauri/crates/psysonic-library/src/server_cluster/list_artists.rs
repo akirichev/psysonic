@@ -24,63 +24,95 @@ pub fn list_merged_artists(
     }
     let limit = limit.clamp(1, PAGE_LIMIT_MAX);
     let offset = offset.min(i32::MAX as u32) as i32;
-    let (in_placeholders, mut in_params) = in_list_sql(servers_ordered);
-    let (priority_sql, mut priority_params) = priority_case_sql("t.server_id", servers_ordered);
+    let (in_placeholders, in_params) = in_list_sql(servers_ordered);
+    let (priority_sql, priority_params) = priority_case_sql("c.server_id", servers_ordered);
 
+    // Artist-first catalog: one row per artist (not per track), then merge by
+    // `artist_key`. The previous track-scan + window over every row was O(tracks)
+    // with correlated album counts and blocked the Artists browse page on large libs.
     let sql = format!(
-        "WITH candidates AS (
+        "WITH artist_keys AS (
            SELECT
-             t.rowid AS tid,
              t.server_id,
              COALESCE(NULLIF(t.artist_id, ''), t.artist) AS artist_ref,
-             k.artist_key,
-             ({priority_sql}) AS priority_rank
+             MIN(k.artist_key) AS artist_key
            FROM track t
-           LEFT JOIN {ATTACH_ALIAS}.track_cluster_key k
+           INNER JOIN {ATTACH_ALIAS}.track_cluster_key k
              ON k.server_id = t.server_id AND k.track_id = t.id
            WHERE t.deleted = 0
              AND t.server_id IN ({in_placeholders})
-             AND COALESCE(t.artist, '') != ''
+             AND k.artist_key IS NOT NULL
+           GROUP BY t.server_id, artist_ref
          ),
-         partitioned AS (
-           SELECT c.tid,
+         track_artists AS (
+           SELECT
+             t.server_id,
+             COALESCE(NULLIF(t.artist_id, ''), t.artist) AS id,
+             MAX(t.artist) AS name,
+             COUNT(DISTINCT CASE
+               WHEN t.album_id IS NOT NULL AND t.album_id != '' THEN t.album_id
+             END) AS album_count,
+             MAX(t.synced_at) AS synced_at,
+             CAST(NULL AS TEXT) AS raw_json
+           FROM track t
+           WHERE t.deleted = 0
+             AND t.server_id IN ({in_placeholders})
+             AND COALESCE(t.artist, '') != ''
+             AND NOT EXISTS (
+               SELECT 1 FROM artist ar
+                WHERE ar.server_id = t.server_id
+                  AND ar.id = COALESCE(NULLIF(t.artist_id, ''), t.artist)
+             )
+           GROUP BY t.server_id, COALESCE(NULLIF(t.artist_id, ''), t.artist)
+         ),
+         catalog AS (
+           SELECT ar.server_id, ar.id, ar.name, ar.album_count, ar.synced_at, ar.raw_json
+             FROM artist ar
+            WHERE ar.server_id IN ({in_placeholders})
+           UNION ALL
+           SELECT server_id, id, name, album_count, synced_at, raw_json
+             FROM track_artists
+         ),
+         candidates AS (
+           SELECT
+             c.server_id,
+             c.id,
+             c.name,
+             c.album_count,
+             c.synced_at,
+             c.raw_json,
+             ({priority_sql}) AS priority_rank,
              CASE
-               WHEN c.artist_key IS NULL THEN 'solo:' || c.server_id || ':' || c.artist_ref
-               ELSE c.artist_key
-             END AS merge_key,
-             c.priority_rank
-           FROM candidates c
+               WHEN ak.artist_key IS NOT NULL THEN ak.artist_key
+               ELSE 'solo:' || c.server_id || ':' || c.id
+             END AS merge_key
+           FROM catalog c
+           LEFT JOIN artist_keys ak
+             ON ak.server_id = c.server_id AND ak.artist_ref = c.id
          ),
          winners AS (
-           SELECT tid,
+           SELECT
+             server_id,
+             id,
+             name,
+             album_count,
+             synced_at,
+             raw_json,
              ROW_NUMBER() OVER (PARTITION BY merge_key ORDER BY priority_rank) AS rn
-           FROM partitioned
+           FROM candidates
          )
-         SELECT
-           t.server_id,
-           COALESCE(NULLIF(t.artist_id, ''), t.artist),
-           COALESCE(ar.name, t.artist),
-           COALESCE(ar.album_count, (
-             SELECT COUNT(DISTINCT c.album_id) FROM track c
-              WHERE c.server_id = t.server_id
-                AND c.deleted = 0
-                AND c.album_id IS NOT NULL
-                AND (c.artist_id = t.artist_id OR c.artist = t.artist)
-           )),
-           COALESCE(ar.synced_at, t.synced_at),
-           ar.raw_json
-         FROM winners w
-         JOIN track t ON t.rowid = w.tid
-         LEFT JOIN artist ar ON ar.server_id = t.server_id
-           AND ar.id = COALESCE(NULLIF(t.artist_id, ''), t.artist)
-        WHERE w.rn = 1
-        ORDER BY COALESCE(ar.name, t.artist) COLLATE NOCASE, t.server_id
-        LIMIT ? OFFSET ?",
+         SELECT server_id, id, name, album_count, synced_at, raw_json
+           FROM winners
+          WHERE rn = 1
+          ORDER BY name COLLATE NOCASE, server_id
+          LIMIT ? OFFSET ?",
     );
 
     let mut params: Vec<SqlValue> = Vec::new();
-    params.append(&mut priority_params);
-    params.append(&mut in_params);
+    params.extend(in_params.iter().cloned());
+    params.extend(in_params.iter().cloned());
+    params.extend(in_params.iter().cloned());
+    params.extend(priority_params);
     params.push(SqlValue::Integer(limit as i64));
     params.push(SqlValue::Integer(offset as i64));
 
@@ -165,5 +197,29 @@ mod tests {
         let resp = list_merged_artists(&store, &["s1".into(), "s2".into()], 50, 0).unwrap();
         assert_eq!(resp.artists.len(), 1);
         assert_eq!(resp.artists[0].server_id, "s1");
+    }
+
+    #[test]
+    fn prefers_artist_table_album_count_when_present() {
+        let store = LibraryStore::open_in_memory();
+        TrackRepository::new(&store)
+            .upsert_batch(&[track("s1", "t1", "Band"), track("s2", "t2", "Band")])
+            .unwrap();
+        rebuild_all_cluster_keys(&store).unwrap();
+        store
+            .with_conn("test", |conn| {
+                conn.execute(
+                    "INSERT INTO artist (server_id, id, name, album_count, synced_at, raw_json) \
+                     VALUES ('s1', 'art-s1', 'Band', 3, 1, '{}'), \
+                            ('s2', 'art-s2', 'Band', 2, 1, '{}')",
+                    [],
+                )
+            })
+            .unwrap();
+
+        let resp = list_merged_artists(&store, &["s1".into(), "s2".into()], 50, 0).unwrap();
+        assert_eq!(resp.artists.len(), 1);
+        assert_eq!(resp.artists[0].server_id, "s1");
+        assert_eq!(resp.artists[0].album_count, Some(3));
     }
 }

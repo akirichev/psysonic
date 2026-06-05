@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { search } from '../api/subsonicSearch';
-import { getArtist, getArtistInfo, getTopSongs } from '../api/subsonicArtists';
+import { getArtist, getArtistInfo, getArtistForServer, getTopSongs } from '../api/subsonicArtists';
 import type {
   SubsonicAlbum, SubsonicArtist, SubsonicArtistInfo, SubsonicSong,
 } from '../api/subsonicTypes';
@@ -88,6 +88,15 @@ export function useArtistDetailData(
           }
           let nextAlbums = clusterData.albums;
           let nextSongs = clusterData.topSongs;
+          if (nextAlbums.length === 0 && seedServerId) {
+            const seeded = await getArtistForServer(seedServerId, id).catch(() => null);
+            if (seeded?.albums?.length) {
+              nextAlbums = seeded.albums.map(a => ({
+                ...a,
+                clusterSeedServerId: a.clusterSeedServerId ?? seedServerId,
+              }));
+            }
+          }
           if (losslessOnly) {
             ({ albums: nextAlbums, songs: nextSongs } = filterNetworkArtistToLossless(nextAlbums, nextSongs));
           }

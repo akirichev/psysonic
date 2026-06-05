@@ -266,7 +266,10 @@ export function runPlayTrack(
       && getPlaybackCacheServerKey(),
     );
 
-  const browseServerId = authState.activeServerId ?? '';
+  const browseServerId =
+    track.clusterBrowseServerId
+    ?? authState.activeServerId
+    ?? '';
   const browseTrackId = track.id;
 
   void (async () => {
@@ -276,7 +279,11 @@ export function runPlayTrack(
     if (isClusterMode() && browseServerId) {
       const resolved = await resolveClusterPlaybackForTrack(browseServerId, track.id);
       if (resolved) {
-        playTrackResolved = { ...track, id: resolved.trackId };
+        playTrackResolved = {
+          ...track,
+          id: resolved.trackId,
+          clusterBrowseServerId: resolved.serverId,
+        };
         streamServerProfileId = resolved.serverId;
       }
     }

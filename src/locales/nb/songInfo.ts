@@ -24,4 +24,5 @@ export const songInfo = {
   replayGainPeak: 'RG-sportopp',
   mono: 'Mono',
   stereo: 'Stereo',
+  clusterServer: 'Server',
 };

@@ -23,6 +23,7 @@ import {
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNavigateToAlbum } from '../hooks/useNavigateToAlbum';
+import { useNavigateToArtist } from '../hooks/useNavigateToArtist';
 import { Search, Disc3, Users, Music, TextSearch, Database, Globe } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
@@ -34,7 +35,7 @@ import { AlbumCoverArtImage } from '../cover/AlbumCoverArtImage';
 import { ArtistCoverArtImage } from '../cover/ArtistCoverArtImage';
 import { CoverArtImage } from '../cover/CoverArtImage';
 import { COVER_DENSE_SEARCH_CSS_PX } from '../cover/layoutSizes';
-import { albumCoverRef } from '../cover/ref';
+import { albumCoverRef, coverScopeForServerProfileId } from '../cover/ref';
 import { showToast } from '../utils/ui/toast';
 import { useShareSearch } from '../hooks/useShareSearch';
 import ShareSearchResults from './search/ShareSearchResults';
@@ -55,11 +56,20 @@ import { resolveIndexKey } from '../utils/server/serverIndexKey';
 
 type LiveSearchSource = 'local' | 'network';
 
-function LiveSearchAlbumThumb({ albumId, coverArt }: { albumId: string; coverArt: string }) {
+function LiveSearchAlbumThumb({
+  albumId,
+  coverArt,
+  clusterSeedServerId,
+}: {
+  albumId: string;
+  coverArt: string;
+  clusterSeedServerId?: string;
+}) {
   return (
     <AlbumCoverArtImage
       albumId={albumId}
       coverArt={coverArt}
+      clusterSeedServerId={clusterSeedServerId}
       libraryResolve={false}
       displayCssPx={COVER_DENSE_SEARCH_CSS_PX}
       surface="dense"
@@ -70,17 +80,19 @@ function LiveSearchAlbumThumb({ albumId, coverArt }: { albumId: string; coverArt
   );
 }
 
-function LiveSearchSongThumb({ song }: { song: Pick<SubsonicSong, 'id' | 'albumId' | 'coverArt' | 'discNumber'> }) {
-  // Search results carry the per-track `mf-…` coverArt id, which the cover
-  // pipeline fails to resolve and the thumbnail goes blank. The album-scoped
-  // `al-<albumId>_0` id is what actually loads (verified in the RC1 blank-thumb
-  // investigation), and a song's search thumbnail is its album cover anyway —
-  // so fetch the album cover from the albumId. Falls back to a music glyph when
-  // there is no album to key on.
+function LiveSearchSongThumb({
+  song,
+}: {
+  song: Pick<SubsonicSong, 'id' | 'albumId' | 'coverArt' | 'discNumber' | 'clusterBrowseServerId'>;
+}) {
   const albumId = song.albumId?.trim();
+  const scope = React.useMemo(
+    () => coverScopeForServerProfileId(song.clusterBrowseServerId),
+    [song.clusterBrowseServerId],
+  );
   const coverRef = React.useMemo(
-    () => (albumId ? albumCoverRef(albumId, `al-${albumId}_0`) : undefined),
-    [albumId],
+    () => (albumId ? albumCoverRef(albumId, `al-${albumId}_0`, scope) : undefined),
+    [albumId, scope],
   );
   if (!coverRef) return <div className="search-result-icon"><Music size={14} /></div>;
   return (
@@ -95,7 +107,11 @@ function LiveSearchSongThumb({ song }: { song: Pick<SubsonicSong, 'id' | 'albumI
   );
 }
 
-function LiveSearchArtistThumb({ artist }: { artist: Pick<SubsonicArtist, 'id' | 'coverArt'> }) {
+function LiveSearchArtistThumb({
+  artist,
+}: {
+  artist: Pick<SubsonicArtist, 'id' | 'coverArt' | 'clusterSeedServerId'>;
+}) {
   const [failed, setFailed] = useState(false);
   useEffect(() => { setFailed(false); }, [artist.id, artist.coverArt]);
   if (failed) return <div className="search-result-icon"><Users size={14} /></div>;
@@ -103,6 +119,7 @@ function LiveSearchArtistThumb({ artist }: { artist: Pick<SubsonicArtist, 'id' |
     <ArtistCoverArtImage
       artistId={artist.id}
       coverArt={artist.coverArt}
+      clusterSeedServerId={artist.clusterSeedServerId}
       libraryResolve={false}
       displayCssPx={COVER_DENSE_SEARCH_CSS_PX}
       surface="dense"
@@ -138,6 +155,7 @@ export default function LiveSearch() {
   const liveSearchGenRef = useRef(0);
   const navigate = useNavigate();
   const navigateToAlbum = useNavigateToAlbum();
+  const navigateToArtist = useNavigateToArtist();
   const enqueue = usePlayerStore(state => state.enqueue);
   const openContextMenu = usePlayerStore(state => state.openContextMenu);
   const ctxIsOpen = usePlayerStore(state => state.contextMenu.isOpen);
@@ -527,8 +545,8 @@ export default function LiveSearch() {
       },
     },
   ] : results ? [
-    ...(results.artists.map(a => ({ id: a.id, action: () => { navigate(`/artist/${a.id}`); setOpen(false); setQuery(''); } }))),
-    ...(results.albums.map(a => ({ id: a.id, action: () => { navigateToAlbum(a.id); setOpen(false); setQuery(''); } }))),
+    ...(results.artists.map(a => ({ id: a.id, action: () => { navigateToArtist(a.id, { seedServerId: a.clusterSeedServerId }); setOpen(false); setQuery(''); } }))),
+    ...(results.albums.map(a => ({ id: a.id, action: () => { navigateToAlbum(a.id, { seedServerId: a.clusterSeedServerId }); setOpen(false); setQuery(''); } }))),
    ...(results.songs.map(s => ({ id: s.id, action: () => {
        const track = songToTrack(s);
        enqueue([track]);
@@ -738,7 +756,7 @@ export default function LiveSearch() {
                     const isCtxActive = ctxIsOpen && ctxType === 'artist' && ctxItemId === a.id;
                     return (
                       <button key={a.id} className={`search-result-item${activeIndex === i ? ' active' : ''}${isCtxActive ? ' context-active' : ''}`}
-                        onClick={() => { navigate(`/artist/${a.id}`); setOpen(false); setQuery(''); }}
+                        onClick={() => { navigateToArtist(a.id, { seedServerId: a.clusterSeedServerId }); setOpen(false); setQuery(''); }}
                         onContextMenu={(e) => {
                           e.preventDefault();
                           openContextMenu(e.clientX, e.clientY, a, 'artist');
@@ -762,14 +780,14 @@ export default function LiveSearch() {
                     const isCtxActive = ctxIsOpen && ctxType === 'album' && ctxItemId === a.id;
                     return (
                       <button key={a.id} className={`search-result-item${activeIndex === i ? ' active' : ''}${isCtxActive ? ' context-active' : ''}`}
-                        onClick={() => { navigateToAlbum(a.id); setOpen(false); setQuery(''); }}
+                        onClick={() => { navigateToAlbum(a.id, { seedServerId: a.clusterSeedServerId }); setOpen(false); setQuery(''); }}
                         onContextMenu={(e) => {
                           e.preventDefault();
                           openContextMenu(e.clientX, e.clientY, a, 'album');
                         }}
                         role="option" aria-selected={activeIndex === i}>
                         {a.coverArt ? (
-                          <LiveSearchAlbumThumb albumId={a.id} coverArt={a.coverArt} />
+                          <LiveSearchAlbumThumb albumId={a.id} coverArt={a.coverArt} clusterSeedServerId={a.clusterSeedServerId} />
                         ) : (
                           <div className="search-result-icon"><Disc3 size={14} /></div>
                         )}

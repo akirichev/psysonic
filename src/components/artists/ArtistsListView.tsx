@@ -13,7 +13,7 @@ interface RowProps {
   selectedArtists: SubsonicArtist[];
   showArtistImages: boolean;
   toggleSelect: (id: string) => void;
-  onOpenArtist: (id: string) => void;
+  onOpenArtist: (artistId: string, opts?: { seedServerId?: string }) => void;
   openContextMenu: PlayerState['openContextMenu'];
   t: TFunction;
 }
@@ -37,7 +37,7 @@ function ArtistListRow({
         if (selectionMode) {
           toggleSelect(artist.id);
         } else {
-          onOpenArtist(artist.id);
+          onOpenArtist(artist.id, { seedServerId: artist.clusterSeedServerId });
         }
       }}
       onContextMenu={(e) => {
@@ -78,7 +78,7 @@ interface Props {
   selectedArtists: SubsonicArtist[];
   showArtistImages: boolean;
   toggleSelect: (id: string) => void;
-  onOpenArtist: (id: string) => void;
+  onOpenArtist: (artistId: string, opts?: { seedServerId?: string }) => void;
   openContextMenu: PlayerState['openContextMenu'];
   t: TFunction;
 }

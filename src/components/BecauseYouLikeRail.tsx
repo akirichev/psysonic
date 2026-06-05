@@ -5,6 +5,7 @@ import { songToTrack } from '../utils/playback/songToTrack';
 import { shuffleArray } from '../utils/playback/shuffleArray';
 import React, { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNavigateToAlbum } from '../hooks/useNavigateToAlbum';
 import { useTranslation } from 'react-i18next';
 import { Play, ListPlus, Music } from 'lucide-react';
 import { useAlbumCoverRef } from '../cover/useLibraryCoverRef';
@@ -584,15 +585,19 @@ const BecauseCard = memo(function BecauseCard({ album, anchor, disableArtwork, e
     onLongPress: () => playAlbumShuffled(album.id),
   });
   const navigate = useNavigate();
+  const navigateToAlbum = useNavigateToAlbum();
   const enqueue = usePlayerStore(s => s.enqueue);
-  const coverRef = useAlbumCoverRef(album.id, album.coverArt, undefined, { libraryResolve: false });
+  const coverRef = useAlbumCoverRef(album.id, album.coverArt, undefined, {
+    libraryResolve: false,
+    clusterSeedServerId: album.clusterSeedServerId,
+  });
   const coverHandle = useCoverArt(coverRef, BECAUSE_CARD_COVER_CSS_PX, {
     surface: 'dense',
     ensurePriority: 'high',
   });
   const imgSrc = coverImgSrc(coverHandle.src);
   const bgResolved = coverHandle.src;
-  const handleOpen = () => navigate(`/album/${album.id}`);
+  const handleOpen = () => navigateToAlbum(album.id, { seedServerId: album.clusterSeedServerId });
   const handleEnqueue = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {

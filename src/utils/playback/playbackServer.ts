@@ -1,5 +1,5 @@
 import { buildCoverArtFetchUrl } from '../../cover/fetchUrl';
-import { resolvePlaybackCoverScope } from '../../cover/ref';
+import { resolvePlaybackCoverScopeForCurrentTrack } from '../../cover/ref';
 import { coverEntryToRef, resolveAlbumCoverEntry } from '../../cover/resolveEntry';
 import { coverStorageKeyFromRef } from '../../cover/storageKeys';
 import { resolveCoverDisplayTier } from '../../cover/tiers';
@@ -14,6 +14,31 @@ import {
   serverIndexKeyForProfile,
   serverIndexKeyFromUrl,
 } from '../server/serverIndexKey';
+
+/** Per-track streaming server in cluster mixed queues (track ref → queue ref → queue pin). */
+export function resolveStreamServerIdForTrack(
+  track: Pick<Track, 'clusterBrowseServerId'> | null | undefined,
+  queueRefServerId?: string | null,
+): string {
+  if (track?.clusterBrowseServerId?.trim()) {
+    const sid = resolveServerIdForIndexKey(track.clusterBrowseServerId);
+    if (sid) return sid;
+  }
+  if (queueRefServerId) {
+    const sid = resolveServerIdForIndexKey(queueRefServerId);
+    if (sid) return sid;
+  }
+  return getPlaybackServerId();
+}
+
+/** Subsonic server that owns the currently playing track (cluster-aware). */
+export function getCurrentTrackStreamServerId(): string {
+  const st = usePlayerStore.getState();
+  return resolveStreamServerIdForTrack(
+    st.currentTrack,
+    st.queueItems[st.queueIndex]?.serverId,
+  );
+}
 
 /** Server that owns the current queue / stream URLs (may differ from the browsed server). */
 export function getPlaybackServerId(): string {
@@ -132,7 +157,7 @@ export function playbackCoverArtForAlbum(
   if (!entry) {
     return playbackCoverArtForId(coverArt, displayCssPx);
   }
-  const ref = coverEntryToRef(entry, resolvePlaybackCoverScope());
+  const ref = coverEntryToRef(entry, resolvePlaybackCoverScopeForCurrentTrack());
   const tier = resolveCoverDisplayTier(displayCssPx, { surface: 'sparse' });
   return {
     src: buildCoverArtFetchUrl(ref, tier),

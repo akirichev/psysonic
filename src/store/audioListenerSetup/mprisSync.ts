@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { resolvePlaybackCoverScope } from '../../cover/ref';
+import { resolvePlaybackCoverScopeForCurrentTrack } from '../../cover/ref';
 import { resolveTrackCoverRefFromLibrary } from '../../cover/resolveEntryLibrary';
 import { coverArtUrlForMpris } from '../../cover/integrations/mpris';
 import { usePlayerStore } from '../playerStore';
@@ -35,7 +35,7 @@ export function setupMprisSync(): () => void {
             coverArt: currentTrack.coverArt,
             discNumber: (currentTrack as { discNumber?: number }).discNumber,
           },
-          resolvePlaybackCoverScope(),
+          resolvePlaybackCoverScopeForCurrentTrack(),
         ).then(ref => {
           if (!ref) return;
           coverArtUrlForMpris(ref)

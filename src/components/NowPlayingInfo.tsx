@@ -8,6 +8,7 @@ import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
 import { usePlaybackServerId } from '../hooks/usePlaybackServerId';
+import { useClusterMemberDisplayLabel } from '../hooks/useClusterMemberDisplayLabel';
 import { fetchBandsintownEvents, type BandsintownEvent } from '../api/bandsintown';
 import CachedImage from './CachedImage';
 import OverlayScrollArea from './OverlayScrollArea';
@@ -88,6 +89,7 @@ export default function NowPlayingInfo() {
   const setEnableBandsintown = useAuthStore(s => s.setEnableBandsintown);
   const subsonicServerId = usePlaybackServerId();
   const subsonicReady = Boolean(subsonicServerId);
+  const clusterServerLabel = useClusterMemberDisplayLabel(subsonicServerId);
 
   const primaryArtist = currentTrack ? primaryTrackArtistRef(currentTrack) : null;
   const artistName = primaryArtist?.name ?? currentTrack?.artist ?? '';
@@ -230,6 +232,11 @@ export default function NowPlayingInfo() {
         <div className="np-info-artist-body">
           <div className="np-info-section-title">{t('nowPlayingInfo.artist', 'Artist')}</div>
           <div className="np-info-artist-name">{artistName || t('common.unknownArtist', 'Unknown artist')}</div>
+          {clusterServerLabel && (
+            <div className="np-info-cluster-server">
+              {t('nowPlayingInfo.clusterServer')}: {clusterServerLabel}
+            </div>
+          )}
           {bioClean && (
             <>
               <p

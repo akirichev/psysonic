@@ -5,10 +5,12 @@ import {
   bindQueueServerForPlayback,
   clearQueueServerForPlayback,
   ensurePlaybackServerActive,
+  getCurrentTrackStreamServerId,
   getPlaybackServerId,
   playbackCoverArtForId,
   playbackServerDiffersFromActive,
   prepareActiveServerForNewMix,
+  resolveStreamServerIdForTrack,
   shouldBindQueueServerForPlay,
   shouldHandoffQueueToActiveServer,
 } from './playbackServer';
@@ -46,6 +48,28 @@ describe('playbackServer', () => {
     usePlayerStore.setState({ queueItems: [] });
     useAuthStore.setState({ activeServerId: 'b' });
     expect(getPlaybackServerId()).toBe('b');
+  });
+
+  it('resolveStreamServerIdForTrack prefers clusterBrowseServerId over queue pin', () => {
+    usePlayerStore.setState({
+      queueItems: [{ serverId: 'a', trackId: 't1' }],
+      queueServerId: 'a',
+      queueIndex: 0,
+      currentTrack: {
+        id: 't1',
+        title: 'T',
+        artist: 'A',
+        album: 'Al',
+        albumId: 'al1',
+        duration: 100,
+        clusterBrowseServerId: 'b',
+      },
+    });
+    expect(resolveStreamServerIdForTrack(
+      usePlayerStore.getState().currentTrack,
+      'a',
+    )).toBe('b');
+    expect(getCurrentTrackStreamServerId()).toBe('b');
   });
 
   it('bindQueueServerForPlayback pins active server as canonical index key', () => {

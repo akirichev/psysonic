@@ -60,6 +60,11 @@ describe('songToTrack', () => {
     expect(t.coverArt).toBe('s2');
   });
 
+  it('preserves clusterBrowseServerId for cluster-mode playback and covers', () => {
+    const song = makeSubsonicSong({ id: 's3', clusterBrowseServerId: 'server-b' });
+    expect(songToTrack(song).clusterBrowseServerId).toBe('server-b');
+  });
+
   it('flattens replayGain into replayGainTrackDb / AlbumDb / Peak', () => {
     const song = makeSubsonicSong({
       replayGain: {

@@ -77,7 +77,10 @@ function AlbumCard({
     return meta.trackIds.every(tid => !!s.tracks[`${serverId}:${tid}`]);
   });
   const psyDrag = useDragDrop();
-  const coverRef = useAlbumCoverRef(album.id, album.coverArt, undefined, { libraryResolve });
+  const coverRef = useAlbumCoverRef(album.id, album.coverArt, undefined, {
+    libraryResolve,
+    clusterSeedServerId: album.clusterSeedServerId,
+  });
   const dragCoverKey = useMemo(() => {
     if (!coverRef) return '';
     const tier = resolveCoverDisplayTier(displayCssPx, { surface: 'dense' });

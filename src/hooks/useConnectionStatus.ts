@@ -13,7 +13,7 @@ import { usePerfProbeFlags } from '../utils/perf/perfFlags';
 // Backward-compatible re-export for call sites that still import from the hook.
 export { isLanUrl };
 
-export type ConnectionStatus = 'connected' | 'disconnected' | 'checking';
+export type ConnectionStatus = 'connected' | 'degraded' | 'disconnected' | 'checking';
 
 export function useConnectionStatus() {
   const perfFlags = usePerfProbeFlags();

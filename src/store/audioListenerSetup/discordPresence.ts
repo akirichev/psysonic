@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { resolvePlaybackCoverScope } from '../../cover/ref';
+import { resolvePlaybackCoverScopeForCurrentTrack } from '../../cover/ref';
 import { resolveTrackCoverRefFromLibrary } from '../../cover/resolveEntryLibrary';
 import { coverArtUrlForDiscord } from '../../cover/integrations/discord';
 import { useAuthStore } from '../authStore';
@@ -96,7 +96,7 @@ export function setupDiscordPresence(): () => void {
             coverArt: currentTrack.coverArt,
             discNumber: (currentTrack as { discNumber?: number }).discNumber,
           },
-          resolvePlaybackCoverScope(),
+          resolvePlaybackCoverScopeForCurrentTrack(),
         ).then(ref => {
           if (!ref) {
             sendPresence(null);

@@ -112,11 +112,25 @@ describe('openContextMenu / closeContextMenu', () => {
 
 describe('openSongInfo / closeSongInfo', () => {
   it('opens with the song id and clears on close', () => {
+    useAuthStore.setState({ activeServerId: 'a' });
     usePlayerStore.getState().openSongInfo('song-1');
-    expect(usePlayerStore.getState().songInfoModal).toEqual({ isOpen: true, songId: 'song-1' });
+    expect(usePlayerStore.getState().songInfoModal).toEqual({
+      isOpen: true,
+      songId: 'song-1',
+      serverId: 'a',
+    });
 
     usePlayerStore.getState().closeSongInfo();
-    expect(usePlayerStore.getState().songInfoModal).toEqual({ isOpen: false, songId: null });
+    expect(usePlayerStore.getState().songInfoModal).toEqual({
+      isOpen: false,
+      songId: null,
+      serverId: null,
+    });
+  });
+
+  it('stores explicit cluster member server id', () => {
+    usePlayerStore.getState().openSongInfo('song-2', 'b');
+    expect(usePlayerStore.getState().songInfoModal.serverId).toBe('b');
   });
 });
 

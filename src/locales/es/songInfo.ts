@@ -24,4 +24,5 @@ export const songInfo = {
   replayGainPeak: 'RG Pico de Pista',
   mono: 'Mono',
   stereo: 'Estéreo',
+  clusterServer: 'Servidor',
 };

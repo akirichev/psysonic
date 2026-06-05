@@ -14,6 +14,7 @@ import MarqueeText from '../MarqueeText';
 import { OpenArtistRefInline } from '../OpenArtistRefInline';
 import StarRating from '../StarRating';
 import { PlaybackBufferingOverlay } from '../playback/PlaybackBufferingOverlay';
+import { useNavigateToAlbum } from '../../hooks/useNavigateToAlbum';
 import { usePlayerStore } from '../../store/playerStore';
 import {
   usePlayerBarLayoutStore,
@@ -54,6 +55,7 @@ export function PlayerTrackInfo({
   navigate, openContextMenu, t,
 }: Props) {
   const showBufferingOverlay = usePlayerStore(s => s.isPlaybackBuffering);
+  const navigateToAlbum = useNavigateToAlbum();
   const playbackCoverRef = usePlaybackTrackCoverRef(
     showPreviewMeta ? null : currentTrack ?? undefined,
   );
@@ -125,7 +127,7 @@ export function PlayerTrackInfo({
             : displayTitle}
           className="player-track-name"
           style={{ cursor: !isRadio && !showPreviewMeta && currentTrack?.albumId ? 'pointer' : 'default' }}
-          onClick={() => !isRadio && !showPreviewMeta && currentTrack?.albumId && navigate(`/album/${currentTrack.albumId}`)}
+          onClick={() => !isRadio && !showPreviewMeta && currentTrack?.albumId && navigateToAlbum(currentTrack.albumId, { seedServerId: currentTrack.clusterBrowseServerId })}
           onContextMenu={!isRadio && !showPreviewMeta && currentTrack?.albumId
             ? (e) => {
                 e.preventDefault();

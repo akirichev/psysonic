@@ -5,7 +5,11 @@ import type { PlayerState } from './playerStoreTypes';
 import {
   ensurePlaybackServerActive,
   playbackServerDiffersFromActive,
+  resolveStreamServerIdForTrack,
 } from '../utils/playback/playbackServer';
+import { useAuthStore } from './authStore';
+import { usePlayerStore } from './playerStore';
+import { resolveServerIdForIndexKey } from '../utils/server/serverLookup';
 
 type SetState = (
   partial: Partial<PlayerState> | ((state: PlayerState) => Partial<PlayerState>),
@@ -77,8 +81,24 @@ export function createUiStateActions(set: SetState): Pick<
         contextMenu: { ...state.contextMenu, isOpen: false },
       })),
 
-    openSongInfo: (songId) => set({ songInfoModal: { isOpen: true, songId } }),
-    closeSongInfo: () => set({ songInfoModal: { isOpen: false, songId: null } }),
+    openSongInfo: (songId, serverId) => {
+      let sid: string | null = null;
+      if (serverId?.trim()) {
+        sid = resolveServerIdForIndexKey(serverId) || serverId;
+      } else {
+        const st = usePlayerStore.getState();
+        if (st.currentTrack?.id === songId) {
+          sid = resolveStreamServerIdForTrack(
+            st.currentTrack,
+            st.queueItems[st.queueIndex]?.serverId,
+          );
+        } else {
+          sid = useAuthStore.getState().activeServerId ?? null;
+        }
+      }
+      set({ songInfoModal: { isOpen: true, songId, serverId: sid } });
+    },
+    closeSongInfo: () => set({ songInfoModal: { isOpen: false, songId: null, serverId: null } }),
 
     toggleQueue: () =>
       set(state => {

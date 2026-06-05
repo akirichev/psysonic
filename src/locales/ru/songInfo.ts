@@ -24,4 +24,5 @@ export const songInfo = {
   replayGainPeak: 'Пик RG',
   mono: 'Моно',
   stereo: 'Стерео',
+  clusterServer: 'Сервер',
 };

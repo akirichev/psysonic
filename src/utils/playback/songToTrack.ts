@@ -25,5 +25,6 @@ export function songToTrack(song: SubsonicSong): Track {
     samplingRate: song.samplingRate,
     bitDepth: song.bitDepth,
     size: song.size,
+    clusterBrowseServerId: song.clusterBrowseServerId,
   };
 }

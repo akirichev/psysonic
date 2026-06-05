@@ -24,4 +24,5 @@ export const songInfo = {
   replayGainPeak: 'RG Vârf Piesă',
   mono: 'Mono',
   stereo: 'Stereo',
+  clusterServer: 'Server',
 };

@@ -24,4 +24,5 @@ export const songInfo = {
   replayGainPeak: 'RG 曲目峰值',
   mono: '单声道',
   stereo: '立体声',
+  clusterServer: '服务器',
 };

@@ -1,15 +1,49 @@
 import type { TFunction } from 'i18next';
-import { getAlbum } from '../../api/subsonicLibrary';
+import { getAlbum, getAlbumForServer } from '../../api/subsonicLibrary';
 import { getSimilarSongs2, getTopSongs } from '../../api/subsonicArtists';
-import type { SubsonicAlbum, SubsonicArtist } from '../../api/subsonicTypes';
+import type { SubsonicAlbum, SubsonicArtist, SubsonicSong } from '../../api/subsonicTypes';
 import type { Track } from '../../store/playerStoreTypes';
 import { songToTrack } from '../playback/songToTrack';
 import { runBulkPlayAll, runBulkShuffle } from '../playback/runBulkPlay';
 
-async function fetchAllTracks(albums: SubsonicAlbum[]): Promise<Track[]> {
-  const results = await Promise.all(albums.map(a => getAlbum(a.id)));
-  const sorted = [...results].sort((a, b) => (a.album.year ?? 0) - (b.album.year ?? 0));
-  return sorted.flatMap(r => [...r.songs].sort((a, b) => (a.track ?? 0) - (b.track ?? 0))).map(songToTrack);
+async function fetchAlbumTracks(album: SubsonicAlbum): Promise<{ year: number; tracks: Track[] }> {
+  const serverId = album.clusterSeedServerId;
+  const data = serverId
+    ? await getAlbumForServer(serverId, album.id)
+    : await getAlbum(album.id);
+  const genre = data.album.genre ?? album.genre;
+  const tracks = [...data.songs]
+    .sort((a, b) => (a.track ?? 0) - (b.track ?? 0))
+    .map(s => {
+      const track = songToTrack(
+        serverId ? { ...s, clusterBrowseServerId: s.clusterBrowseServerId ?? serverId } : s,
+      );
+      if (!track.genre && genre) track.genre = genre;
+      return track;
+    });
+  return { year: data.album.year ?? album.year ?? 0, tracks };
+}
+
+/** All album tracks for artist Play All / shuffle (cluster-aware per album). */
+export async function fetchArtistCatalogTracks(albums: SubsonicAlbum[]): Promise<Track[]> {
+  if (albums.length === 0) return [];
+  const parts = await Promise.all(albums.map(fetchAlbumTracks));
+  return [...parts]
+    .sort((a, b) => a.year - b.year)
+    .flatMap(p => p.tracks);
+}
+
+/** Top-song click queue: from index through top list, then rest of catalog without dupes. */
+export function buildArtistTopSongPlayQueue(
+  topSongs: SubsonicSong[],
+  startIndex: number,
+  catalogTracks: Track[],
+): Track[] {
+  const topTracksFromIndex = topSongs.slice(startIndex).map(songToTrack);
+  if (catalogTracks.length === 0) return topTracksFromIndex;
+  const topSongIds = new Set(topSongs.map(s => s.id));
+  const remaining = catalogTracks.filter(tr => !topSongIds.has(tr.id));
+  return [...topTracksFromIndex, ...remaining];
 }
 
 export interface RunArtistDetailPlayDeps {
@@ -21,13 +55,21 @@ export interface RunArtistDetailPlayDeps {
 export async function runArtistDetailPlayAll(deps: RunArtistDetailPlayDeps): Promise<void> {
   const { albums, setPlayAllLoading, playTrack } = deps;
   if (albums.length === 0) return;
-  await runBulkPlayAll({ fetchTracks: () => fetchAllTracks(albums), setLoading: setPlayAllLoading, playTrack });
+  await runBulkPlayAll({
+    fetchTracks: () => fetchArtistCatalogTracks(albums),
+    setLoading: setPlayAllLoading,
+    playTrack,
+  });
 }
 
 export async function runArtistDetailShuffle(deps: RunArtistDetailPlayDeps): Promise<void> {
   const { albums, setPlayAllLoading, playTrack } = deps;
   if (albums.length === 0) return;
-  await runBulkShuffle({ fetchTracks: () => fetchAllTracks(albums), setLoading: setPlayAllLoading, playTrack });
+  await runBulkShuffle({
+    fetchTracks: () => fetchArtistCatalogTracks(albums),
+    setLoading: setPlayAllLoading,
+    playTrack,
+  });
 }
 
 export interface RunArtistDetailStartRadioDeps {

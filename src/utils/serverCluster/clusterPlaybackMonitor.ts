@@ -30,14 +30,14 @@ export function useClusterPlaybackMonitor(): void {
       const streamSid = resolveServerIdForIndexKey(ref.serverId);
       if (isServerLikelyReachable(streamSid)) return;
 
-      const browseId = useAuthStore.getState().activeServerId ?? streamSid;
+      const track = st.currentTrack;
+      if (!track) return;
+      const browseId = track.clusterBrowseServerId ?? useAuthStore.getState().activeServerId ?? streamSid;
       void cascadeClusterPlayback(browseId, ref.trackId, streamSid).then(next => {
         if (!next) {
           usePlayerStore.getState().next(false);
           return;
         }
-        const track = st.currentTrack;
-        if (!track) return;
         usePlayerStore.getState().playTrack(
           { ...track, id: next.trackId, clusterBrowseServerId: next.serverId },
           undefined,

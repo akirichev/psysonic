@@ -68,7 +68,7 @@ export const usePlayerStore = create<PlayerState>()(
       scheduledResumeStartMs: null,
       repeatMode: initialPlayerPrefs.repeatMode,
       contextMenu: { isOpen: false, x: 0, y: 0, item: null, type: null },
-      songInfoModal: { isOpen: false, songId: null },
+      songInfoModal: { isOpen: false, songId: null, serverId: null },
 
       ...createUiStateActions(set),
       ...createLastfmActions(set, get),
