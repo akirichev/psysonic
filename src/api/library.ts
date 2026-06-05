@@ -499,6 +499,50 @@ export function libraryClusterListTracks(args: {
   }));
 }
 
+export interface LibraryClusterAlbumsResponse {
+  albums: LibraryAlbumDto[];
+  hasMore: boolean;
+}
+
+export interface LibraryClusterArtistsResponse {
+  artists: LibraryArtistDto[];
+  hasMore: boolean;
+}
+
+export function libraryClusterListAlbums(args: {
+  serversOrdered: string[];
+  limit?: number;
+  offset?: number;
+}): Promise<LibraryClusterAlbumsResponse> {
+  return invoke<LibraryClusterAlbumsResponse>('library_cluster_list_albums', {
+    request: {
+      serversOrdered: mapServersOrderedToIndexKeys(args.serversOrdered),
+      limit: args.limit,
+      offset: args.offset,
+    },
+  }).then(resp => ({
+    ...resp,
+    albums: resp.albums.map(a => ({ ...a, serverId: mapServerIdFromIndexKey(a.serverId) })),
+  }));
+}
+
+export function libraryClusterListArtists(args: {
+  serversOrdered: string[];
+  limit?: number;
+  offset?: number;
+}): Promise<LibraryClusterArtistsResponse> {
+  return invoke<LibraryClusterArtistsResponse>('library_cluster_list_artists', {
+    request: {
+      serversOrdered: mapServersOrderedToIndexKeys(args.serversOrdered),
+      limit: args.limit,
+      offset: args.offset,
+    },
+  }).then(resp => ({
+    ...resp,
+    artists: resp.artists.map(a => ({ ...a, serverId: mapServerIdFromIndexKey(a.serverId) })),
+  }));
+}
+
 export function libraryClusterResolveCandidates(args: {
   serversOrdered: string[];
   clusterKey?: string;

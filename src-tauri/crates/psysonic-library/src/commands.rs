@@ -22,7 +22,7 @@ use crate::dto::{
     count_local_tracks, local_tracks_max_updated_ms, track_index_nonempty, ArtifactInputDto,
     FactInputDto,     LibraryAdvancedSearchRequest, LibraryAdvancedSearchResponse,
     LibraryClusterListTracksRequest, LibraryClusterResolveRequest,
-    LibraryClusterResolveResponse,
+    LibraryClusterResolveResponse, LibraryClusterAlbumsResponse, LibraryClusterArtistsResponse,
     LibraryCrossServerSearchResponse, LibraryLiveSearchRequest, LibraryLiveSearchResponse, LibraryTrackDto,
     LibraryTracksEnvelope, OfflinePathDto, PlaySessionDayDetailDto, PlaySessionHeatmapDayDto,
     PlaySessionInputDto, PlaySessionRecentDayDto, PlaySessionYearBoundsDto, PlaySessionYearSummaryDto, PurgeReportDto, SyncJobDto, SyncStateDto,
@@ -559,6 +559,36 @@ pub async fn library_cluster_list_tracks(
     let offset = request.offset.unwrap_or(0);
     library_spawn_blocking(move || {
         crate::server_cluster::list_merged_tracks(&store, &servers_ordered, limit, offset)
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn library_cluster_list_albums(
+    runtime: State<'_, LibraryRuntime>,
+    request: LibraryClusterListTracksRequest,
+) -> Result<LibraryClusterAlbumsResponse, String> {
+    let store = Arc::clone(&runtime.store);
+    let servers_ordered = request.servers_ordered;
+    let limit = request.limit.unwrap_or(100);
+    let offset = request.offset.unwrap_or(0);
+    library_spawn_blocking(move || {
+        crate::server_cluster::list_merged_albums(&store, &servers_ordered, limit, offset)
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn library_cluster_list_artists(
+    runtime: State<'_, LibraryRuntime>,
+    request: LibraryClusterListTracksRequest,
+) -> Result<LibraryClusterArtistsResponse, String> {
+    let store = Arc::clone(&runtime.store);
+    let servers_ordered = request.servers_ordered;
+    let limit = request.limit.unwrap_or(100);
+    let offset = request.offset.unwrap_or(0);
+    library_spawn_blocking(move || {
+        crate::server_cluster::list_merged_artists(&store, &servers_ordered, limit, offset)
     })
     .await
 }

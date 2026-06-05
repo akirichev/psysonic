@@ -5,6 +5,8 @@
 mod db;
 mod keys;
 mod list;
+mod list_albums;
+mod list_artists;
 mod merge;
 mod norm;
 mod priority;
@@ -18,6 +20,8 @@ pub use db::{
 };
 pub use keys::{compute_track_cluster_keys, TrackClusterKeys};
 pub use list::list_merged_tracks;
+pub use list_albums::list_merged_albums;
+pub use list_artists::list_merged_artists;
 pub use merge::DURATION_TOLERANCE_SEC;
 pub use norm::norm_field;
 pub use rebuild::{

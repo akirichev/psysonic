@@ -29,6 +29,7 @@ import {
   type LibrarySearchSurface,
 } from './libraryDevLog';
 import { libraryIsReady } from './libraryReady';
+import { clusterBrowseArtistsPage, clusterBrowseTextSearchPage } from '../serverCluster/clusterBrowse';
 import { raceSearchSources, type SearchRaceWinner } from './searchRace';
 
 export type { LibrarySearchSurface };
@@ -299,8 +300,12 @@ export async function runLocalBrowseSongPage(
   offset: number,
   pageSize: number,
 ): Promise<SubsonicSong[] | null> {
-  if (!serverId || !(await libraryIsReady(serverId))) return null;
   const q = query.trim();
+  if (q) {
+    const clusterPage = await clusterBrowseTextSearchPage(q, offset, pageSize);
+    if (clusterPage) return clusterPage;
+  }
+  if (!serverId || !(await libraryIsReady(serverId))) return null;
   if (!q) return null;
   try {
     const resp = await libraryAdvancedSearch({
@@ -564,6 +569,8 @@ export async function fetchLocalArtistCatalogChunk(
   offset: number,
   chunkSize: number,
 ): Promise<ArtistCatalogChunkResult | null> {
+  const clusterPage = await clusterBrowseArtistsPage(offset, chunkSize);
+  if (clusterPage) return clusterPage;
   if (!serverId || !(await libraryIsReady(serverId))) return null;
   try {
     const resp = await libraryAdvancedSearch({

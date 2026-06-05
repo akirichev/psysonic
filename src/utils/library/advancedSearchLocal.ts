@@ -27,6 +27,11 @@ import { fetchAlbumBrowseNetwork } from './albumBrowseNetwork';
 import type { AlbumBrowseQuery } from './albumBrowseTypes';
 import { resolveAlbumYearBounds } from './albumYearFilter';
 import { libraryIsReady } from './libraryReady';
+import {
+  clusterBrowseTextSearch,
+  clusterBrowseTextSearchPage,
+  clusterBrowseTracksPage,
+} from '../serverCluster/clusterBrowse';
 import { logLibrarySearch, timed } from './libraryDevLog';
 import { isLosslessSuffix } from './losslessFormats';
 import { albumIsCompilation } from './albumCompilation';
@@ -369,6 +374,8 @@ export async function runLocalSongBrowse(
   offset: number,
   pageSize: number,
 ): Promise<SubsonicSong[] | null> {
+  const clusterPage = await clusterBrowseTracksPage(offset, pageSize);
+  if (clusterPage) return clusterPage;
   if (!serverId) return null;
   if (!(await libraryIsReady(serverId))) return null;
   try {
@@ -399,6 +406,14 @@ export async function loadMoreLocalSongs(
   offset: number,
   pageSize: number,
 ): Promise<SubsonicSong[]> {
+  const q = opts.query.trim();
+  if (q) {
+    const clusterHits = await clusterBrowseTextSearchPage(q, offset, pageSize);
+    if (clusterHits) return clusterHits;
+  } else {
+    const clusterPage = await clusterBrowseTracksPage(offset, pageSize);
+    if (clusterPage) return clusterPage;
+  }
   const req = buildRequest(serverId, opts, ['track'], pageSize, offset, true);
   const resp = await libraryAdvancedSearch(req);
   return resp.tracks.map(trackToSong);

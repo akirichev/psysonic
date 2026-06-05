@@ -713,6 +713,8 @@ pub fn run() {
             psysonic_library::commands::library_get_artist_lossless_browse,
             psysonic_library::commands::library_search_cross_server,
             psysonic_library::commands::library_cluster_list_tracks,
+            psysonic_library::commands::library_cluster_list_albums,
+            psysonic_library::commands::library_cluster_list_artists,
             psysonic_library::commands::library_cluster_resolve_candidates,
             psysonic_library::commands::library_search_cluster,
             psysonic_library::commands::library_get_track,

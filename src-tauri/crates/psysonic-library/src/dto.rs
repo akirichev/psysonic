@@ -681,6 +681,22 @@ pub struct LibraryClusterListTracksRequest {
     pub offset: Option<u32>,
 }
 
+/// Merged album browse response for cluster scope.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryClusterAlbumsResponse {
+    pub albums: Vec<LibraryAlbumDto>,
+    pub has_more: bool,
+}
+
+/// Merged artist browse response for cluster scope.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryClusterArtistsResponse {
+    pub artists: Vec<LibraryArtistDto>,
+    pub has_more: bool,
+}
+
 /// `library_cluster_resolve_candidates` request — provide cluster_key OR seed track.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]

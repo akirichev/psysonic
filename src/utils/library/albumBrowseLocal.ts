@@ -8,6 +8,7 @@ import { albumSortClauses, sortSubsonicAlbums } from './albumBrowseSort';
 import { libraryIsReady } from './libraryReady';
 import type { AlbumBrowsePageResult, AlbumBrowseQuery } from './albumBrowseTypes';
 import { GENRE_ALBUM_FETCH_LIMIT } from './albumBrowseTypes';
+import { canUseClusterAlbumBrowse, clusterBrowseAlbumsPage } from '../serverCluster/clusterBrowse';
 
 function markServerStarredAlbums(albums: SubsonicAlbum[]) {
   return albums.map(a => ({ ...a, starred: a.starred ?? 'true' }));
@@ -21,6 +22,10 @@ export async function runLocalAlbumBrowse(
   pageSize: number,
   restrictAlbumIds?: string[],
 ): Promise<AlbumBrowsePageResult | null> {
+  if (canUseClusterAlbumBrowse(query, restrictAlbumIds)) {
+    const clusterPage = await clusterBrowseAlbumsPage(offset, pageSize);
+    if (clusterPage) return clusterPage;
+  }
   if (!serverId || !(await libraryIsReady(serverId))) return null;
 
   const scope = libraryScopeForServer(serverId) ?? undefined;
