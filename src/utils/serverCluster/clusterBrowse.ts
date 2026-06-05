@@ -4,15 +4,17 @@
 import {
   libraryClusterListAlbums,
   libraryClusterListArtists,
+  libraryClusterListFavorites,
   libraryClusterListTracks,
   librarySearchCluster,
 } from '../../api/library';
+import type { SubsonicAlbum, SubsonicArtist, SubsonicSong } from '../../api/subsonicTypes';
+import { dedupeById } from '../dedupeById';
+import { albumToAlbum, artistToArtist, trackToSong } from '../library/advancedSearchLocal';
+import { albumBrowseHasServerFilters } from '../library/albumBrowseFilters';
+import type { AlbumBrowsePageResult, AlbumBrowseQuery } from '../library/albumBrowseTypes';
 import { getActiveClusterId, isClusterMode } from './clusterScope';
 import { getClusterMergeMemberIds } from './representative';
-import { albumToAlbum, artistToArtist, trackToSong } from '../library/advancedSearchLocal';
-import type { AlbumBrowsePageResult, AlbumBrowseQuery } from '../library/albumBrowseTypes';
-import { albumBrowseHasServerFilters } from '../library/albumBrowseFilters';
-import type { SubsonicArtist, SubsonicSong } from '../../api/subsonicTypes';
 
 export async function resolveClusterBrowseMembers(): Promise<string[] | null> {
   if (!isClusterMode()) return null;
@@ -120,4 +122,49 @@ export async function clusterBrowseTextSearchPage(
   const all = await clusterBrowseTextSearch(query, offset + pageSize);
   if (!all) return null;
   return all.slice(offset, offset + pageSize);
+}
+
+/** Merged favorites from the local index (starred on any member). */
+export async function clusterLoadFavorites(): Promise<{
+  songs: SubsonicSong[];
+  albums: SubsonicAlbum[];
+  artists: SubsonicArtist[];
+} | null> {
+  const members = await resolveClusterBrowseMembers();
+  if (!members) return null;
+  try {
+    const env = await libraryClusterListFavorites({ serversOrdered: members, limit: 2000, offset: 0 });
+    const songs = env.tracks.map(trackToSong);
+    const albums = dedupeById(
+      songs
+        .filter(s => s.albumId)
+        .map(
+          s =>
+            ({
+              id: s.albumId!,
+              name: s.album,
+              artist: s.artist,
+              artistId: s.artistId,
+              coverArt: s.coverArt,
+              starred: 'true',
+            }) as SubsonicAlbum,
+        ),
+    );
+    const artists = dedupeById(
+      songs
+        .filter(s => s.artistId || s.artist)
+        .map(
+          s =>
+            ({
+              id: s.artistId || s.artist,
+              name: s.artist,
+              coverArt: s.artistId,
+              starred: 'true',
+            }) as SubsonicArtist,
+        ),
+    );
+    return { songs, albums, artists };
+  } catch {
+    return null;
+  }
 }

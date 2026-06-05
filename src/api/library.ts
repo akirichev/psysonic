@@ -543,6 +543,47 @@ export function libraryClusterListArtists(args: {
   }));
 }
 
+export function libraryClusterListFavorites(args: {
+  serversOrdered: string[];
+  limit?: number;
+  offset?: number;
+}): Promise<LibraryTracksEnvelope> {
+  return invoke<LibraryTracksEnvelope>('library_cluster_list_favorites', {
+    request: {
+      serversOrdered: mapServersOrderedToIndexKeys(args.serversOrdered),
+      limit: args.limit,
+      offset: args.offset,
+    },
+  }).then(env => ({
+    ...env,
+    tracks: mapTracksServerId(env.tracks),
+  }));
+}
+
+export function libraryClusterPlayerStatsYearSummary(args: {
+  serversOrdered: string[];
+  year: number;
+}): Promise<PlaySessionYearSummary> {
+  return invoke<PlaySessionYearSummary>('library_cluster_player_stats_year_summary', {
+    request: {
+      serversOrdered: mapServersOrderedToIndexKeys(args.serversOrdered),
+      year: args.year,
+    },
+  });
+}
+
+export function libraryClusterPlayerStatsHeatmap(args: {
+  serversOrdered: string[];
+  year: number;
+}): Promise<PlaySessionHeatmapDay[]> {
+  return invoke<PlaySessionHeatmapDay[]>('library_cluster_player_stats_heatmap', {
+    request: {
+      serversOrdered: mapServersOrderedToIndexKeys(args.serversOrdered),
+      year: args.year,
+    },
+  });
+}
+
 export function libraryClusterResolveCandidates(args: {
   serversOrdered: string[];
   clusterKey?: string;

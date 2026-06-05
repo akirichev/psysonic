@@ -23,6 +23,7 @@ use crate::dto::{
     FactInputDto,     LibraryAdvancedSearchRequest, LibraryAdvancedSearchResponse,
     LibraryClusterListTracksRequest, LibraryClusterResolveRequest,
     LibraryClusterResolveResponse, LibraryClusterAlbumsResponse, LibraryClusterArtistsResponse,
+    LibraryClusterScopeRequest, LibraryClusterPlayerStatsRequest,
     LibraryCrossServerSearchResponse, LibraryLiveSearchRequest, LibraryLiveSearchResponse, LibraryTrackDto,
     LibraryTracksEnvelope, OfflinePathDto, PlaySessionDayDetailDto, PlaySessionHeatmapDayDto,
     PlaySessionInputDto, PlaySessionRecentDayDto, PlaySessionYearBoundsDto, PlaySessionYearSummaryDto, PurgeReportDto, SyncJobDto, SyncStateDto,
@@ -591,6 +592,45 @@ pub async fn library_cluster_list_artists(
         crate::server_cluster::list_merged_artists(&store, &servers_ordered, limit, offset)
     })
     .await
+}
+
+#[tauri::command]
+pub async fn library_cluster_list_favorites(
+    runtime: State<'_, LibraryRuntime>,
+    request: LibraryClusterScopeRequest,
+) -> Result<LibraryTracksEnvelope, String> {
+    let store = Arc::clone(&runtime.store);
+    let servers_ordered = request.servers_ordered;
+    let limit = request.limit.unwrap_or(500);
+    let offset = request.offset.unwrap_or(0);
+    library_spawn_blocking(move || {
+        crate::server_cluster::list_merged_favorite_tracks(&store, &servers_ordered, limit, offset)
+    })
+    .await
+}
+
+#[tauri::command]
+pub fn library_cluster_player_stats_year_summary(
+    runtime: State<'_, LibraryRuntime>,
+    request: LibraryClusterPlayerStatsRequest,
+) -> Result<PlaySessionYearSummaryDto, String> {
+    crate::server_cluster::cluster_year_summary(
+        &runtime.store,
+        &request.servers_ordered,
+        request.year,
+    )
+}
+
+#[tauri::command]
+pub fn library_cluster_player_stats_heatmap(
+    runtime: State<'_, LibraryRuntime>,
+    request: LibraryClusterPlayerStatsRequest,
+) -> Result<Vec<PlaySessionHeatmapDayDto>, String> {
+    crate::server_cluster::cluster_heatmap(
+        &runtime.store,
+        &request.servers_ordered,
+        request.year,
+    )
 }
 
 #[tauri::command]

@@ -7,8 +7,10 @@ mod keys;
 mod list;
 mod list_albums;
 mod list_artists;
+mod list_favorites;
 mod merge;
 mod norm;
+mod play_stats;
 mod priority;
 mod rebuild;
 mod resolve;
@@ -22,8 +24,9 @@ pub use keys::{compute_track_cluster_keys, TrackClusterKeys};
 pub use list::list_merged_tracks;
 pub use list_albums::list_merged_albums;
 pub use list_artists::list_merged_artists;
+pub use list_favorites::list_merged_favorite_tracks;
 pub use merge::DURATION_TOLERANCE_SEC;
-pub use norm::norm_field;
+pub use play_stats::{cluster_heatmap, cluster_year_summary};
 pub use rebuild::{
     rebuild_all_cluster_keys, rebuild_cluster_keys_for_server, rebuild_if_norm_version_stale,
 };

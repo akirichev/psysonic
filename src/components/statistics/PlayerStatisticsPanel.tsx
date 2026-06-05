@@ -2,18 +2,17 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
-  libraryGetPlayerStatsHeatmap,
-  libraryGetPlayerStatsYearBounds,
-  libraryGetPlayerStatsYearSummary,
-  type PlaySessionYearBounds,
-  type PlaySessionYearSummary,
-} from '../../api/library';
+  loadPlayerStatsHeatmap,
+  loadPlayerStatsYearBounds,
+  loadPlayerStatsYearSummary,
+} from '../../utils/serverCluster/clusterPlayerStats';
 import { usePlayerStatsLiveRefresh } from '../../hooks/usePlayerStatsLiveRefresh';
 import { usePlayerStatsRecordingEnabled } from '../../hooks/usePlayerStatsRecordingEnabled';
 import PlayerStatsHeatmap from './PlayerStatsHeatmap';
 import PlayerStatsIndexRequiredNotice from './PlayerStatsIndexRequiredNotice';
 import PlayerStatsRecentDays from './PlayerStatsRecentDays';
 import { formatPlayerStatsListeningTotal } from '../../utils/format/formatHumanDuration';
+import type { PlaySessionYearBounds, PlaySessionYearSummary } from '../../api/library';
 
 const currentCalendarYear = () => new Date().getFullYear();
 
@@ -41,9 +40,9 @@ export default function PlayerStatisticsPanel() {
     setLoading(true);
     setSelectedDate(null);
     Promise.all([
-      libraryGetPlayerStatsYearSummary(year),
-      libraryGetPlayerStatsHeatmap(year),
-      libraryGetPlayerStatsYearBounds(),
+      loadPlayerStatsYearSummary(year),
+      loadPlayerStatsHeatmap(year),
+      loadPlayerStatsYearBounds(),
     ])
       .then(([s, heat, bounds]) => {
         if (cancelled) return;
@@ -67,8 +66,8 @@ export default function PlayerStatisticsPanel() {
     if (!recordingEnabled) return;
     try {
       const [s, heat] = await Promise.all([
-        libraryGetPlayerStatsYearSummary(year),
-        libraryGetPlayerStatsHeatmap(year),
+        loadPlayerStatsYearSummary(year),
+        loadPlayerStatsHeatmap(year),
       ]);
       setSummary(s);
       setDayCounts(new Map(heat.map(h => [h.date, h.trackPlayCount])));

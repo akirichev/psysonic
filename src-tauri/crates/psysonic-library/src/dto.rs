@@ -697,6 +697,24 @@ pub struct LibraryClusterArtistsResponse {
     pub has_more: bool,
 }
 
+/// Cluster player stats / favorites scope request.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryClusterScopeRequest {
+    pub servers_ordered: Vec<String>,
+    #[serde(default)]
+    pub limit: Option<u32>,
+    #[serde(default)]
+    pub offset: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryClusterPlayerStatsRequest {
+    pub servers_ordered: Vec<String>,
+    pub year: i32,
+}
+
 /// `library_cluster_resolve_candidates` request — provide cluster_key OR seed track.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]

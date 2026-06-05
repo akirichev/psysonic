@@ -7,6 +7,7 @@ import type {
 import { useAuthStore } from '../store/authStore';
 import { usePlayerStore } from '../store/playerStore';
 import type { TopFavoriteArtist } from '../components/favorites/TopFavoriteArtists';
+import { clusterLoadFavorites } from '../utils/serverCluster/clusterBrowse';
 
 export interface FavoritesDataResult {
   albums: SubsonicAlbum[];
@@ -32,13 +33,18 @@ export function useFavoritesData(): FavoritesDataResult {
 
   useEffect(() => {
     const loadAll = async () => {
-      const [starredResult] = await Promise.allSettled([
-        getStarred(),
-      ]);
-      if (starredResult.status === 'fulfilled') {
-        setAlbums(starredResult.value.albums);
-        setArtists(starredResult.value.artists);
-        setSongs(starredResult.value.songs);
+      const clusterFavorites = await clusterLoadFavorites();
+      if (clusterFavorites) {
+        setAlbums(clusterFavorites.albums);
+        setArtists(clusterFavorites.artists);
+        setSongs(clusterFavorites.songs);
+      } else {
+        const [starredResult] = await Promise.allSettled([getStarred()]);
+        if (starredResult.status === 'fulfilled') {
+          setAlbums(starredResult.value.albums);
+          setArtists(starredResult.value.artists);
+          setSongs(starredResult.value.songs);
+        }
       }
 
       // Radio favorites: read IDs from localStorage, fetch all stations, filter
