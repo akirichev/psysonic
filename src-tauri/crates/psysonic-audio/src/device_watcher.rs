@@ -140,6 +140,12 @@ pub fn start_device_watcher(engine: &AudioEngine, app: tauri::AppHandle) {
         let mut last_stall_recover_at: Option<Instant> = None;
         let mut last_poll_at = Instant::now();
         let mut watchdog_armed_until: Option<Instant> = None;
+        // DIAGNOSTIC (issue #996, EXPERIMENT BUILD ONLY — revert before release):
+        // counts watcher cycles so the heavy CoreAudio enumeration below runs only
+        // ~every 60s (20 × 3s) instead of every cycle. Tests whether that periodic
+        // enumeration is the source of the ~3s macOS playback stutter. The 3s loop,
+        // watchdog and stall detector are left untouched on purpose.
+        let mut diag_enum_skip: u32 = 0;
 
         loop {
             tokio::time::sleep(Duration::from_secs(3)).await;
@@ -223,6 +229,17 @@ pub fn start_device_watcher(engine: &AudioEngine, app: tauri::AppHandle) {
                     );
                 }
             }
+
+            // DIAGNOSTIC (issue #996, EXPERIMENT BUILD ONLY — revert before release):
+            // run the heavy CoreAudio enumeration + device-change detection only
+            // ~every 60s. The stall detector above still runs every 3s, so playback
+            // recovery is unaffected. If the stutter cadence shifts to ~60s (or
+            // stops), the periodic enumeration is the culprit.
+            diag_enum_skip += 1;
+            if diag_enum_skip < 20 {
+                continue;
+            }
+            diag_enum_skip = 0;
 
             // Enumerate all available output devices and the current default.
             // Suppress stderr on Unix to avoid ALSA probing noise (JACK, OSS, dmix).
