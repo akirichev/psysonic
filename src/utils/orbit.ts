@@ -22,6 +22,8 @@
 export {
   ORBIT_HEARTBEAT_ALIVE_MS,
   ORBIT_ORPHAN_TTL_MS,
+  ORBIT_RECONNECT_COUNTDOWN_S,
+  ORBIT_RECONNECT_MAX_AGE_MS,
   ORBIT_REMOVED_TTL_MS,
   ORBIT_SHUFFLE_INTERVAL_MS,
 } from './orbit/constants';
@@ -53,11 +55,17 @@ export {
 export {
   endOrbitSession,
   hostEnqueueToOrbit,
+  resumeOrbitSessionAsHost,
   startOrbitSession,
   triggerOrbitShuffleNow,
   updateOrbitSettings,
   type StartOrbitArgs,
 } from './orbit/host';
+export {
+  clearOrbitLastSession,
+  readOrbitLastSession,
+  type OrbitLastSession,
+} from './orbit/lastSession';
 export {
   kickOrbitParticipant,
   removeOrbitParticipant,

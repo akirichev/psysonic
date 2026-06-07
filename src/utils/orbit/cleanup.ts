@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useOrbitStore } from '../../store/orbitStore';
 import { ORBIT_PLAYLIST_PREFIX, parseOrbitState } from '../../api/orbit';
 import { ORBIT_ORPHAN_TTL_MS } from './constants';
+import { readOrbitLastSessionSid } from './lastSession';
 
 /**
  * App-start sweep: delete our own __psyorbit_* playlists that no longer
@@ -24,6 +25,11 @@ export async function cleanupOrphanedOrbitPlaylists(): Promise<number> {
   const now = Date.now();
   const TTL = ORBIT_ORPHAN_TTL_MS;
   const currentSid = useOrbitStore.getState().sessionId;
+  // Protect a session the reconnect prompt is about to offer (the local store
+  // is empty right after a restart, so `currentSid` alone wouldn't cover it).
+  // Order-independent: if reconnect declines/fails, the breadcrumb is wiped and
+  // the next sweep prunes it.
+  const reconnectSid = readOrbitLastSessionSid();
 
   const nameRe = new RegExp(`^${ORBIT_PLAYLIST_PREFIX}([a-f0-9]+)(_from_.+__)?$`);
   let deleted = 0;
@@ -41,7 +47,7 @@ export async function cleanupOrphanedOrbitPlaylists(): Promise<number> {
     }
     const sid = match[1];
     const isOutbox = !!match[2];
-    if (sid === currentSid) continue;
+    if (sid === currentSid || sid === reconnectSid) continue;
 
     let timestamp = 0;
     let ended = false;

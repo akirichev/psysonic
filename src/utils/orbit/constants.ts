@@ -27,6 +27,17 @@ export const ORBIT_ORPHAN_TTL_MS = 5 * 60_000;
 export const ORBIT_SHUFFLE_INTERVAL_MS = 15 * 60_000;
 
 /**
+ * Reconnect prompt (after an app restart mid-session): how long the countdown
+ * runs before auto-rejoining, and how stale the live session may be before we
+ * stop offering a reconnect at all. The age window is generous (a restart
+ * after a short break should still offer) but bounded so a long-dead session
+ * isn't resurrected; the app-start orphan sweep protects the breadcrumb's
+ * session for this whole window.
+ */
+export const ORBIT_RECONNECT_COUNTDOWN_S = 30;
+export const ORBIT_RECONNECT_MAX_AGE_MS = 30 * 60_000;
+
+/**
  * How long a soft-`removed` marker stays in the state blob. Long enough for
  * the affected guest's 2.5 s read tick to surface the modal even after a
  * one-tick miss; short enough that the marker doesn't bloat state if the

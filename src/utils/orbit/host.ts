@@ -1,4 +1,4 @@
-import { createPlaylist, deletePlaylist } from '../../api/subsonicPlaylists';
+import { createPlaylist, deletePlaylist, getPlaylists } from '../../api/subsonicPlaylists';
 import { getSong } from '../../api/subsonicLibrary';
 import { songToTrack } from '../playback/songToTrack';
 import { useAuthStore } from '../../store/authStore';
@@ -13,8 +13,9 @@ import {
   type OrbitSettings,
   type OrbitState,
 } from '../../api/orbit';
-import { generateSessionId } from './helpers';
-import { writeOrbitHeartbeat, writeOrbitState } from './remote';
+import { generateSessionId, suggestionKey } from './helpers';
+import { findSessionPlaylistId, readOrbitState, writeOrbitHeartbeat, writeOrbitState } from './remote';
+import { clearOrbitLastSession, persistCurrentOrbitSession } from './lastSession';
 
 export interface StartOrbitArgs {
   /** Human-readable name the host chose. */
@@ -89,11 +90,86 @@ export async function startOrbitSession(args: StartOrbitArgs): Promise<OrbitStat
       joinedAt: Date.now(),
     });
 
+    // Drop a restart-survival breadcrumb so a crash/force-quit can offer
+    // to resume hosting on next launch.
+    persistCurrentOrbitSession();
+
     return state;
   } catch (err) {
     // Best-effort cleanup of anything we managed to create before the failure.
     if (outboxPlaylistId)  { try { await deletePlaylist(outboxPlaylistId); }  catch { /* ignore */ } }
     if (sessionPlaylistId) { try { await deletePlaylist(sessionPlaylistId); } catch { /* ignore */ } }
+    useOrbitStore.getState().setPhase('idle');
+    throw err;
+  }
+}
+
+/**
+ * Host: resume hosting an existing session after an app restart.
+ *
+ * Unlike {@link startOrbitSession} this creates no playlists — it re-binds the
+ * local store to a session that's still alive on the server. The host's own
+ * session + outbox playlists survive a quick restart (the orphan sweep only
+ * prunes them after `ORBIT_ORPHAN_TTL_MS`), and the play queue is restored from
+ * the persisted player store, so playback continues where it left off.
+ *
+ * Returns the re-read state on success. Throws on any gate failure (no user /
+ * not the host / session gone / ended) — the caller wipes the breadcrumb and
+ * stays idle.
+ */
+export async function resumeOrbitSessionAsHost(sid: string): Promise<OrbitState> {
+  const server = useAuthStore.getState().getActiveServer();
+  const username = server?.username;
+  if (!username) throw new Error('No active Navidrome server / user');
+
+  const store = useOrbitStore.getState();
+  if (store.phase !== 'idle') throw new Error(`Cannot resume while phase is ${store.phase}`);
+
+  store.setPhase('starting');
+  try {
+    // 1) Session must still exist, be readable, not ended — and we must be its host.
+    const sessionPlaylistId = await findSessionPlaylistId(sid);
+    if (!sessionPlaylistId) throw new Error(`Session ${sid} not found on server`);
+    const state = await readOrbitState(sessionPlaylistId);
+    if (!state)      throw new Error(`Session ${sid} has no valid state`);
+    if (state.ended) throw new Error(`Session ${sid} has ended`);
+    if (state.host !== username) throw new Error(`Not the host of session ${sid}`);
+
+    // 2) Re-locate (or recreate) our own outbox and refresh its heartbeat.
+    const outboxName = orbitOutboxPlaylistName(sid, username);
+    const existing = (await getPlaylists(true).catch(() => [])).find(p => p.name === outboxName);
+    const outboxPlaylistId = existing ? existing.id : (await createPlaylist(outboxName)).id;
+    await writeOrbitHeartbeat(outboxPlaylistId, outboxName);
+
+    // 3) Rebuild the in-memory merged-suggestion set (lost on restart) from the
+    //    restored player queue so the resumed host tick won't re-enqueue tracks
+    //    that are already queued. Anything already in the queue / current track
+    //    counts as "already handled"; genuinely-pending suggestions stay pending.
+    const player = usePlayerStore.getState();
+    const inQueue = new Set<string>(player.queueItems.map(r => r.trackId));
+    if (player.currentTrack?.id) inQueue.add(player.currentTrack.id);
+    const mergedSuggestionKeys = state.queue
+      .filter(q => inQueue.has(q.trackId))
+      .map(suggestionKey);
+
+    // 4) Re-bind the store as host; the already-mounted host tick takes over.
+    useOrbitStore.setState({
+      role: 'host',
+      sessionId: sid,
+      sessionPlaylistId,
+      outboxPlaylistId,
+      phase: 'active',
+      state,
+      errorMessage: null,
+      joinedAt: Date.now(),
+      mergedSuggestionKeys,
+      declinedSuggestionKeys: [],
+      pendingSuggestions: [],
+    });
+
+    persistCurrentOrbitSession();
+    return state;
+  } catch (err) {
     useOrbitStore.getState().setPhase('idle');
     throw err;
   }
@@ -124,7 +200,8 @@ export async function endOrbitSession(): Promise<void> {
   if (outboxPlaylistId)  { try { await deletePlaylist(outboxPlaylistId); }  catch { /* best-effort */ } }
   if (sessionPlaylistId) { try { await deletePlaylist(sessionPlaylistId); } catch { /* best-effort */ } }
 
-  // 3) Local teardown.
+  // 3) Local teardown. Clean exit → drop the restart breadcrumb.
+  clearOrbitLastSession();
   useOrbitStore.getState().reset();
 }
 

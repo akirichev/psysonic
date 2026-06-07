@@ -11,6 +11,7 @@ import {
 } from '../../api/orbit';
 import { suggestionKey } from './helpers';
 import { findSessionPlaylistId, readOrbitState, writeOrbitHeartbeat } from './remote';
+import { clearOrbitLastSession, persistCurrentOrbitSession } from './lastSession';
 
 export class OrbitJoinError extends Error {
   constructor(
@@ -96,6 +97,10 @@ export async function joinOrbitSession(sid: string): Promise<OrbitState> {
       joinedAt: Date.now(),
     });
 
+    // Drop a restart-survival breadcrumb so a crash/force-quit can offer to
+    // rejoin on next launch.
+    persistCurrentOrbitSession();
+
     return state;
   } catch (err) {
     // Best-effort cleanup.
@@ -120,6 +125,8 @@ export async function leaveOrbitSession(): Promise<void> {
     try { await deletePlaylist(outboxPlaylistId); } catch { /* best-effort */ }
   }
 
+  // Clean exit → drop the restart breadcrumb.
+  clearOrbitLastSession();
   useOrbitStore.getState().reset();
 }
 
