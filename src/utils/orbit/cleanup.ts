@@ -31,7 +31,12 @@ export async function cleanupOrphanedOrbitPlaylists(): Promise<number> {
   // the next sweep prunes it.
   const reconnectSid = readOrbitLastSessionSid();
 
-  const nameRe = new RegExp(`^${ORBIT_PLAYLIST_PREFIX}([a-f0-9]+)(_from_.+__)?$`);
+  // Matches both a session playlist (`__psyorbit_<sid>__`) and an outbox
+  // (`__psyorbit_<sid>_from_<user>__`). The trailing `__` must live outside the
+  // optional `_from_…` group, otherwise a bare session name fails to match and
+  // gets pruned as "corrupt" — which would delete a live session a restart is
+  // about to reconnect to.
+  const nameRe = new RegExp(`^${ORBIT_PLAYLIST_PREFIX}([a-f0-9]+)(_from_.+)?__$`);
   let deleted = 0;
 
   for (const p of all) {
