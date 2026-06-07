@@ -66,14 +66,30 @@ export default function OrbitDiagnosticsPopover({ anchorRef, onClose }: Props) {
   }, [anchorRef, onClose]);
 
   const anchor = anchorRef.current?.getBoundingClientRect();
-  const style: React.CSSProperties = anchor
-    ? {
-        position: 'fixed',
-        top:   anchor.bottom + 12,
-        right: Math.max(8, window.innerWidth - anchor.right),
-        zIndex: 9999,
-      }
-    : { display: 'none' };
+  let style: React.CSSProperties = { display: 'none' };
+  if (anchor) {
+    const vw = window.innerWidth;
+    // Compact, viewport-bounded width (same scale as the other Orbit popovers).
+    const width = Math.min(560, vw - 16);
+    // Anchor under the trigger, but slide inward so the right-anchored popover
+    // never spills off either window edge — on a narrow window the left edge
+    // would otherwise drop off-screen.
+    const right = Math.min(
+      Math.max(8, vw - anchor.right),
+      Math.max(8, vw - width - 8),
+    );
+    style = {
+      position: 'fixed',
+      top: anchor.bottom + 12,
+      right,
+      width,
+      // Cap height to the space below the anchor (minus a small margin); the
+      // log textarea flex-shrinks to fit. Re-read every render (the 1s
+      // mini-display tick keeps width/height fresh after a window resize).
+      maxHeight: `calc(100vh - ${Math.round(anchor.bottom + 24)}px)`,
+      zIndex: 9999,
+    };
+  }
 
   // ── Live mini-display data ────────────────────────────────────────────
   const role = useOrbitStore(s => s.role);

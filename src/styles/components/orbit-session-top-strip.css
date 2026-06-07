@@ -856,8 +856,9 @@
 
 /* ── Diagnostics popover ──────────────────────────────────────────────── */
 .orbit-diag-pop {
-  width: 920px;
-  max-width: calc(100vw - 24px);
+  /* Width + position are computed inline (see OrbitDiagnosticsPopover.tsx) so
+     the right-anchored popover stays inside the window on any size. Long log
+     lines scroll horizontally inside the textarea instead of widening this. */
   padding: 14px;
   background: var(--bg-card);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, rgba(255,255,255,0.1));
@@ -932,7 +933,10 @@
 }
 .orbit-diag-pop__log {
   width: 100%;
-  height: 220px;
+  /* Prefer 220px, but flex-shrink (down to min-height) when the popover is
+     height-capped on short windows so it never spills past the viewport. */
+  flex: 1 1 220px;
+  min-height: 80px;
   resize: vertical;
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 10.5px;
