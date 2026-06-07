@@ -36,15 +36,19 @@ export default function OrbitReconnectModal() {
   const [candidate, setCandidate] = useState<OrbitLastSession | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(ORBIT_RECONNECT_COUNTDOWN_S);
   const [busy, setBusy] = useState(false);
-  const ranRef = useRef(false);
+  const decidedRef = useRef(false);
   const firedRef = useRef(false);
 
   // One-shot startup preflight: is there a live session worth offering?
+  //
+  // StrictMode-safe: `decidedRef` is set only *after* the `cancelled` guard
+  // inside the async, never up front. React's dev double-invoke (mount →
+  // cleanup → mount) cancels the first run before it can decide, so the second
+  // (real) mount still runs the check to completion. A network error leaves
+  // `decidedRef` false so a later dependency change retries.
   useEffect(() => {
-    if (ranRef.current) return;
-    if (!isLoggedIn || !activeServerId) return; // wait for auth hydration
-    if (orbitRole !== null) return;             // already bound to a session
-    ranRef.current = true;
+    if (decidedRef.current) return;
+    if (!isLoggedIn || !activeServerId || orbitRole !== null) return;
 
     const rec = readOrbitLastSession();
     if (!rec || rec.serverId !== activeServerId) return; // none / different server
@@ -53,22 +57,23 @@ export default function OrbitReconnectModal() {
     void (async () => {
       try {
         const sessionPlaylistId = await findSessionPlaylistId(rec.sid);
-        if (!sessionPlaylistId) { clearOrbitLastSession(); return; }
+        if (cancelled) return;
+        if (!sessionPlaylistId) { decidedRef.current = true; clearOrbitLastSession(); return; }
         const state = await readOrbitState(sessionPlaylistId);
-        if (!state || state.ended) { clearOrbitLastSession(); return; }
+        if (cancelled) return;
+        if (!state || state.ended) { decidedRef.current = true; clearOrbitLastSession(); return; }
         // Too long since the last host snapshot → treat as dead, don't offer.
         if (Date.now() - (state.positionAt ?? 0) > ORBIT_RECONNECT_MAX_AGE_MS) {
-          clearOrbitLastSession();
-          return;
+          decidedRef.current = true; clearOrbitLastSession(); return;
         }
         // A host breadcrumb only resumes if we're still the session's host.
         if (rec.role === 'host' && state.host !== useAuthStore.getState().getActiveServer()?.username) {
-          clearOrbitLastSession();
-          return;
+          decidedRef.current = true; clearOrbitLastSession(); return;
         }
-        if (!cancelled) setCandidate(rec);
+        decidedRef.current = true;
+        setCandidate(rec);
       } catch {
-        /* network hiccup — keep the breadcrumb, just skip the prompt this launch */
+        /* network hiccup — keep the breadcrumb + retry on the next dep change */
       }
     })();
     return () => { cancelled = true; };
