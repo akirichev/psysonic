@@ -18,9 +18,10 @@ vi.mock('../api/subsonicLibrary');
 vi.mock('../api/bandsintown');
 vi.mock('../api/lastfm');
 vi.mock('../utils/network/subsonicNetworkGuard', () => ({
-  shouldAttemptSubsonicForServer: () => true,
+  shouldAttemptSubsonicForServer: vi.fn(() => true),
 }));
 
+import { shouldAttemptSubsonicForServer } from '../utils/network/subsonicNetworkGuard';
 import { getArtistForServer, getArtistInfoForServer, getTopSongsForServer } from '../api/subsonicArtists';
 import { getAlbumForServer, getSongForServer } from '../api/subsonicLibrary';
 import { fetchBandsintownEvents } from '../api/bandsintown';
@@ -210,5 +211,55 @@ describe('useNowPlayingFetchers — id-gated songMeta / albumData / discography'
 
     await act(async () => { d2.resolve({ artist: {}, albums: [{ id: 'al-D2' } as SubsonicAlbum] }); });
     await waitFor(() => expect(result.current.discography.map(a => a.id)).toEqual(['al-D2']));
+  });
+});
+
+describe('useNowPlayingFetchers — local-playback metadata', () => {
+  // Regression: the metadata gate must never pass the playing track id, or the
+  // guard's `psysonic-local://` skip would blank every Subsonic card whenever
+  // the track plays from hot-cache / offline bytes. Guard is called with the
+  // server id only.
+  // Keep the shared guard mock at its permissive default after the behaviour
+  // case below swaps in a trackId-sensitive implementation.
+  afterEach(() => {
+    vi.mocked(shouldAttemptSubsonicForServer).mockImplementation(() => true);
+  });
+
+  it('queries the network guard without a trackId', async () => {
+    const guard = vi.mocked(shouldAttemptSubsonicForServer);
+    renderHook(() => useNowPlayingFetchers({ ...baseDeps, songId: 'song-1', albumId: 'al-1', artistId: 'art-1', artistName: 'Artist' }));
+    await waitFor(() => expect(guard).toHaveBeenCalled());
+    for (const call of guard.mock.calls) {
+      expect(call).toHaveLength(1);
+      expect(call[1]).toBeUndefined();
+    }
+  });
+
+  it('still loads album / discography / top songs when the playback bytes are local', async () => {
+    // Mirror the real guard: a byte-style call (with a trackId resolving to
+    // psysonic-local://) is blocked, but the metadata gate (server id only) is
+    // allowed. If the hook ever passed the trackId again, every fetch below
+    // would be gated off and the cards would blank — exactly the #1042 bug.
+    // Ids are unique to this test so the shared module caches don't short-circuit it.
+    vi.mocked(shouldAttemptSubsonicForServer).mockImplementation(
+      (_serverId, trackId) => trackId === undefined,
+    );
+    vi.mocked(getSongForServer).mockResolvedValue({ id: 'np-song', title: 'Local Track' } as SubsonicSong);
+    vi.mocked(getAlbumForServer).mockResolvedValue(
+      { album: { id: 'np-al', name: 'Album' } as SubsonicAlbum, songs: [] } as any,
+    );
+    vi.mocked(getArtistForServer).mockResolvedValue({ albums: [{ id: 'np-al' }] } as any);
+    vi.mocked(getTopSongsForServer).mockResolvedValue([{ id: 'np-top' }] as any);
+
+    const { result } = renderHook(() =>
+      useNowPlayingFetchers({ ...baseDeps, songId: 'np-song', albumId: 'np-al', artistId: 'np-art', artistName: 'NP Artist' }),
+    );
+
+    await waitFor(() => expect(getAlbumForServer).toHaveBeenCalledWith('srv1', 'np-al'));
+    await waitFor(() => expect(getArtistForServer).toHaveBeenCalledWith('srv1', 'np-art'));
+    await waitFor(() => expect(getTopSongsForServer).toHaveBeenCalledWith('srv1', 'NP Artist'));
+    await waitFor(() => expect(result.current.albumData?.album.id).toBe('np-al'));
+    await waitFor(() => expect(result.current.discography.map(a => a.id)).toEqual(['np-al']));
+    await waitFor(() => expect(result.current.topSongs.map(s => s.id)).toEqual(['np-top']));
   });
 });

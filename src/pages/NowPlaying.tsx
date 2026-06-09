@@ -6,7 +6,6 @@ import type { SubsonicArtistInfo, SubsonicSong } from '../api/subsonicTypes';
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { usePlaybackLibraryNavigate } from '../hooks/usePlaybackLibraryNavigate';
 import { usePlaybackServerId } from '../hooks/usePlaybackServerId';
-import { shouldAttemptSubsonicForServer } from '../utils/network/subsonicNetworkGuard';
 import { useTranslation } from 'react-i18next';
 import { Music, ExternalLink, Cast, Users, Radio, Clock, SkipForward, Info, Calendar, Disc3, Play, EyeOff, LayoutGrid, RotateCcw, Eye } from 'lucide-react';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
@@ -94,8 +93,10 @@ export default function NowPlaying() {
     enableBandsintown, audiomuseNavidromeEnabled,
     lastfmUsername, currentTrack,
     subsonicServerId: playbackServerId,
-    fetchEnabled: Boolean(playbackServerId)
-      && shouldAttemptSubsonicForServer(playbackServerId, currentTrack?.id),
+    // `fetchEnabled` = "we have a playback server id". The reachability decision
+    // (online / server reachable, no trackId so local-cache playback still loads
+    // metadata) lives in one place inside the hook — see its JSDoc.
+    fetchEnabled: Boolean(playbackServerId),
   });
 
   // Star + Last.fm love + their toggle callbacks

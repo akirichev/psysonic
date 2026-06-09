@@ -32,7 +32,12 @@ export interface NowPlayingFetchersDeps {
   currentTrack: { artist: string; title: string } | null;
   /** Subsonic server for API calls — must match the playing queue server. */
   subsonicServerId: string;
-  /** When false, skip network fetches (e.g. no server id). */
+  /**
+   * Caller intent / prerequisites only (e.g. "we have a playback server id").
+   * The network reachability decision — online, server reachable, and no
+   * trackId so local-cache playback still loads metadata — is made here via
+   * `shouldAttemptSubsonicForServer`; callers must not pre-apply that guard.
+   */
   fetchEnabled?: boolean;
 }
 
@@ -81,7 +86,10 @@ export async function prewarmNowPlayingFetchers(
   } = deps;
 
   if (!fetchEnabled || !subsonicServerId) return;
-  if (!shouldAttemptSubsonicForServer(subsonicServerId, songId)) return;
+  // The only network gate in this function. No trackId: metadata must be fetched
+  // even when the track's audio is local (hot-cache / offline). Offline is still
+  // covered by the online/reachability checks inside the guard.
+  if (!shouldAttemptSubsonicForServer(subsonicServerId)) return;
 
   const jobs: Array<Promise<unknown>> = [];
 
@@ -200,9 +208,11 @@ export function useNowPlayingFetchers(deps: NowPlayingFetchersDeps): NowPlayingF
     seedKeySlot(lfmArtistKey, k => lfmArtistCache.get(k)));
 
   const { status: connStatus } = useConnectionStatus();
+  // No trackId: see prewarm note — metadata is fetched whenever the server is
+  // reachable, regardless of whether the track's audio plays from local cache.
   const subsonicFetchAllowed = fetchEnabled
     && !!subsonicServerId
-    && shouldAttemptSubsonicForServer(subsonicServerId, songId);
+    && shouldAttemptSubsonicForServer(subsonicServerId);
 
   // Fetch batch per entity change (not per song switch — same-artist songs share artist/top/tour fetches)
   useEffect(() => {
