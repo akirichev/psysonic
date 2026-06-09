@@ -5,7 +5,7 @@ import type { CoverArtTier } from '../cover/types';
 import { useAuthStore } from '../store/authStore';
 import { connectBaseUrlForServer } from '../utils/server/serverEndpoint';
 import { findServerByIdOrIndexKey } from '../utils/server/serverLookup';
-import { restBaseFromUrl, SUBSONIC_CLIENT, secureRandomSalt } from './subsonicClient';
+import { restBaseFromUrl, SUBSONIC_CLIENT, SUBSONIC_API_VERSION, secureRandomSalt } from './subsonicClient';
 
 function coverArtQueryParams(username: string, password: string, id: string, size: number): URLSearchParams {
   const salt = secureRandomSalt();
@@ -16,7 +16,7 @@ function coverArtQueryParams(username: string, password: string, id: string, siz
     u: username,
     t: token,
     s: salt,
-    v: '1.16.1',
+    v: SUBSONIC_API_VERSION,
     c: SUBSONIC_CLIENT,
     f: 'json',
   });
@@ -36,7 +36,7 @@ function streamUrlFromProfile(
     u: username,
     t: token,
     s: salt,
-    v: '1.16.1',
+    v: SUBSONIC_API_VERSION,
     c: SUBSONIC_CLIENT,
     f: 'json',
   });
@@ -116,7 +116,7 @@ export function buildDownloadUrl(id: string): string {
   const p = new URLSearchParams({
     id,
     u: server?.username ?? '',
-    t: token, s: salt, v: '1.16.1', c: SUBSONIC_CLIENT, f: 'json',
+    t: token, s: salt, v: SUBSONIC_API_VERSION, c: SUBSONIC_CLIENT, f: 'json',
   });
   return `${baseUrl}/rest/download.view?${p.toString()}`;
 }

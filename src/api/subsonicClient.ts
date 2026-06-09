@@ -8,6 +8,15 @@ import { findServerByIdOrIndexKey, resolveServerIdForIndexKey } from '../utils/s
 
 export const SUBSONIC_CLIENT = `psysonic/${version}`;
 
+/**
+ * Subsonic REST protocol version sent on every request. A server returns
+ * error 30 ("Incompatible REST protocol version") if the client asks for a
+ * HIGHER version than it supports — surfaced to the user via the connection
+ * error toast. OpenSubsonic extensions are negotiated via the `openSubsonic`
+ * response flag, not this number.
+ */
+export const SUBSONIC_API_VERSION = '1.16.1';
+
 export function secureRandomSalt(): string {
   const buf = new Uint8Array(8);
   crypto.getRandomValues(buf);
@@ -17,7 +26,7 @@ export function secureRandomSalt(): string {
 export function getAuthParams(username: string, password: string) {
   const salt = secureRandomSalt();
   const token = md5(password + salt);
-  return { u: username, t: token, s: salt, v: '1.16.1', c: SUBSONIC_CLIENT, f: 'json' };
+  return { u: username, t: token, s: salt, v: SUBSONIC_API_VERSION, c: SUBSONIC_CLIENT, f: 'json' };
 }
 
 export function restBaseFromUrl(serverUrl: string): string {

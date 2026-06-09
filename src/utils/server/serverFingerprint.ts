@@ -15,7 +15,7 @@
  */
 
 import md5 from 'md5';
-import { apiWithCredentials, restBaseFromUrl, secureRandomSalt, SUBSONIC_CLIENT } from '../../api/subsonicClient';
+import { apiWithCredentials, restBaseFromUrl, secureRandomSalt, SUBSONIC_CLIENT, SUBSONIC_API_VERSION } from '../../api/subsonicClient';
 import type { ServerProfile } from '../../store/authStoreTypes';
 import { allNormalizedAddresses } from './serverEndpoint';
 
@@ -64,7 +64,7 @@ async function fetchPingFingerprint(
     u: username,
     t: token,
     s: salt,
-    v: '1.16.1',
+    v: SUBSONIC_API_VERSION,
     c: SUBSONIC_CLIENT,
     f: 'json',
   });
