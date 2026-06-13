@@ -6,6 +6,7 @@ import {
   clampPlaybackSpeed,
   DEFAULT_PLAYBACK_STRATEGY,
   effectivePlaybackPitch,
+  engineStrategy,
   type PlaybackStrategy,
 } from '../utils/audio/playbackRateHelpers';
 import {
@@ -16,12 +17,15 @@ import {
 import { isOrbitPlaybackSyncActive } from '../utils/orbit';
 
 interface PlaybackRateState extends PlaybackRateSnapshot {
+  /** UI-only: smaller slider steps (Advanced). Not sent to the engine. */
+  fineStep: boolean;
 
   setEnabled: (v: boolean) => void;
   setStrategy: (s: PlaybackStrategy) => void;
   setSpeed: (speed: number) => void;
   setPitchSemitones: (semitones: number) => void;
   applyPresetSpeed: (speed: number) => void;
+  setFineStep: (v: boolean) => void;
   syncToRust: () => void;
 }
 
@@ -30,7 +34,7 @@ function syncPlaybackRate(state: PlaybackRateSnapshot, prev?: PlaybackRateSnapsh
   const effectiveEnabled = state.enabled && !isOrbitPlaybackSyncActive();
   invoke('audio_set_playback_rate', {
     enabled: effectiveEnabled,
-    strategy: state.strategy,
+    strategy: engineStrategy(state.strategy),
     speed: state.speed,
     pitchSemitones: effectivePlaybackPitch(state.strategy, state.pitchSemitones),
   }).catch(() => {});
@@ -47,6 +51,7 @@ export const usePlaybackRateStore = create<PlaybackRateState>()(
       strategy: DEFAULT_PLAYBACK_STRATEGY,
       speed: 1.0,
       pitchSemitones: 0,
+      fineStep: false,
 
       setEnabled: (v) => {
         const prev = get();
@@ -81,6 +86,8 @@ export const usePlaybackRateStore = create<PlaybackRateState>()(
         syncPlaybackRate(get(), prev);
       },
 
+      setFineStep: (v) => set({ fineStep: v }),
+
       syncToRust: () => {
         syncPlaybackRate(get());
       },
@@ -93,6 +100,7 @@ export const usePlaybackRateStore = create<PlaybackRateState>()(
         strategy: s.strategy,
         speed: s.speed,
         pitchSemitones: s.pitchSemitones,
+        fineStep: s.fineStep,
       }),
     },
   ),
