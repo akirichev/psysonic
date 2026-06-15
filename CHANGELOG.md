@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
-### Playback freeze on track changes with very large queues
+### Playback freeze on track changes
 
-* With a very large play queue, changing tracks — skipping, or the automatic advance at the end of a song — could freeze the interface for several seconds while audio kept playing (the progress bar and lyrics stopped updating). The queue header was re-summing the entire queue's duration on every single track change; it now keeps that total incrementally, so track changes stay instant no matter how long the queue is.
+* Changing tracks — skipping, or the automatic advance at the end of a song — could freeze the interface for several seconds while audio kept playing (the progress bar and lyrics stopped updating). The queue header recomputed its duration totals on every track change instead of only when the queue itself changes; it now recomputes only on queue changes, so track changes stay instant.
 * This also resolves output-device changes not being applied on Windows: the same freeze was blocking playback from following the newly selected device.
 
 
