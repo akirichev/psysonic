@@ -93,6 +93,15 @@ pub(crate) async fn reopen_output_stream(
     // Falls back gracefully to the frontend path if conditions aren't met.
     let resumed = try_resume_after_device_change(app, &snapshot).await;
 
+    // [DIAG #1090 — TEMPORARY] What does Rust hand to the frontend? resumed=true
+    // → null payload (frontend does nothing). resumed=false → f64 → frontend
+    // calls playTrack. This tells us which frontend branch the hang follows.
+    crate::app_eprintln!(
+        "[psysonic] DIAG-1090 reopen returning: resumed={resumed} was_playing={} payload={}",
+        snapshot.is_playing,
+        if resumed { "null".to_string() } else { format!("{:?}", snapshot.current_time_secs) }
+    );
+
     match notify {
         ReopenNotify::DeviceChanged => {
             // null  → Rust already resumed; frontend skips playTrack

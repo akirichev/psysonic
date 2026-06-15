@@ -1,8 +1,15 @@
 import { useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/core';
 import { usePlayerStore } from '../../store/playerStore';
 import { useAuthStore } from '../../store/authStore';
 import { setSeekFallbackVisualTarget } from '../../store/seekFallbackState';
+
+// [DIAG #1090 — TEMPORARY] Forward a marker to the Rust debug log (only when
+// Settings → Logging = Debug). Used to find where the UI hangs on device switch.
+const diag1090 = (message: string) => {
+  void invoke('frontend_debug_log', { scope: 'diag1090', message }).catch(() => {});
+};
 
 /** Audio output device lifecycle: device switches (Bluetooth headphones, USB
  * DAC, …) and pinned-device-unplugged fallbacks emitted by the Rust
@@ -17,11 +24,13 @@ export function useAudioDeviceBridge() {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     listen('audio:device-changed', (event) => {
+      diag1090(`device-changed received payload=${JSON.stringify(event.payload)}`);
       // null payload = Rust handled internal replay; nothing to do here.
       if (event.payload === null) return;
 
       const resumeAt = typeof event.payload === 'number' ? event.payload : 0;
       const { currentTrack, isPlaying, playTrack, resetAudioPause } = usePlayerStore.getState();
+      diag1090(`state currentTrack=${!!currentTrack} isPlaying=${isPlaying} resumeAt=${resumeAt}`);
       if (!currentTrack) return;
       if (isPlaying) {
         if (resumeAt > 0.5 && currentTrack.duration > 0) {
@@ -31,7 +40,9 @@ export function useAudioDeviceBridge() {
             setAtMs: Date.now(),
           });
         }
+        diag1090('before playTrack');
         playTrack(currentTrack);
+        diag1090('after playTrack (returned)');
       } else {
         // Paused: clear warm-pause flag so the next resume uses the cold path
         // (audio_play + seek) which creates a new Sink on the new device.
