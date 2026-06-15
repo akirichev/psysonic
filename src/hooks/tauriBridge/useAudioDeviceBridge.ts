@@ -57,6 +57,7 @@ export function useAudioDeviceBridge() {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     listen('audio:device-reset', (event) => {
+      diag1090(`device-reset received payload=${JSON.stringify(event.payload)}`);
       useAuthStore.getState().setAudioOutputDevice(null);
 
       // null payload = Rust handled internal replay on the new default device.
@@ -64,6 +65,7 @@ export function useAudioDeviceBridge() {
 
       const resumeAt = typeof event.payload === 'number' ? event.payload : 0;
       const { currentTrack, isPlaying, playTrack, resetAudioPause } = usePlayerStore.getState();
+      diag1090(`device-reset state currentTrack=${!!currentTrack} isPlaying=${isPlaying} resumeAt=${resumeAt}`);
       if (!currentTrack) return;
       if (isPlaying) {
         if (resumeAt > 0.5 && currentTrack.duration > 0) {
@@ -73,8 +75,11 @@ export function useAudioDeviceBridge() {
             setAtMs: Date.now(),
           });
         }
+        diag1090('device-reset: before playTrack (RESTARTS PLAYBACK)');
         playTrack(currentTrack);
+        diag1090('device-reset: after playTrack (returned)');
       } else {
+        diag1090('device-reset: paused → resetAudioPause (no restart)');
         resetAudioPause();
       }
     }).then(u => { unlisten = u; });
