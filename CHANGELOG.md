@@ -43,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * On large libraries (reported with ~200,000 tracks on Navidrome), background library sync could lock up database writes for minutes at a time — playback history, ratings and other saves piled up waiting behind it.
 * Root cause: the track id-remap step ran a database lookup that couldn't use its indexes and scanned the entire track table once per incoming track, so the cost grew with the square of the library size. The lookup now uses the proper indexes, bringing it back to a fast, near-instant operation.
 
+### Album cover missing in Windows media controls
+
+* On Windows, the system media controls (the Quick Settings media tile, the lock screen and third-party media flyouts) showed the track title and artist but no album cover. Windows could not decode the cached WebP cover art for its thumbnail, even with the Store WebP extension installed. The cover is now converted to PNG before it is handed to the media controls, so the artwork shows again. macOS and Linux are unaffected.
+
 ### Windows media controls showed "Unknown application"
 
 * On Windows, the system media controls (the Quick Settings media tile, the lock screen and third-party media flyouts) labelled playback as "Unknown application" with no icon. The app now registers an explicit application identity at startup so Windows shows "Psysonic" and its icon as the playback source.
