@@ -502,10 +502,19 @@ pub fn run() {
                             let app_handle = app.handle().clone();
                             if let Err(e) = controls.attach(move |event: MediaControlEvent| {
                                 match event {
-                                    MediaControlEvent::Toggle
-                                    | MediaControlEvent::Play
-                                    | MediaControlEvent::Pause => {
+                                    // Keep Play/Pause distinct from Toggle: the OS
+                                    // (notably macOS on audio-route changes, e.g. a
+                                    // headphone disconnect) sends an explicit Pause,
+                                    // and collapsing all three into a toggle would
+                                    // resume paused playback on the new device (#1094).
+                                    MediaControlEvent::Toggle => {
                                         let _ = app_handle.emit("media:play-pause", ());
+                                    }
+                                    MediaControlEvent::Play => {
+                                        let _ = app_handle.emit("media:play", ());
+                                    }
+                                    MediaControlEvent::Pause => {
+                                        let _ = app_handle.emit("media:pause", ());
                                     }
                                     MediaControlEvent::Next => {
                                         let _ = app_handle.emit("media:next", ());
