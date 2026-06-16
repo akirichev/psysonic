@@ -84,14 +84,21 @@ pub(crate) fn mpris_set_metadata(
     let duration = duration_secs.map(Duration::from_secs_f64);
     let mut guard = controls.lock().unwrap();
     let Some(ctrl) = guard.as_mut() else { return Ok(()); };
-    ctrl.set_metadata(MediaMetadata {
+    // DIAG #1102: log the cover URL going to the OS media controls + whether
+    // set_metadata succeeds (a throwing cover_url would also drop title/artist).
+    crate::app_eprintln!("[mpris-cover] cover_url={:?}", cover_url);
+    let res = ctrl.set_metadata(MediaMetadata {
         title: title.as_deref(),
         artist: artist.as_deref(),
         album: album.as_deref(),
         cover_url: cover_url.as_deref(),
         duration,
-    })
-    .map_err(|e| format!("MPRIS set_metadata failed: {e:?}"))
+    });
+    match &res {
+        Ok(()) => crate::app_eprintln!("[mpris-cover] set_metadata OK"),
+        Err(e) => crate::app_eprintln!("[mpris-cover] set_metadata ERR: {e:?}"),
+    }
+    res.map_err(|e| format!("MPRIS set_metadata failed: {e:?}"))
 }
 
 #[tauri::command]
