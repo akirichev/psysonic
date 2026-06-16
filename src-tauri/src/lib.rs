@@ -64,7 +64,28 @@ fn on_second_instance<R: tauri::Runtime>(
     }
 }
 
+/// Windows: associate this process with an explicit AppUserModelID. Windows uses
+/// it to name the app in taskbar grouping and the SMTC media controls; without it
+/// the media tile reads "Unknown application". Must match the AppUserModelID the
+/// installer sets on the Start-menu shortcut so the name/icon resolve.
+#[cfg(target_os = "windows")]
+fn set_app_user_model_id() {
+    use windows::core::w;
+    use windows::Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID;
+    // SAFETY: a Win32 call with a static wide string; errors are non-fatal.
+    unsafe {
+        let _ = SetCurrentProcessExplicitAppUserModelID(w!("dev.psysonic.player"));
+    }
+}
+
 pub fn run() {
+    // Windows: bind this process to an explicit AppUserModelID before any window
+    // or the SMTC media controls are created, so the OS can resolve the app
+    // name/icon for taskbar grouping and the media tile (#1102 follow-up: the
+    // Quick-Settings / lock-screen media tile showed "Unknown application").
+    #[cfg(target_os = "windows")]
+    set_app_user_model_id();
+
     // Linux: second `psysonic --player …` forwards over D-Bus before heavy startup.
     #[cfg(target_os = "linux")]
     {
