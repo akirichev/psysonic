@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * When a server profile had both a local and a public address, Discord Rich Presence showed the placeholder icon instead of the album cover. The cover URL used the local address, which Discord's servers can't reach; it now uses the public address (the same one used for share links).
 
+### "Minimize to Tray" ignored on the macOS close button
+
+* On macOS, closing the window with the red close button always quit the app, even with "Minimize to Tray" enabled. The close button now respects the setting — with it on, the window hides to the tray instead of quitting, the same as the tray icon's "Hide".
+
 
 
 ## [1.48.0]
