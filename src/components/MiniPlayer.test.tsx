@@ -46,6 +46,7 @@ beforeEach(() => {
   onInvoke('audio_get_state', () => ({ playing: false }));
   onInvoke('set_window_always_on_top', () => undefined);
   onInvoke('set_linux_webkit_smooth_scrolling', () => undefined);
+  onInvoke('set_back_forward_navigation_gestures', () => undefined);
   onInvoke('discord_update_presence', () => undefined);
 });
 

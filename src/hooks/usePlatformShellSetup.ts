@@ -15,6 +15,7 @@ export function usePlatformShellSetup(): { isTilingWm: boolean } {
   const [isTilingWm, setIsTilingWm] = useState(false);
   const [waylandTextUi, setWaylandTextUi] = useState(false);
   const useCustomTitlebar = useAuthStore(s => s.useCustomTitlebar);
+  const touchpadBackForwardGestures = useAuthStore(s => s.touchpadBackForwardGestures);
   const linuxWebkitKineticScroll = useAuthStore(s => s.linuxWebkitKineticScroll);
   const linuxWaylandTextRenderProfile = useAuthStore(s => s.linuxWaylandTextRenderProfile);
   const loggingMode = useAuthStore(s => s.loggingMode);
@@ -86,6 +87,24 @@ export function usePlatformShellSetup(): { isTilingWm: boolean } {
     const enabled = isTilingWm ? false : !useCustomTitlebar;
     invoke('set_window_decorations', { enabled }).catch(() => {});
   }, [useCustomTitlebar, isTilingWm]);
+
+  useEffect(() => {
+    invoke('set_back_forward_navigation_gestures', { enabled: touchpadBackForwardGestures }).catch(() => {});
+  }, [touchpadBackForwardGestures]);
+
+  useEffect(() => {
+    const applyFromStore = () => {
+      invoke('set_back_forward_navigation_gestures', {
+        enabled: useAuthStore.getState().touchpadBackForwardGestures,
+      }).catch(() => {});
+    };
+    if (useAuthStore.persist.hasHydrated()) {
+      applyFromStore();
+    }
+    return useAuthStore.persist.onFinishHydration(() => {
+      applyFromStore();
+    });
+  }, []);
 
   useEffect(() => {
     if (!IS_LINUX) return;

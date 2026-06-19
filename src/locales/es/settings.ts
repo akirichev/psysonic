@@ -219,6 +219,9 @@ export const settings = {
   showTrayIconDesc: 'Muestra el icono de Psysonic en el área de notificación / barra de menú.',
   minimizeToTray: 'Minimizar a Bandeja',
   minimizeToTrayDesc: 'Al cerrar la ventana, mantener Psysonic ejecutándose en la bandeja del sistema en lugar de salir.',
+  touchpadBackForwardGestures: 'Deslizar para atrás / adelante',
+  touchpadBackForwardGesturesDesc:
+    'Deslizar horizontalmente con dos dedos en el touchpad navega el historial de la app, como en un navegador.',
   clockFormat: 'Formato de hora',
   clockFormatDesc: 'Formato del reloj utilizado por la ETA de la cola y la vista previa del temporizador de suspensión.',
   clockFormatAuto: 'Automático (idioma del sistema)',

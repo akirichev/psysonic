@@ -22,6 +22,7 @@ export function createUiAppearanceActions(set: SetState): Pick<
   | 'setWindowButtonStyle'
   | 'setShowMinimizeButton'
   | 'setPreloadMiniPlayer'
+  | 'setTouchpadBackForwardGestures'
   | 'setLinuxWebkitKineticScroll'
   | 'setLinuxWaylandTextRenderProfile'
   | 'setLinuxWebkitInputForceRepaint'
@@ -46,6 +47,7 @@ export function createUiAppearanceActions(set: SetState): Pick<
     setWindowButtonStyle: (v) => set({ windowButtonStyle: v }),
     setShowMinimizeButton: (v) => set({ showMinimizeButton: v }),
     setPreloadMiniPlayer: (v) => set({ preloadMiniPlayer: v }),
+    setTouchpadBackForwardGestures: (v) => set({ touchpadBackForwardGestures: v }),
     setLinuxWebkitKineticScroll: (v) => set({ linuxWebkitKineticScroll: v }),
     setLinuxWaylandTextRenderProfile: (v) => set({ linuxWaylandTextRenderProfile: v }),
     setLinuxWebkitInputForceRepaint: (v) => set({ linuxWebkitInputForceRepaint: v }),

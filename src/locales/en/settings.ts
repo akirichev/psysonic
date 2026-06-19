@@ -223,6 +223,12 @@ export const settings = {
   showTrayIconDesc: 'Display the Psysonic icon in the system notification area / menu bar.',
   minimizeToTray: 'Minimize to Tray',
   minimizeToTrayDesc: 'When closing the window, keep Psysonic running in the system tray instead of quitting.',
+  touchpadBackForwardGestures: 'Swipe to go back / forward',
+  touchpadBackForwardGesturesDesc:
+    'Two-finger horizontal touchpad swipe navigates in-app history, like in a browser.',
+  touchpadBackForwardGestures: 'Swipe to go back / forward',
+  touchpadBackForwardGesturesDesc:
+    'Two-finger horizontal touchpad swipe navigates in-app history, like in a browser.',
   clockFormat: 'Clock Format',
   clockFormatDesc: 'Wall-clock display used by the queue ETA and the sleep-timer preview.',
   clockFormatAuto: 'Auto (system locale)',

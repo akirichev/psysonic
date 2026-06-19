@@ -172,6 +172,8 @@ export interface AuthState {
   /** Pre-build the mini-player webview at app start on Linux/macOS so content is available instantly
    *  on first open. Ignored on Windows — that platform always pre-creates as a hang workaround. */
   preloadMiniPlayer: boolean;
+  /** Two-finger horizontal touchpad swipe for in-app history back/forward (WebKit / WebView2). */
+  touchpadBackForwardGestures: boolean;
   /** Linux WebKitGTK: smooth wheel on when true; off only after explicit opt-out in Settings. */
   linuxWebkitKineticScroll: boolean;
   /** Linux Wayland + GPU compositing: WebKit text rasterisation profile (live, no restart). */
@@ -375,6 +377,7 @@ export interface AuthState {
   setWindowButtonStyle: (v: WindowButtonStyle) => void;
   setShowMinimizeButton: (v: boolean) => void;
   setPreloadMiniPlayer: (v: boolean) => void;
+  setTouchpadBackForwardGestures: (v: boolean) => void;
   setLinuxWebkitKineticScroll: (v: boolean) => void;
   setLinuxWaylandTextRenderProfile: (v: LinuxWaylandTextRenderProfile) => void;
   setLinuxWebkitInputForceRepaint: (v: boolean) => void;

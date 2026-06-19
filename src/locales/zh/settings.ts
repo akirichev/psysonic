@@ -219,6 +219,8 @@ export const settings = {
   showTrayIconDesc: '在系统通知区域 / 菜单栏显示 Psysonic 图标。',
   minimizeToTray: '最小化到托盘',
   minimizeToTrayDesc: '关闭窗口时，Psysonic 将继续在系统托盘中运行，而不是退出。',
+  touchpadBackForwardGestures: '触控板左右滑动前进/后退',
+  touchpadBackForwardGesturesDesc: '在触控板上双指水平滑动，可像浏览器一样在应用内历史中前进或后退。',
   clockFormat: '时间格式',
   clockFormatDesc: '队列预计结束时间和睡眠定时器预览使用的时间格式。',
   clockFormatAuto: '自动（跟随系统）',

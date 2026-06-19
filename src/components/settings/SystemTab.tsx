@@ -99,6 +99,13 @@ export function SystemTab() {
               checked={auth.minimizeToTray}
               onChange={auth.setMinimizeToTray}
             />
+            <div className="settings-section-divider" />
+            <SettingsToggle
+              label={t('settings.touchpadBackForwardGestures')}
+              desc={t('settings.touchpadBackForwardGesturesDesc')}
+              checked={auth.touchpadBackForwardGestures}
+              onChange={auth.setTouchpadBackForwardGestures}
+            />
           </SettingsGroup>
 
           {IS_LINUX && (

@@ -79,6 +79,7 @@ export const useAuthStore = create<AuthState>()(
       windowButtonStyle: 'dots',
       showMinimizeButton: true,
       preloadMiniPlayer: false,
+      touchpadBackForwardGestures: true,
       linuxWebkitKineticScroll: true,
       linuxWaylandTextRenderProfile: 'sharp',
       linuxWebkitInputForceRepaint: false,

@@ -220,6 +220,9 @@ export const settings = {
   showTrayIconDesc: 'Psysonic-Icon im System-Tray / in der Menüleiste anzeigen.',
   minimizeToTray: 'Im Tray minimieren',
   minimizeToTrayDesc: 'Beim Schließen des Fensters läuft Psysonic weiter im System-Tray statt zu beenden.',
+  touchpadBackForwardGestures: 'Wischen für Zurück / Vor',
+  touchpadBackForwardGesturesDesc:
+    'Zwei-Finger-Wischgeste auf dem Touchpad blättert in der App-Navigation wie im Browser.',
   clockFormat: 'Uhrzeitformat',
   clockFormatDesc: 'Format für die Queue-ETA und die Vorschau des Sleep-Timers.',
   clockFormatAuto: 'Automatisch (Systemsprache)',

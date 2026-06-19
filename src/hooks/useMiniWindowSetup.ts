@@ -16,15 +16,19 @@ import {
  *    actually brings the window to the foreground. */
 export function useMiniWindowSetup(alwaysOnTop: boolean, initialQueueOpen: boolean) {
   useEffect(() => {
-    if (!IS_LINUX) return;
-    const apply = () => {
-      invoke('set_linux_webkit_smooth_scrolling', {
-        enabled: useAuthStore.getState().linuxWebkitKineticScroll,
+    const applyWebviewPrefs = () => {
+      invoke('set_back_forward_navigation_gestures', {
+        enabled: useAuthStore.getState().touchpadBackForwardGestures,
       }).catch(() => {});
+      if (IS_LINUX) {
+        invoke('set_linux_webkit_smooth_scrolling', {
+          enabled: useAuthStore.getState().linuxWebkitKineticScroll,
+        }).catch(() => {});
+      }
     };
-    apply();
+    applyWebviewPrefs();
     return useAuthStore.persist.onFinishHydration(() => {
-      apply();
+      applyWebviewPrefs();
     });
   }, []);
 

@@ -218,6 +218,9 @@ export const settings = {
   showOrbitTriggerDesc: 'Knappen i toppen for å starte eller bli med i en delt lytteøkt. Skjul den hvis du ikke bruker Orbit — du kan slå den på igjen her.',
   minimizeToTray: 'Minimer til oppgavelinjen',
   minimizeToTrayDesc: 'Når vinduet lukkes, vil Psysonic bli kjørende i oppgavelinjen fremfor å bli avsluttet.',
+  touchpadBackForwardGestures: 'Sveip tilbake / frem',
+  touchpadBackForwardGesturesDesc:
+    'Horisontalt sveip med to fingre på styreplaten navigerer i appens historikk, som i en nettleser.',
   clockFormat: 'Klokkeformat',
   clockFormatDesc: 'Klokkevisning brukt av kø-ETA og forhåndsvisningen av hviletimeren.',
   clockFormatAuto: 'Automatisk (systemspråk)',

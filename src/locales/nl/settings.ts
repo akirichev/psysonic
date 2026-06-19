@@ -219,6 +219,9 @@ export const settings = {
   showTrayIconDesc: 'Toont het Psysonic-pictogram in het systeemvak / de menubalk.',
   minimizeToTray: 'Minimaliseren naar systeemvak',
   minimizeToTrayDesc: 'Bij het sluiten van het venster blijft Psysonic actief in het systeemvak in plaats van af te sluiten.',
+  touchpadBackForwardGestures: 'Veeg terug / vooruit',
+  touchpadBackForwardGesturesDesc:
+    'Horizontaal vegen met twee vingers op het touchpad doorloopt de navigatiegeschiedenis, zoals in een browser.',
   clockFormat: 'Tijdformaat',
   clockFormatDesc: 'Tijdsweergave voor de wachtrij-ETA en het voorbeeld van de slaaptimer.',
   clockFormatAuto: 'Automatisch (systeemtaal)',

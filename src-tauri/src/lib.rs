@@ -689,6 +689,7 @@ pub fn run() {
             cli_publish_server_list,
             cli_publish_search_results,
             set_window_decorations,
+            set_back_forward_navigation_gestures,
             set_linux_webkit_smooth_scrolling,
             linux_wayland_gpu_font_tuning_active,
             linux_wayland_text_render_settings_available,

@@ -222,6 +222,9 @@ export const settings = {
   showTrayIconDesc: 'Afișează iconița Psysonic în zona notificărilor de sistem / bara de meniu.',
   minimizeToTray: 'Minimizează în Tavă',
   minimizeToTrayDesc: 'La închiderea ferestrei, continuă rularea Psysonic în tava de sistem în loc de ieșire',
+  touchpadBackForwardGestures: 'Glisare înapoi / înainte',
+  touchpadBackForwardGesturesDesc:
+    'Glisarea orizontală cu două degete pe touchpad parcurge istoricul de navigare din aplicație, ca într-un browser.',
   clockFormat: 'Format Oră',
   clockFormatDesc: 'Format al ceasului folosit pentru ETA-ul cozii și previzualizarea cronometrului de somn.',
   clockFormatAuto: 'Automat (limba sistemului)',

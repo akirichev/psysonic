@@ -22,7 +22,8 @@ pub(crate) use core::{
 pub(crate) use perf::performance_cpu_snapshot;
 pub(crate) use platform::{
     linux_wayland_gpu_font_tuning_active, linux_wayland_text_render_settings_available,
-    set_linux_wayland_text_render_profile, set_linux_webkit_smooth_scrolling, set_window_decorations,
+    set_back_forward_navigation_gestures, set_linux_wayland_text_render_profile,
+    set_linux_webkit_smooth_scrolling, set_window_decorations,
     theme_animation_risk,
 };
 #[cfg(target_os = "linux")]

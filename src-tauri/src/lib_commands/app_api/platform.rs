@@ -208,6 +208,85 @@ pub(crate) fn linux_webkit_apply_smooth_scrolling(win: &tauri::WebviewWindow, en
     .map_err(|e| e.to_string())
 }
 
+/// WebKitGTK / WKWebView / WebView2: two-finger horizontal swipe for history back/forward.
+#[cfg(target_os = "linux")]
+pub(crate) fn webview_apply_back_forward_navigation_gestures(
+    win: &tauri::WebviewWindow,
+    enabled: bool,
+) -> Result<(), String> {
+    win.with_webview(move |platform| {
+        use webkit2gtk::{SettingsExt, WebViewExt};
+        if let Some(settings) = platform.inner().settings() {
+            settings.set_enable_back_forward_navigation_gestures(enabled);
+        }
+    })
+    .map_err(|e| e.to_string())
+}
+
+#[cfg(target_os = "macos")]
+pub(crate) fn webview_apply_back_forward_navigation_gestures(
+    win: &tauri::WebviewWindow,
+    enabled: bool,
+) -> Result<(), String> {
+    win.with_webview(move |platform| {
+        use objc2_web_kit::WKWebView;
+        let ptr = platform.inner();
+        if ptr.is_null() {
+            return;
+        }
+        unsafe {
+            let webview = &*(ptr as *const WKWebView);
+            webview.setAllowsBackForwardNavigationGestures(enabled);
+        }
+    })
+    .map_err(|e| e.to_string())
+}
+
+#[cfg(windows)]
+pub(crate) fn webview_apply_back_forward_navigation_gestures(
+    win: &tauri::WebviewWindow,
+    enabled: bool,
+) -> Result<(), String> {
+    use webview2_com::Microsoft::Web::WebView2::Win32::*;
+    use windows::core::Interface;
+    win.with_webview(move |platform| {
+        let controller = platform.controller();
+        unsafe {
+            if let Ok(webview) = controller.CoreWebView2() {
+                if let Ok(settings) = webview.Settings() {
+                    if let Ok(settings6) = settings.cast::<ICoreWebView2Settings6>() {
+                        let _ = settings6.SetIsSwipeNavigationEnabled(enabled);
+                    }
+                }
+            }
+        }
+    })
+    .map_err(|e| e.to_string())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+pub(crate) fn webview_apply_back_forward_navigation_gestures(
+    _win: &tauri::WebviewWindow,
+    _enabled: bool,
+) -> Result<(), String> {
+    Ok(())
+}
+
+/// Called from the frontend settings toggle; applies to every open webview window.
+#[tauri::command]
+pub(crate) fn set_back_forward_navigation_gestures(
+    enabled: bool,
+    app_handle: tauri::AppHandle,
+) -> Result<(), String> {
+    use tauri::Manager;
+    for label in ["main", "mini"] {
+        if let Some(win) = app_handle.get_webview_window(label) {
+            webview_apply_back_forward_navigation_gestures(&win, enabled)?;
+        }
+    }
+    Ok(())
+}
+
 /// Called from the frontend settings toggle (Linux); no-op on other platforms.
 #[tauri::command]
 pub(crate) fn set_linux_webkit_smooth_scrolling(enabled: bool, app_handle: tauri::AppHandle) -> Result<(), String> {

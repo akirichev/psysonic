@@ -61,6 +61,7 @@ describe('trivial pass-through setters', () => {
     ['setWindowButtonStyle', 'windowButtonStyle', 'flat'],
     ['setShowMinimizeButton', 'showMinimizeButton', false],
     ['setPreloadMiniPlayer', 'preloadMiniPlayer', true],
+    ['setTouchpadBackForwardGestures', 'touchpadBackForwardGestures', false],
     ['setLinuxWebkitKineticScroll', 'linuxWebkitKineticScroll', false],
     ['setLinuxWaylandTextRenderProfile', 'linuxWaylandTextRenderProfile', 'gpu'],
     ['setNowPlayingEnabled', 'nowPlayingEnabled', true],

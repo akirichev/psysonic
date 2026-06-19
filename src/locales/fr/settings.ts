@@ -219,6 +219,9 @@ export const settings = {
   showTrayIconDesc: 'Affiche l\'icône Psysonic dans la zone de notification / barre des menus.',
   minimizeToTray: 'Réduire dans la barre système',
   minimizeToTrayDesc: 'Lors de la fermeture, Psysonic continue de fonctionner dans la barre système au lieu de se fermer.',
+  touchpadBackForwardGestures: 'Balayer pour précédent / suivant',
+  touchpadBackForwardGesturesDesc:
+    'Un balayage horizontal à deux doigts sur le pavé tactile parcourt l’historique de navigation, comme dans un navigateur.',
   clockFormat: 'Format de l\'heure',
   clockFormatDesc: 'Format de l\'horloge utilisé par l\'ETA de la file d\'attente et l\'aperçu du minuteur de mise en veille.',
   clockFormatAuto: 'Automatique (langue du système)',
