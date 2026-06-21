@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import ConfirmModal from './ConfirmModal';
+import ConfirmDialog from './ConfirmDialog';
 import { readThemeMigrationNotice, clearThemeMigrationNotice } from '../utils/themes/themeMigration';
 
 /**
@@ -24,7 +24,7 @@ export default function ThemeMigrationNotice() {
   };
 
   return (
-    <ConfirmModal
+    <ConfirmDialog
       open={open}
       title={t('settings.themeMigrationNoticeTitle')}
       message={t('settings.themeMigrationNoticeBody', { themes: themes.join(', ') })}

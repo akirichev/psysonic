@@ -19,7 +19,7 @@ import {
 } from '../utils/orbit';
 import { switchActiveServer } from '../utils/server/switchActiveServer';
 import { useOrbitAccountPickerStore } from '../store/orbitAccountPickerStore';
-import ConfirmModal from './ConfirmModal';
+import ConfirmDialog from './ConfirmDialog';
 
 const ORBIT_JOIN_ERROR_KEYS: Record<string, string> = {
   'not-found':    'orbit.joinErrNotFound',
@@ -233,7 +233,7 @@ export default function PasteClipboardHandler() {
           confirmBusyLabel={t('sharePaste.playQueueing')}
         />
       )}
-      <ConfirmModal
+      <ConfirmDialog
         open={!!orbitConfirm}
         title={t('orbit.confirmJoinTitle')}
         message={t('orbit.confirmJoinBody', {
@@ -249,7 +249,7 @@ export default function PasteClipboardHandler() {
         }}
         onCancel={() => setOrbitConfirm(null)}
       />
-      <ConfirmModal
+      <ConfirmDialog
         open={orbitInvalid}
         title={t('orbit.invalidLinkTitle')}
         message={t('orbit.invalidLinkBody')}

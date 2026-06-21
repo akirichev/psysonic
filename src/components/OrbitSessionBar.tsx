@@ -18,7 +18,7 @@ import OrbitExitModal from './OrbitExitModal';
 import OrbitSettingsPopover from './OrbitSettingsPopover';
 import OrbitSharePopover from './OrbitSharePopover';
 import OrbitDiagnosticsPopover from './OrbitDiagnosticsPopover';
-import ConfirmModal from './ConfirmModal';
+import ConfirmDialog from './ConfirmDialog';
 import { formatTrackTime } from '../utils/format/formatDuration';
 
 /**
@@ -354,7 +354,7 @@ export default function OrbitSessionBar() {
         />
       )}
       <OrbitExitModal />
-      <ConfirmModal
+      <ConfirmDialog
         open={confirmLeave}
         title={role === 'host'
           ? t('orbit.confirmEndTitle')

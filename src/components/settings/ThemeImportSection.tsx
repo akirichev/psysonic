@@ -6,7 +6,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { useInstalledThemesStore } from '../../store/installedThemesStore';
 import { validateThemePackage, type ValidatedTheme } from '../../utils/themes/validateThemePackage';
 import { showToast } from '../../utils/ui/toast';
-import ConfirmModal from '../ConfirmModal';
+import ConfirmDialog from '../ConfirmDialog';
 
 /**
  * Import a community theme from a local `.zip` (manifest.json + theme.css).
@@ -129,7 +129,7 @@ export function ThemeImportSection() {
         </div>
       )}
 
-      <ConfirmModal
+      <ConfirmDialog
         open={pending !== null}
         title={t('settings.themeImportConfirmTitle')}
         message={pending ? `${t('settings.themeImportConfirmBody', { name: pending.name, author: pending.author })} ${t('settings.themeImportConfirmRisk')}` : ''}

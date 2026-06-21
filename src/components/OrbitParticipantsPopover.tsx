@@ -4,7 +4,7 @@ import { Crown, User, UserMinus, ShieldOff, Mic, MicOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useOrbitStore } from '../store/orbitStore';
 import { kickOrbitParticipant, removeOrbitParticipant, setOrbitSuggestionBlocked } from '../utils/orbit';
-import ConfirmModal from './ConfirmModal';
+import ConfirmDialog from './ConfirmDialog';
 
 interface Props {
   /** Anchor — we position the popover directly below its bottom-right. */
@@ -139,7 +139,7 @@ export default function OrbitParticipantsPopover({ anchorRef, onClose }: Props) 
         );
       })}
     </div>
-    <ConfirmModal
+    <ConfirmDialog
       open={!!confirm}
       title={confirm?.mode === 'ban'
         ? t('orbit.confirmBanTitle')

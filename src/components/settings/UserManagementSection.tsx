@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RotateCcw, UserPlus, Users } from 'lucide-react';
 import type { NdUser } from '../../api/navidromeAdmin';
-import ConfirmModal from '../ConfirmModal';
+import ConfirmDialog from '../ConfirmDialog';
 import { useUserMgmtData } from '../../hooks/useUserMgmtData';
 import { useUserMgmtActions } from '../../hooks/useUserMgmtActions';
 import { UserForm } from './UserForm';
@@ -121,7 +121,7 @@ export function UserManagementSection({
           )}
         </>
       )}
-      <ConfirmModal
+      <ConfirmDialog
         open={!!confirmingDelete}
         title={t('settings.userMgmtDelete')}
         message={confirmingDelete

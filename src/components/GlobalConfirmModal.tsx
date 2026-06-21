@@ -1,5 +1,5 @@
 import { useConfirmModalStore } from '../store/confirmModalStore';
-import ConfirmModal from './ConfirmModal';
+import ConfirmDialog from './ConfirmDialog';
 
 /**
  * App-level singleton renderer for the global confirm modal. Mount once
@@ -11,7 +11,7 @@ export default function GlobalConfirmModal() {
     useConfirmModalStore();
 
   return (
-    <ConfirmModal
+    <ConfirmDialog
       open={isOpen}
       title={title}
       message={message}
