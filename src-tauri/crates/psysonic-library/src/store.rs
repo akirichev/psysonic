@@ -4,12 +4,18 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::time::Duration;
 
-use rusqlite::{params, Connection, OpenFlags};
+use rusqlite::{params, Connection, OpenFlags, OptionalExtension};
 use tauri::Manager;
 
 /// Current head of the embedded migrations. Bump each time a new
 /// `migrations/NNN_*.sql` is added.
-pub const LIBRARY_DB_SCHEMA_VERSION: i64 = 13;
+///
+/// Migration checklist (wiring, data backfill, open/swap path):
+/// psysonic-workdocs `ai/agent-rules/08-library-db-migrations.md`.
+pub const LIBRARY_DB_SCHEMA_VERSION: i64 = 14;
+
+/// One-time data repair after migration 014 (`artist.name_sort`).
+pub(crate) const ARTIST_NAME_SORT_RECONCILE_ID: &str = "artist_name_sort_reconcile_v1";
 
 /// Lowest applied schema version the current code can advance from purely
 /// additively. If a DB carries a version below this, the breaking-bump hook
@@ -30,6 +36,8 @@ pub(crate) const MIGRATION_012_TRACK_GENRE_LEGACY: &str =
 /// artwork (fanart.tv) — image-scraper §12. Pure CREATE TABLE IF NOT EXISTS.
 pub(crate) const MIGRATION_013_ARTIST_ARTWORK_LOOKUP: &str =
     include_str!("../migrations/013_artist_artwork_lookup.sql");
+pub(crate) const MIGRATION_014_ARTIST_NAME_SORT: &str =
+    include_str!("../migrations/014_artist_name_sort.sql");
 
 /// Embedded migrations. Ordered ascending by `version`; the runner sorts
 /// defensively before applying so the source order can stay readable.
@@ -37,6 +45,7 @@ const MIGRATIONS: &[(i64, &str)] = &[
     (1, INITIAL_SQL),
     (12, MIGRATION_012_TRACK_GENRE_LEGACY),
     (13, MIGRATION_013_ARTIST_ARTWORK_LOOKUP),
+    (14, MIGRATION_014_ARTIST_NAME_SORT),
 ];
 
 /// Idempotent repair — also runs after the migration runner on every open so
@@ -70,6 +79,9 @@ pub struct LibraryStore {
     read_conn: Mutex<Connection>,
     /// IS-3 bulk ingest in progress — read paths skip write-lock work.
     bulk_ingest_active: AtomicBool,
+    /// `swap_database_file` / `restore_database_backup` — fail fast instead of
+    /// touching in-memory placeholder connections while the file is offline.
+    swap_in_progress: AtomicBool,
 }
 
 impl LibraryStore {
@@ -83,10 +95,7 @@ impl LibraryStore {
 
     fn open_file(db_path: &Path) -> Result<Self, String> {
         let write_conn = Connection::open(db_path).map_err(|e| e.to_string())?;
-        configure_write_connection(&write_conn).map_err(|e| e.to_string())?;
-        run_migrations(&write_conn).map_err(|e| e.to_string())?;
-        ensure_genre_tags_schema(&write_conn).map_err(|e| e.to_string())?;
-        checkpoint_wal_conn(&write_conn, "open").map_err(|e| e.to_string())?;
+        prepare_write_connection_for_open(&write_conn).map_err(|e| e.to_string())?;
         let read_conn = Connection::open_with_flags(db_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
             .map_err(|e| e.to_string())?;
         configure_read_connection(&read_conn).map_err(|e| e.to_string())?;
@@ -94,6 +103,7 @@ impl LibraryStore {
             write_conn: Mutex::new(write_conn),
             read_conn: Mutex::new(read_conn),
             bulk_ingest_active: AtomicBool::new(false),
+            swap_in_progress: AtomicBool::new(false),
         })
     }
 
@@ -102,14 +112,14 @@ impl LibraryStore {
         let uri = in_memory_uri();
         let write_conn = Connection::open(&uri).expect("in-memory write connection");
         configure_write_connection(&write_conn).expect("write pragmas");
-        run_migrations(&write_conn).expect("schema migration");
-        ensure_genre_tags_schema(&write_conn).expect("genre tags schema");
+        prepare_write_connection_for_open(&write_conn).expect("schema migration");
         let read_conn = Connection::open(&uri).expect("in-memory read connection");
         configure_read_connection(&read_conn).expect("read pragmas");
         Self {
             write_conn: Mutex::new(write_conn),
             read_conn: Mutex::new(read_conn),
             bulk_ingest_active: AtomicBool::new(false),
+            swap_in_progress: AtomicBool::new(false),
         }
     }
 
@@ -120,6 +130,36 @@ impl LibraryStore {
 
     pub(crate) fn bulk_ingest_active(&self) -> bool {
         self.bulk_ingest_active.load(Ordering::Acquire)
+    }
+
+    fn swap_in_progress(&self) -> bool {
+        self.swap_in_progress.load(Ordering::Acquire)
+    }
+
+    fn lock_write_conn(&self) -> Result<std::sync::MutexGuard<'_, Connection>, String> {
+        if self.swap_in_progress() {
+            return Err("library database swap in progress".to_string());
+        }
+        match self.write_conn.lock() {
+            Ok(guard) => Ok(guard),
+            Err(poisoned) => {
+                crate::app_eprintln!("[library-db] write lock was poisoned — recovering");
+                Ok(poisoned.into_inner())
+            }
+        }
+    }
+
+    fn lock_read_conn(&self) -> Result<std::sync::MutexGuard<'_, Connection>, String> {
+        if self.swap_in_progress() {
+            return Err("library database swap in progress".to_string());
+        }
+        match self.read_conn.lock() {
+            Ok(guard) => Ok(guard),
+            Err(poisoned) => {
+                crate::app_eprintln!("[library-db] read lock was poisoned — recovering");
+                Ok(poisoned.into_inner())
+            }
+        }
     }
 
     /// Writer connection — sync ingest, migrations, mutations.
@@ -134,13 +174,10 @@ impl LibraryStore {
         f: impl FnOnce(&Connection) -> rusqlite::Result<R>,
     ) -> Result<R, String> {
         let lock_start = std::time::Instant::now();
-        let conn = self
-            .write_conn
-            .lock()
-            .map_err(|_| "library store write lock poisoned".to_string())?;
+        let conn = self.lock_write_conn()?;
         let lock_wait_ms = lock_start.elapsed().as_millis();
         let exec_start = std::time::Instant::now();
-        let out = f(&conn).map_err(|e| e.to_string());
+        let out = run_conn_closure(&conn, f);
         let exec_ms = exec_start.elapsed().as_millis();
         log_write_op(op, lock_wait_ms, exec_ms);
         out
@@ -151,11 +188,8 @@ impl LibraryStore {
         &self,
         f: impl FnOnce(&Connection) -> rusqlite::Result<R>,
     ) -> Result<R, String> {
-        let conn = self
-            .read_conn
-            .lock()
-            .map_err(|_| "library store read lock poisoned".to_string())?;
-        f(&conn).map_err(|e| e.to_string())
+        let conn = self.lock_read_conn()?;
+        run_conn_closure(&conn, f)
     }
 
     pub(crate) fn with_conn_mut<R>(
@@ -172,13 +206,10 @@ impl LibraryStore {
         f: impl FnOnce(&mut Connection) -> rusqlite::Result<R>,
     ) -> Result<(R, WriteOpTiming), String> {
         let lock_start = std::time::Instant::now();
-        let mut conn = self
-            .write_conn
-            .lock()
-            .map_err(|_| "library store write lock poisoned".to_string())?;
+        let mut conn = self.lock_write_conn()?;
         let lock_wait_ms = lock_start.elapsed().as_millis() as u64;
         let exec_start = std::time::Instant::now();
-        let out = f(&mut conn).map_err(|e| e.to_string())?;
+        let out = run_conn_mut_closure(&mut conn, f)?;
         let exec_ms = exec_start.elapsed().as_millis() as u64;
         log_write_op(op, lock_wait_ms as u128, exec_ms as u128);
         Ok((out, WriteOpTiming { lock_wait_ms, exec_ms }))
@@ -192,8 +223,8 @@ impl LibraryStore {
     }
 
     /// Atomically switch the active sqlite file while replacing long-lived
-    /// write/read connections under the same locks so no command can keep
-    /// writing to the old inode after the swap.
+    /// write/read connections. Other threads see `library database swap in
+    /// progress` while the file is offline instead of touching placeholder DBs.
     pub fn swap_database_file(
         &self,
         active_path: &Path,
@@ -202,14 +233,14 @@ impl LibraryStore {
         if !destination_path.exists() {
             return Ok(None);
         }
-        let mut write_conn = self
-            .write_conn
-            .lock()
-            .map_err(|_| "library store write lock poisoned".to_string())?;
-        let mut read_conn = self
-            .read_conn
-            .lock()
-            .map_err(|_| "library store read lock poisoned".to_string())?;
+
+        let mut swap_guard = SwapInProgressGuard::new(self);
+        let mut write_conn = self.write_conn.lock().map_err(|_| {
+            "library store write lock poisoned during database swap".to_string()
+        })?;
+        let mut read_conn = self.read_conn.lock().map_err(|_| {
+            "library store read lock poisoned during database swap".to_string()
+        })?;
 
         let write_tmp = Connection::open_in_memory().map_err(|e| e.to_string())?;
         let read_tmp = Connection::open_in_memory().map_err(|e| e.to_string())?;
@@ -237,28 +268,68 @@ impl LibraryStore {
                 let _ = move_sidecar(&backup, active_path, "-wal");
                 let _ = move_sidecar(&backup, active_path, "-shm");
             }
+            drop(read_conn);
+            drop(write_conn);
+            let (reopened_write, reopened_read) = open_database_connections(active_path)
+                .map_err(|e| format!("library swap reopen failed after rename error: {e}"))?;
+            let mut write_conn = self.write_conn.lock().map_err(|_| {
+                "library store write lock poisoned during database swap".to_string()
+            })?;
+            let mut read_conn = self.read_conn.lock().map_err(|_| {
+                "library store read lock poisoned during database swap".to_string()
+            })?;
+            *write_conn = reopened_write;
+            *read_conn = reopened_read;
+            swap_guard.release();
             return Err(err.to_string());
         }
 
-        let reopened_write = Connection::open(active_path).map_err(|e| e.to_string())?;
-        configure_write_connection(&reopened_write).map_err(|e| e.to_string())?;
-        let reopened_read = Connection::open_with_flags(active_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
-            .map_err(|e| e.to_string())?;
-        configure_read_connection(&reopened_read).map_err(|e| e.to_string())?;
-        *write_conn = reopened_write;
-        *read_conn = reopened_read;
-        Ok(Some(backup))
+        drop(read_conn);
+        drop(write_conn);
+
+        let reopen = open_database_connections(active_path);
+
+        let mut write_conn = self.write_conn.lock().map_err(|_| {
+            "library store write lock poisoned during database swap".to_string()
+        })?;
+        let mut read_conn = self.read_conn.lock().map_err(|_| {
+            "library store read lock poisoned during database swap".to_string()
+        })?;
+
+        match reopen {
+            Ok((reopened_write, reopened_read)) => {
+                *write_conn = reopened_write;
+                *read_conn = reopened_read;
+                swap_guard.release();
+                Ok(Some(backup))
+            }
+            Err(open_err) => {
+                if backup.exists() {
+                    if active_path.exists() {
+                        remove_db_with_sidecars(active_path).ok();
+                    }
+                    let _ = fs::rename(&backup, active_path);
+                    let _ = move_sidecar(&backup, active_path, "-wal");
+                    let _ = move_sidecar(&backup, active_path, "-shm");
+                }
+                let (reopened_write, reopened_read) = open_database_connections(active_path)
+                    .map_err(|e| format!("library swap reopen failed after revert: {e}"))?;
+                *write_conn = reopened_write;
+                *read_conn = reopened_read;
+                swap_guard.release();
+                Err(format!("library swap failed: {open_err}"))
+            }
+        }
     }
 
     pub fn restore_database_backup(&self, backup_path: &Path, active_path: &Path) -> Result<(), String> {
-        let mut write_conn = self
-            .write_conn
-            .lock()
-            .map_err(|_| "library store write lock poisoned".to_string())?;
-        let mut read_conn = self
-            .read_conn
-            .lock()
-            .map_err(|_| "library store read lock poisoned".to_string())?;
+        let mut swap_guard = SwapInProgressGuard::new(self);
+        let mut write_conn = self.write_conn.lock().map_err(|_| {
+            "library store write lock poisoned during database restore".to_string()
+        })?;
+        let mut read_conn = self.read_conn.lock().map_err(|_| {
+            "library store read lock poisoned during database restore".to_string()
+        })?;
 
         let write_tmp = Connection::open_in_memory().map_err(|e| e.to_string())?;
         let read_tmp = Connection::open_in_memory().map_err(|e| e.to_string())?;
@@ -276,13 +347,21 @@ impl LibraryStore {
             move_sidecar(backup_path, active_path, "-shm")?;
         }
 
-        let reopened_write = Connection::open(active_path).map_err(|e| e.to_string())?;
-        configure_write_connection(&reopened_write).map_err(|e| e.to_string())?;
-        let reopened_read = Connection::open_with_flags(active_path, OpenFlags::SQLITE_OPEN_READ_ONLY)
-            .map_err(|e| e.to_string())?;
-        configure_read_connection(&reopened_read).map_err(|e| e.to_string())?;
+        drop(read_conn);
+        drop(write_conn);
+
+        let (reopened_write, reopened_read) =
+            open_database_connections(active_path).map_err(|e| e.to_string())?;
+
+        let mut write_conn = self.write_conn.lock().map_err(|_| {
+            "library store write lock poisoned during database restore".to_string()
+        })?;
+        let mut read_conn = self.read_conn.lock().map_err(|_| {
+            "library store read lock poisoned during database restore".to_string()
+        })?;
         *write_conn = reopened_write;
         *read_conn = reopened_read;
+        swap_guard.release();
         Ok(())
     }
 }
@@ -307,6 +386,74 @@ fn log_write_op(op: &str, lock_wait_ms: u128, exec_ms: u128) {
         );
     } else if lock_wait_ms >= 50 || exec_ms >= 200 {
         crate::app_eprintln!("[library-db] write op={op} lock_wait_ms={lock_wait_ms} exec_ms={exec_ms}");
+    }
+}
+
+struct SwapInProgressGuard<'a> {
+    store: &'a LibraryStore,
+    released: bool,
+}
+
+impl<'a> SwapInProgressGuard<'a> {
+    fn new(store: &'a LibraryStore) -> Self {
+        store.swap_in_progress.store(true, Ordering::Release);
+        Self {
+            store,
+            released: false,
+        }
+    }
+
+    fn release(&mut self) {
+        if !self.released {
+            self.store.swap_in_progress.store(false, Ordering::Release);
+            self.released = true;
+        }
+    }
+}
+
+impl Drop for SwapInProgressGuard<'_> {
+    fn drop(&mut self) {
+        self.release();
+    }
+}
+
+fn run_conn_closure<R>(
+    conn: &Connection,
+    f: impl FnOnce(&Connection) -> rusqlite::Result<R>,
+) -> Result<R, String> {
+    let out = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(conn)));
+    match out {
+        Ok(result) => result.map_err(|e| e.to_string()),
+        Err(payload) => {
+            let detail = panic_payload_to_string(payload);
+            crate::app_eprintln!("[library-db] connection query panicked: {detail}");
+            Err(format!("library connection query panicked: {detail}"))
+        }
+    }
+}
+
+fn run_conn_mut_closure<R>(
+    conn: &mut Connection,
+    f: impl FnOnce(&mut Connection) -> rusqlite::Result<R>,
+) -> Result<R, String> {
+    let out = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(conn)));
+    match out {
+        Ok(result) => result.map_err(|e| e.to_string()),
+        Err(payload) => {
+            let detail = panic_payload_to_string(payload);
+            crate::app_eprintln!("[library-db] connection mutation panicked: {detail}");
+            Err(format!("library connection mutation panicked: {detail}"))
+        }
+    }
+}
+
+fn panic_payload_to_string(payload: Box<dyn std::any::Any + Send>) -> String {
+    if let Some(msg) = payload.downcast_ref::<&str>() {
+        msg.to_string()
+    } else if let Some(msg) = payload.downcast_ref::<String>() {
+        msg.clone()
+    } else {
+        "unknown panic payload".to_string()
     }
 }
 
@@ -429,6 +576,151 @@ fn checkpoint_wal_conn(conn: &Connection, op: &str) -> rusqlite::Result<()> {
     Ok(())
 }
 
+/// Open write + read handles after migrations, one-time repairs, and WAL checkpoint.
+fn open_database_connections(db_path: &Path) -> rusqlite::Result<(Connection, Connection)> {
+    let write_conn = Connection::open(db_path)?;
+    configure_write_connection(&write_conn)?;
+    prepare_write_connection_for_open(&write_conn)?;
+    let read_conn = Connection::open_with_flags(db_path, OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    configure_read_connection(&read_conn)?;
+    Ok((write_conn, read_conn))
+}
+
+fn prepare_write_connection_for_open(conn: &Connection) -> rusqlite::Result<()> {
+    run_migrations(conn)?;
+    maybe_reconcile_artist_name_sort(conn)?;
+    ensure_genre_tags_schema(conn)?;
+    checkpoint_wal_conn(conn, "open")?;
+    Ok(())
+}
+
+fn artist_name_sort_column_exists(conn: &Connection) -> rusqlite::Result<bool> {
+    let column_exists: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('artist') WHERE name = 'name_sort'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+    Ok(column_exists > 0)
+}
+
+fn sync_state_ignored_articles_column_exists(conn: &Connection) -> rusqlite::Result<bool> {
+    let column_exists: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('sync_state') WHERE name = 'ignored_articles'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+    Ok(column_exists > 0)
+}
+
+/// Apply schema 014 idempotently — mirrors `migrations/014_artist_name_sort.sql`
+/// but tolerates a partial prior apply (missing one column / re-run).
+fn apply_migration_14(conn: &Connection) -> rusqlite::Result<()> {
+    if !artist_name_sort_column_exists(conn)? {
+        conn.execute_batch("ALTER TABLE artist ADD COLUMN name_sort TEXT;")?;
+    }
+    if !sync_state_ignored_articles_column_exists(conn)? {
+        conn.execute_batch("ALTER TABLE sync_state ADD COLUMN ignored_articles TEXT;")?;
+    }
+    conn.execute_batch(
+        "CREATE INDEX IF NOT EXISTS idx_artist_name_sort ON artist(server_id, name_sort);",
+    )?;
+    finish_migration_14_reconcile(conn)?;
+    Ok(())
+}
+
+fn record_schema_migration(conn: &Connection, version: i64) -> rusqlite::Result<()> {
+    conn.execute(
+        "INSERT INTO schema_migrations (version, applied_at) VALUES (?1, strftime('%s','now'))",
+        params![version],
+    )?;
+    Ok(())
+}
+
+fn finish_migration_14_reconcile(conn: &Connection) -> rusqlite::Result<()> {
+    if !artist_name_sort_reconcile_completed(conn)? {
+        repair_artist_name_sort_keys(conn)?;
+        mark_artist_name_sort_reconcile_completed(conn)?;
+    }
+    Ok(())
+}
+
+fn artist_name_sort_reconcile_completed(conn: &Connection) -> rusqlite::Result<bool> {
+    let completed: Option<Option<i64>> = conn
+        .query_row(
+            "SELECT completed_at FROM library_data_migration WHERE id = ?1",
+            params![ARTIST_NAME_SORT_RECONCILE_ID],
+            |row| row.get(0),
+        )
+        .optional()?;
+    Ok(completed.flatten().is_some())
+}
+
+fn mark_artist_name_sort_reconcile_completed(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute(
+        "INSERT INTO library_data_migration (id, cursor_rowid, started_at, completed_at) \
+         VALUES (?1, 0, strftime('%s','now'), strftime('%s','now')) \
+         ON CONFLICT(id) DO UPDATE SET completed_at = excluded.completed_at",
+        params![ARTIST_NAME_SORT_RECONCILE_ID],
+    )?;
+    Ok(())
+}
+
+/// One-time reconcile after schema 014 — not on every open (avoids long write locks at startup).
+fn maybe_reconcile_artist_name_sort(conn: &Connection) -> rusqlite::Result<()> {
+    if !artist_name_sort_column_exists(conn)? {
+        return Ok(());
+    }
+    if artist_name_sort_reconcile_completed(conn)? {
+        return Ok(());
+    }
+    repair_artist_name_sort_keys(conn)?;
+    mark_artist_name_sort_reconcile_completed(conn)?;
+    Ok(())
+}
+
+/// Reconcile `artist.name_sort` with display `name` (upgrade / stale rows).
+fn repair_artist_name_sort_keys(conn: &Connection) -> rusqlite::Result<()> {
+    let table_exists: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'artist'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+    if table_exists == 0 {
+        return Ok(());
+    }
+    if !artist_name_sort_column_exists(conn)? {
+        return Ok(());
+    }
+    let ignored = crate::artist_sort::DEFAULT_IGNORED_ARTICLES;
+    let tx = conn.unchecked_transaction()?;
+    {
+        let mut stmt = tx.prepare("SELECT server_id, id, name, name_sort FROM artist")?;
+        let mut rows = stmt.query([])?;
+        while let Some(row) = rows.next()? {
+            let server_id: String = row.get(0)?;
+            let id: String = row.get(1)?;
+            let name: String = row.get(2)?;
+            let current: Option<String> = row.get(3)?;
+            let expected = crate::artist_sort::sort_key_for_display_name(&name, ignored);
+            if current.as_deref() == Some(&expected) {
+                continue;
+            }
+            tx.execute(
+                "UPDATE artist SET name_sort = ?1 WHERE server_id = ?2 AND id = ?3",
+                rusqlite::params![expected, server_id, id],
+            )?;
+        }
+    }
+    tx.commit()?;
+    Ok(())
+}
+
 fn run_migrations(conn: &Connection) -> rusqlite::Result<MigrationOutcome> {
     run_migrations_with(
         conn,
@@ -477,11 +769,17 @@ pub(crate) fn run_migrations_with(
         if already > 0 {
             continue;
         }
+        if version == 14 {
+            // Applied idempotently (per-column ADD + IF NOT EXISTS index) so a
+            // partial DDL apply — one ALTER landed before a crash, no
+            // schema_migrations row — recovers instead of failing on a
+            // duplicate-column re-run of the batch.
+            apply_migration_14(conn)?;
+            record_schema_migration(conn, version)?;
+            continue;
+        }
         conn.execute_batch(sql)?;
-        conn.execute(
-            "INSERT INTO schema_migrations (version, applied_at) VALUES (?1, strftime('%s','now'))",
-            params![version],
-        )?;
+        record_schema_migration(conn, version)?;
     }
     Ok(MigrationOutcome::Applied)
 }
@@ -781,5 +1079,126 @@ mod tests {
         )
         .unwrap();
         assert_eq!(outcome, MigrationOutcome::Applied);
+    }
+
+    #[test]
+    fn artist_name_sort_reconcile_runs_once_and_sets_name_sort() {
+        let store = LibraryStore::open_in_memory();
+        store
+            .with_conn_mut("test.seed_artist", |conn| {
+                conn.execute(
+                    "INSERT INTO artist (server_id, id, name, name_sort, synced_at) \
+                     VALUES ('s1', 'ar1', 'The Beatles', 'the beatles', 1)",
+                    [],
+                )?;
+                conn.execute(
+                    "DELETE FROM library_data_migration WHERE id = ?1",
+                    params![ARTIST_NAME_SORT_RECONCILE_ID],
+                )?;
+                Ok(())
+            })
+            .expect("seed artist");
+
+        store
+            .with_conn("test.reconcile", maybe_reconcile_artist_name_sort)
+            .expect("reconcile");
+
+        let name_sort: String = store
+            .with_read_conn(|conn| {
+                conn.query_row(
+                    "SELECT name_sort FROM artist WHERE server_id = 's1' AND id = 'ar1'",
+                    [],
+                    |r| r.get(0),
+                )
+            })
+            .expect("read name_sort");
+        assert_eq!(name_sort, "beatles");
+
+        let completed_before: i64 = store
+            .with_read_conn(|conn| {
+                conn.query_row(
+                    "SELECT completed_at FROM library_data_migration WHERE id = ?1",
+                    params![ARTIST_NAME_SORT_RECONCILE_ID],
+                    |r| r.get(0),
+                )
+            })
+            .expect("reconcile marker");
+        assert!(completed_before > 0);
+
+        store
+            .with_conn("test.reconcile_again", maybe_reconcile_artist_name_sort)
+            .expect("reconcile again");
+
+        let name_sort_after: String = store
+            .with_read_conn(|conn| {
+                conn.query_row(
+                    "SELECT name_sort FROM artist WHERE server_id = 's1' AND id = 'ar1'",
+                    [],
+                    |r| r.get(0),
+                )
+            })
+            .expect("read name_sort again");
+        assert_eq!(name_sort_after, "beatles");
+    }
+
+    #[test]
+    fn migration_14_recovers_partial_schema_without_schema_migrations_row() {
+        let uri = in_memory_uri();
+        let conn = Connection::open(&uri).expect("connection");
+        configure_write_connection(&conn).expect("pragmas");
+        let migrations_through_13: &[(i64, &str)] = &[
+            (1, INITIAL_SQL),
+            (12, MIGRATION_012_TRACK_GENRE_LEGACY),
+            (13, MIGRATION_013_ARTIST_ARTWORK_LOOKUP),
+        ];
+        run_migrations_with(
+            &conn,
+            migrations_through_13,
+            LIBRARY_DB_MIN_COMPATIBLE_VERSION,
+            no_op_hook,
+        )
+        .expect("migrate through v13");
+        conn.execute_batch(MIGRATION_014_ARTIST_NAME_SORT)
+            .expect("apply ddl only");
+
+        let recorded: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version = 14",
+                [],
+                |r| r.get(0),
+            )
+            .expect("count migration");
+        assert_eq!(recorded, 0);
+
+        run_migrations_with(
+            &conn,
+            MIGRATIONS,
+            LIBRARY_DB_MIN_COMPATIBLE_VERSION,
+            no_op_hook,
+        )
+        .expect("recover partial migration");
+
+        let recorded_after: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version = 14",
+                [],
+                |r| r.get(0),
+            )
+            .expect("count migration after");
+        assert_eq!(recorded_after, 1);
+    }
+
+    #[test]
+    fn read_conn_recovers_after_closure_panic() {
+        let store = LibraryStore::open_in_memory();
+        let first: Result<i64, String> = store.with_read_conn(|_conn| {
+            panic!("simulated read panic");
+        });
+        assert!(first.is_err());
+
+        let ok: i64 = store
+            .with_read_conn(|conn| conn.query_row("SELECT 1", [], |r| r.get(0)))
+            .expect("read after panic recovery");
+        assert_eq!(ok, 1);
     }
 }

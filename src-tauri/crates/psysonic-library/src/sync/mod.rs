@@ -6,6 +6,7 @@
 //! `DeltaSyncRunner` / background scheduler / Tauri surface follow in
 //! PR-3c / PR-3d / PR-5.
 
+pub mod artist_index;
 pub mod backoff;
 pub mod bandwidth;
 pub mod budget;
@@ -38,3 +39,12 @@ pub use scheduler::{BackgroundScheduler, SchedulerTickReport, DEFAULT_TOMBSTONE_
 pub use strategy::IngestStrategy;
 pub use supervisor::SyncSupervisor;
 pub use tombstone::{should_auto_reconcile, TombstoneReconciler, TombstoneReport};
+
+/// Wall-clock milliseconds since the Unix epoch, saturating to `i64::MAX`.
+pub(crate) fn now_unix_ms() -> i64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis().min(i64::MAX as u128) as i64)
+        .unwrap_or(0)
+}

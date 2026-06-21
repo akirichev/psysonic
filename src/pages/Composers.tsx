@@ -20,6 +20,8 @@ import { peekComposerBrowseScrollRestore } from '../store/composerBrowseSessionS
 import { useScopedBrowseSearchQuery } from '../store/liveSearchScopeStore';
 import { readComposerBrowseRestore } from '../utils/navigation/albumDetailNavigation';
 import { filterArtistsWithRoleAlbumCredits } from '../utils/library/composerBrowse';
+import { ALL_SENTINEL, artistLetterBucket } from '../utils/componentHelpers/artistsHelpers';
+import { useLibraryIgnoredArticles } from '../hooks/useLibraryIgnoredArticles';
 import { usePerfProbeFlags } from '../utils/perf/perfFlags';
 import { VirtualCardGrid } from '../components/VirtualCardGrid';
 import OverlayScrollArea from '../components/OverlayScrollArea';
@@ -28,7 +30,6 @@ import { useClientSliceInfiniteScroll } from '../hooks/useClientSliceInfiniteScr
 import { useInpageScrollViewport } from '../hooks/useInpageScrollViewport';
 import InpageScrollSentinel from '../components/InpageScrollSentinel';
 
-const ALL_SENTINEL = 'ALL';
 const ALPHABET = [ALL_SENTINEL, '#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
 
 const COMPOSER_LIST_LETTER_ROW_EST = 48;
@@ -172,15 +173,11 @@ export default function Composers() {
   }, [musicLibraryFilterVersion, reloadTick]);
 
   const starredOverrides = usePlayerStore(s => s.starredOverrides);
+  const ignoredArticles = useLibraryIgnoredArticles(serverId);
   const filtered = useMemo(() => {
     let out = composerSource;
     if (letterFilter !== ALL_SENTINEL) {
-      out = out.filter(a => {
-        const first = a.name[0]?.toUpperCase() ?? '#';
-        const isAlpha = /^[A-Z]$/.test(first);
-        if (letterFilter === '#') return !isAlpha;
-        return first === letterFilter;
-      });
+      out = out.filter(a => artistLetterBucket(a, ignoredArticles) === letterFilter);
     }
     if (effectiveFilter) {
       const needle = effectiveFilter.toLowerCase();
@@ -190,7 +187,7 @@ export default function Composers() {
       out = out.filter(a => a.id in starredOverrides ? starredOverrides[a.id] : !!a.starred);
     }
     return out;
-  }, [composerSource, letterFilter, effectiveFilter, starredOnly, starredOverrides]);
+  }, [composerSource, letterFilter, effectiveFilter, starredOnly, starredOverrides, ignoredArticles]);
 
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;
@@ -219,13 +216,12 @@ export default function Composers() {
     if (viewMode !== 'list') return { groups: {} as Record<string, SubsonicArtist[]>, letters: [] as string[] };
     const g: Record<string, SubsonicArtist[]> = {};
     for (const a of visible) {
-      const letter = a.name[0]?.toUpperCase() ?? '#';
-      const key = /^[A-Z]$/.test(letter) ? letter : '#';
+      const key = artistLetterBucket(a, ignoredArticles);
       if (!g[key]) g[key] = [];
       g[key].push(a);
     }
     return { groups: g, letters: Object.keys(g).sort() };
-  }, [visible, viewMode]);
+  }, [visible, viewMode, ignoredArticles]);
 
   const composerListFlatRows = useMemo((): ComposerListFlatRow[] => {
     if (viewMode !== 'list') return [];
