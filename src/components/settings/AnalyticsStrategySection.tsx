@@ -1,7 +1,7 @@
-import { AlertTriangle, BarChart3, FileDown, RefreshCcw, TriangleAlert, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { AlertTriangle, BarChart3, FileDown, RefreshCcw, TriangleAlert } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Modal from '../Modal';
 import { save as saveDialog } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import SettingsSubSection from '../SettingsSubSection';
@@ -66,6 +66,7 @@ export default function AnalyticsStrategySection() {
   const [failedModalTarget, setFailedModalTarget] = useState<FailedModalTarget | null>(null);
   const [failedModalLoading, setFailedModalLoading] = useState(false);
   const [failedActionBusy, setFailedActionBusy] = useState(false);
+  const clearCancelRef = useRef<HTMLButtonElement>(null);
 
   const activeServerIds = useMemo(
     () => new Set(servers.map(server => serverIndexKeyForProfile(server))),
@@ -437,179 +438,151 @@ export default function AnalyticsStrategySection() {
         </SettingsGroup>
       </div>
 
-      {clearTarget &&
-        createPortal(
-          <div
-            className="modal-overlay"
-            onClick={() => setClearTarget(null)}
-            role="dialog"
-            aria-modal="true"
-            style={{ alignItems: 'center', paddingTop: 0 }}
-          >
-            <div
-              className="modal-content"
-              onClick={e => e.stopPropagation()}
-              style={{ maxWidth: '420px' }}
-            >
+      {clearTarget && (
+        <Modal
+          open
+          onClose={() => { if (clearingServerId !== clearTarget.serverId) setClearTarget(null); }}
+          title={t('settings.analyticsStrategyClearTitle')}
+          size="sm"
+          closeLabel={t('settings.analyticsStrategyClearCancel')}
+          initialFocusRef={clearCancelRef}
+          closeOnBackdrop={clearingServerId !== clearTarget.serverId}
+          closeOnEscape={clearingServerId !== clearTarget.serverId}
+          bodyClassName="ui-modal-body--padded"
+          footer={
+            <>
               <button
-                className="modal-close"
+                ref={clearCancelRef}
+                className="btn btn-primary"
                 onClick={() => setClearTarget(null)}
-                aria-label={t('settings.analyticsStrategyClearCancel')}
+                disabled={clearingServerId === clearTarget.serverId}
               >
-                <X size={18} />
+                {t('settings.analyticsStrategyClearCancel')}
               </button>
-              <h3 style={{ marginBottom: '0.5rem', fontFamily: 'var(--font-display)' }}>
-                {t('settings.analyticsStrategyClearTitle')}
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-                {t('settings.analyticsStrategyClearDesc', { server: clearTarget.label })}
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => setClearTarget(null)}
-                  autoFocus
-                  disabled={clearingServerId === clearTarget.serverId}
-                >
-                  {t('settings.analyticsStrategyClearCancel')}
-                </button>
-                <button
-                  className="btn btn-surface"
-                  onClick={handleClearAnalysis}
-                  disabled={clearingServerId === clearTarget.serverId}
-                  style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <AlertTriangle size={14} />
-                    {t('settings.analyticsStrategyClearConfirm')}
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
-
-      {failedModalTarget &&
-        createPortal(
-          <div
-            className="modal-overlay"
-            onClick={() => !failedActionBusy && setFailedModalTarget(null)}
-            role="dialog"
-            aria-modal="true"
-            style={{ alignItems: 'center', paddingTop: 0 }}
-          >
-            <div
-              className="modal-content"
-              onClick={e => e.stopPropagation()}
-              style={{ maxWidth: '680px', width: 'min(680px, 92vw)' }}
-            >
               <button
-                className="modal-close"
+                className="btn btn-surface"
+                onClick={handleClearAnalysis}
+                disabled={clearingServerId === clearTarget.serverId}
+                style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertTriangle size={14} />
+                  {t('settings.analyticsStrategyClearConfirm')}
+                </span>
+              </button>
+            </>
+          }
+        >
+          <p className="confirm-dialog-message">
+            {t('settings.analyticsStrategyClearDesc', { server: clearTarget.label })}
+          </p>
+        </Modal>
+      )}
+
+      {failedModalTarget && (
+        <Modal
+          open
+          onClose={() => { if (!failedActionBusy) setFailedModalTarget(null); }}
+          title={t('settings.analyticsFailedTracksTitle', { server: failedModalTarget.label })}
+          size="lg"
+          closeLabel={t('settings.analyticsFailedTracksClose')}
+          closeOnBackdrop={!failedActionBusy}
+          closeOnEscape={!failedActionBusy}
+          bodyClassName="ui-modal-body--padded"
+          footer={
+            <>
+              <button
+                className="btn btn-surface"
+                onClick={handleExportFailedTracks}
+                disabled={failedModalLoading || failedActionBusy || (failedTracksByServer[failedModalTarget.indexKey] ?? []).length === 0}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <FileDown size={14} />
+                  {t('settings.analyticsFailedTracksExport')}
+                </span>
+              </button>
+              <div style={{ flex: 1 }} />
+              <button
+                className="btn btn-primary"
                 onClick={() => setFailedModalTarget(null)}
-                aria-label={t('settings.analyticsFailedTracksClose')}
                 disabled={failedActionBusy}
               >
-                <X size={18} />
+                {t('settings.analyticsFailedTracksClose')}
               </button>
-              <h3 style={{ marginBottom: '0.5rem', fontFamily: 'var(--font-display)' }}>
-                {t('settings.analyticsFailedTracksTitle', { server: failedModalTarget.label })}
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.5 }}>
-                {t('settings.analyticsFailedTracksDesc')}
-              </p>
+              <button
+                className="btn btn-surface"
+                onClick={handleRescanFailedTracks}
+                disabled={failedModalLoading || failedActionBusy || (failedTracksByServer[failedModalTarget.indexKey] ?? []).length === 0}
+                style={{ borderColor: 'var(--warning, #f59e0b)', color: 'var(--warning, #f59e0b)' }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <RefreshCcw size={14} />
+                  {t('settings.analyticsFailedTracksRescan')}
+                </span>
+              </button>
+            </>
+          }
+        >
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.5 }}>
+            {t('settings.analyticsFailedTracksDesc')}
+          </p>
 
-              {failedModalLoading ? (
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {t('settings.analyticsFailedTracksLoading')}
-                </div>
-              ) : (failedTracksByServer[failedModalTarget.indexKey] ?? []).length === 0 ? (
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {t('settings.analyticsFailedTracksEmpty')}
-                </div>
-              ) : (
+          {failedModalLoading ? (
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              {t('settings.analyticsFailedTracksLoading')}
+            </div>
+          ) : (failedTracksByServer[failedModalTarget.indexKey] ?? []).length === 0 ? (
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              {t('settings.analyticsFailedTracksEmpty')}
+            </div>
+          ) : (
+            <div
+              style={{
+                border: '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
+                borderRadius: 10,
+                maxHeight: 280,
+                overflowY: 'auto',
+                marginBottom: 12,
+              }}
+            >
+              {(failedTracksByServer[failedModalTarget.indexKey] ?? []).map(track => (
                 <div
+                  key={`${track.trackId}:${track.md5_16kb}:${track.updatedAt}`}
                   style={{
-                    border: '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
-                    borderRadius: 10,
-                    maxHeight: 280,
-                    overflowY: 'auto',
-                    marginBottom: 12,
+                    padding: '8px 10px',
+                    borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.06))',
+                    fontSize: 12,
+                    color: 'var(--text-secondary)',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    gap: 10,
                   }}
                 >
-                  {(failedTracksByServer[failedModalTarget.indexKey] ?? []).map(track => (
+                  <div style={{ minWidth: 0 }}>
                     <div
-                      key={`${track.trackId}:${track.md5_16kb}:${track.updatedAt}`}
                       style={{
-                        padding: '8px 10px',
-                        borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.06))',
+                        wordBreak: 'break-word',
+                        color: 'var(--text-primary)',
+                        fontFamily: 'var(--font-ui)',
                         fontSize: 12,
-                        color: 'var(--text-secondary)',
-                        display: 'grid',
-                        gridTemplateColumns: '1fr auto',
-                        gap: 10,
                       }}
                     >
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            wordBreak: 'break-word',
-                            color: 'var(--text-primary)',
-                            fontFamily: 'var(--font-ui)',
-                            fontSize: 12,
-                          }}
-                        >
-                          {track.title?.trim() || track.trackId}
-                        </div>
-                        <div style={{ wordBreak: 'break-all', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
-                          {track.serverPath?.trim() || track.trackId}
-                        </div>
-                      </div>
-                      <span style={{ whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
-                        {new Date(track.updatedAt * 1000).toLocaleString()}
-                      </span>
+                      {track.title?.trim() || track.trackId}
                     </div>
-                  ))}
-                </div>
-              )}
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                <button
-                  className="btn btn-surface"
-                  onClick={handleExportFailedTracks}
-                  disabled={failedModalLoading || failedActionBusy || (failedTracksByServer[failedModalTarget.indexKey] ?? []).length === 0}
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <FileDown size={14} />
-                    {t('settings.analyticsFailedTracksExport')}
+                    <div style={{ wordBreak: 'break-all', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                      {track.serverPath?.trim() || track.trackId}
+                    </div>
+                  </div>
+                  <span style={{ whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
+                    {new Date(track.updatedAt * 1000).toLocaleString()}
                   </span>
-                </button>
-
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => setFailedModalTarget(null)}
-                    disabled={failedActionBusy}
-                  >
-                    {t('settings.analyticsFailedTracksClose')}
-                  </button>
-                  <button
-                    className="btn btn-surface"
-                    onClick={handleRescanFailedTracks}
-                    disabled={failedModalLoading || failedActionBusy || (failedTracksByServer[failedModalTarget.indexKey] ?? []).length === 0}
-                    style={{ borderColor: 'var(--warning, #f59e0b)', color: 'var(--warning, #f59e0b)' }}
-                  >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <RefreshCcw size={14} />
-                      {t('settings.analyticsFailedTracksRescan')}
-                    </span>
-                  </button>
                 </div>
-              </div>
+              ))}
             </div>
-          </div>,
-          document.body,
-        )}
+          )}
+
+        </Modal>
+      )}
     </SettingsSubSection>
   );
 }
