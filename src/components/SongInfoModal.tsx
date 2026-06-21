@@ -2,8 +2,6 @@ import { getSong } from '../api/subsonicLibrary';
 import { libraryGetFacts } from '../api/library';
 import type { SubsonicSong } from '../api/subsonicTypes';
 import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { useShallow } from 'zustand/react/shallow';
 import { ndGetSongPath } from '../api/navidromeAdmin';
@@ -15,6 +13,7 @@ import { showToast } from '../utils/ui/toast';
 import { formatTrackTime } from '../utils/format/formatDuration';
 import { formatLastSeen } from '../utils/componentHelpers/userMgmtHelpers';
 import { libraryIsReady } from '../utils/library/libraryReady';
+import Modal from './Modal';
 import {
   formatQueueMoodLabels,
   parseTrackEnrichmentFacts,
@@ -134,15 +133,6 @@ export default function SongInfoModal() {
     return () => { cancelled = true; };
   }, [songInfoModal.isOpen, songInfoModal.songId]);
 
-  useEffect(() => {
-    if (!songInfoModal.isOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') closeSongInfo(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [songInfoModal.isOpen, closeSongInfo]);
-
-  if (!songInfoModal.isOpen) return null;
-
   const channels = song?.channelCount === 1
     ? t('songInfo.mono')
     : song?.channelCount === 2
@@ -171,74 +161,67 @@ export default function SongInfoModal() {
     : null;
   const displayMood = enrichment ? formatQueueMoodLabels(enrichment.moodLabels, t) : null;
 
-  return createPortal(
-    <>
-      <div className="song-info-backdrop" onClick={closeSongInfo} />
-      <div className="song-info-modal" role="dialog" aria-modal="true" aria-label={t('songInfo.title')}>
-        <div className="song-info-header">
-          <span className="song-info-title">{t('songInfo.title')}</span>
-          <button className="btn btn-ghost song-info-close" onClick={closeSongInfo} aria-label="Close">
-            <X size={16} />
-          </button>
-        </div>
+  return (
+    <Modal
+      open={songInfoModal.isOpen}
+      onClose={closeSongInfo}
+      title={t('songInfo.title')}
+      size="md"
+      bodyClassName="song-info-body"
+    >
+      {loading && <div className="song-info-loading">{t('common.loading')}</div>}
 
-        <div className="song-info-body">
-          {loading && <div className="song-info-loading">{t('common.loading')}</div>}
+      {!loading && song && (
+        <table className="song-info-table">
+          <tbody>
+            <CopyableFieldRow label={t('songInfo.songTitle')} text={song.title} />
+            <CopyableFieldRow label={t('songInfo.artist')} text={song.artist} />
+            <CopyableFieldRow label={t('songInfo.album')} text={song.album} />
+            {song.albumArtist && song.albumArtist !== song.artist && (
+              <Row label={t('songInfo.albumArtist')} value={song.albumArtist} />
+            )}
+            <Row label={t('songInfo.year')} value={song.year} />
+            <Row label={t('songInfo.genre')} value={song.genre} />
+            <Row label={t('songInfo.duration')} value={formatTrackTime(song.duration)} />
+            <Row label={t('songInfo.track')} value={trackLabel} />
+            <Row label={t('songInfo.bpm')} value={displayBpm} />
+            <Row label={t('songInfo.mood')} value={displayMood} />
+            <Row label={t('songInfo.playCount')} value={song.playCount} />
+            <Row label={t('songInfo.lastPlayed')} value={song.played ? formatLastSeen(song.played, i18n.language, '—') : null} />
 
-          {!loading && song && (
-            <table className="song-info-table">
-              <tbody>
-                <CopyableFieldRow label={t('songInfo.songTitle')} text={song.title} />
-                <CopyableFieldRow label={t('songInfo.artist')} text={song.artist} />
-                <CopyableFieldRow label={t('songInfo.album')} text={song.album} />
-                {song.albumArtist && song.albumArtist !== song.artist && (
-                  <Row label={t('songInfo.albumArtist')} value={song.albumArtist} />
-                )}
-                <Row label={t('songInfo.year')} value={song.year} />
-                <Row label={t('songInfo.genre')} value={song.genre} />
-                <Row label={t('songInfo.duration')} value={formatTrackTime(song.duration)} />
-                <Row label={t('songInfo.track')} value={trackLabel} />
-                <Row label={t('songInfo.bpm')} value={displayBpm} />
-                <Row label={t('songInfo.mood')} value={displayMood} />
-                <Row label={t('songInfo.playCount')} value={song.playCount} />
-                <Row label={t('songInfo.lastPlayed')} value={song.played ? formatLastSeen(song.played, i18n.language, '—') : null} />
+            <Divider />
 
+            <Row label={t('songInfo.format')} value={[song.suffix?.toUpperCase(), song.contentType].filter(Boolean).join(' · ') || null} />
+            <Row label={t('songInfo.bitrate')} value={song.bitRate ? `${song.bitRate} kbps` : null} />
+            <Row label={t('songInfo.sampleRate')} value={song.samplingRate ? `${(song.samplingRate / 1000).toFixed(1)} kHz` : null} />
+            <Row label={t('songInfo.bitDepth')} value={song.bitDepth ? `${song.bitDepth} bit` : null} />
+            <Row label={t('songInfo.channels')} value={channels} />
+            <Row label={t('songInfo.fileSize')} value={formatSize(song.size)} />
+
+            {(absolutePath || song.path) && (
+              <>
                 <Divider />
+                <Row label={t('songInfo.path')} value={<span className="song-info-path">{absolutePath ?? song.path}</span>} />
+              </>
+            )}
 
-                <Row label={t('songInfo.format')} value={[song.suffix?.toUpperCase(), song.contentType].filter(Boolean).join(' · ') || null} />
-                <Row label={t('songInfo.bitrate')} value={song.bitRate ? `${song.bitRate} kbps` : null} />
-                <Row label={t('songInfo.sampleRate')} value={song.samplingRate ? `${(song.samplingRate / 1000).toFixed(1)} kHz` : null} />
-                <Row label={t('songInfo.bitDepth')} value={song.bitDepth ? `${song.bitDepth} bit` : null} />
-                <Row label={t('songInfo.channels')} value={channels} />
-                <Row label={t('songInfo.fileSize')} value={formatSize(song.size)} />
-
-                {(absolutePath || song.path) && (
-                  <>
-                    <Divider />
-                    <Row label={t('songInfo.path')} value={<span className="song-info-path">{absolutePath ?? song.path}</span>} />
-                  </>
+            {hasReplayGain && (
+              <>
+                <Divider />
+                {song.replayGain!.trackGain !== undefined && (
+                  <Row label={t('songInfo.replayGainTrack')} value={`${song.replayGain!.trackGain >= 0 ? '+' : ''}${song.replayGain!.trackGain.toFixed(2)} dB`} />
                 )}
-
-                {hasReplayGain && (
-                  <>
-                    <Divider />
-                    {song.replayGain!.trackGain !== undefined && (
-                      <Row label={t('songInfo.replayGainTrack')} value={`${song.replayGain!.trackGain >= 0 ? '+' : ''}${song.replayGain!.trackGain.toFixed(2)} dB`} />
-                    )}
-                    {song.replayGain!.albumGain !== undefined && (
-                      <Row label={t('songInfo.replayGainAlbum')} value={`${song.replayGain!.albumGain >= 0 ? '+' : ''}${song.replayGain!.albumGain.toFixed(2)} dB`} />
-                    )}
-                    {song.replayGain!.trackPeak !== undefined && (
-                      <Row label={t('songInfo.replayGainPeak')} value={song.replayGain!.trackPeak.toFixed(6)} />
-                    )}
-                  </>
+                {song.replayGain!.albumGain !== undefined && (
+                  <Row label={t('songInfo.replayGainAlbum')} value={`${song.replayGain!.albumGain >= 0 ? '+' : ''}${song.replayGain!.albumGain.toFixed(2)} dB`} />
                 )}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-    </>,
-    document.body
+                {song.replayGain!.trackPeak !== undefined && (
+                  <Row label={t('songInfo.replayGainPeak')} value={song.replayGain!.trackPeak.toFixed(6)} />
+                )}
+              </>
+            )}
+          </tbody>
+        </table>
+      )}
+    </Modal>
   );
 }
