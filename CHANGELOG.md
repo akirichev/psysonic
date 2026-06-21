@@ -192,6 +192,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * After applying an AutoEQ headphone profile, the preset picker now shows the profile name under an AutoEQ group instead of going blank, and the delete button no longer appears for AutoEQ profiles (where it did nothing).
 
+### All Albums — compilation and favorites filters
+
+**By [@cucadmuh](https://github.com/cucadmuh), reported by [@bcorporaal](https://github.com/bcorporaal), PR [#1151](https://github.com/Psychotoxical/psysonic/pull/1151)**, closes [#1143](https://github.com/Psychotoxical/psysonic/issues/1143)
+
+* **Only compilations** no longer shows a handful of albums after the local index already filtered them — slice mode skips the redundant client pass that dropped rows without `isCompilation` on the DTO.
+* **Favorites** on All Albums uses the same `getStarred2` catalog path as the Favorites page instead of the empty sparse `album` table browse.
+* Pre-index compilation filtering auto-paginates again in network page mode; offline library aggregates set `isCompilation` from track tags.
+
 ## [1.48.1] - 2026-06-15
 
 ## Fixed
