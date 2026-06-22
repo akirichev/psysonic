@@ -12,7 +12,9 @@ import {
   resetOrbitDriftRate,
   setOrbitDriftStatus,
   resetOrbitDriftStatus,
+  pushDriftSample,
   ORBIT_DRIFT_LOOP_TICK_MS,
+  type DriftCorrectionAction,
 } from '../utils/orbit';
 import { clampCrossfadeSecs } from '../utils/playback/autodjAutoAdvance';
 import { pushOrbitEvent } from '../utils/orbitDiag';
@@ -76,6 +78,15 @@ export function useOrbitGuestDriftCorrection(active: boolean): void {
       const trackDurationMs = durationSec * 1000;
       const hostPositionMs = estimateLivePosition(state, now);
       const tTrackRemSec = (trackDurationMs - hostPositionMs) / 1000;
+      const guestPosMs = (player.currentTime ?? 0) * 1000;
+      const driftMs = computeOrbitDriftMs(state, guestPosMs, now);
+
+      // Publish the live status snapshot and append a dense trace sample from
+      // one place, so the diagnostics row and the CSV trace never disagree.
+      const publish = (action: DriftCorrectionAction, targetRate = 1.0, expectedDurationSec: number | null = null) => {
+        setOrbitDriftStatus({ action, currentRate, targetRate, expectedDurationSec });
+        pushDriftSample({ ts: now, driftMs, rate: currentRate, targetRate, action, trackRemSec: tTrackRemSec, hostPosMs: hostPositionMs, guestPosMs });
+      };
 
       // ── Blend guard ──
       // Settle to 1.0× through a crossfade / AutoDJ smooth-skip blend near the
@@ -89,13 +100,10 @@ export function useOrbitGuestDriftCorrection(active: boolean): void {
       if (blendGuardSec > 0 && tTrackRemSec <= blendGuardSec) {
         currentRate = stepRateToward(currentRate, 1.0);
         applyOrbitDriftRate(currentRate);
-        setOrbitDriftStatus({ action: 'blend', currentRate, targetRate: 1.0, expectedDurationSec: null });
+        publish('blend');
         note('blend-guard', `holding 1.0× for blend, ${tTrackRemSec.toFixed(1)}s left`);
         return;
       }
-
-      const guestPosMs = (player.currentTime ?? 0) * 1000;
-      const driftMs = computeOrbitDriftMs(state, guestPosMs, now);
 
       const plan = planOrbitDriftCorrection({
         driftMs,
@@ -110,6 +118,8 @@ export function useOrbitGuestDriftCorrection(active: boolean): void {
         // host's live position (same destination as manual Catch-Up) and drop
         // the soft correction.
         const fraction = Math.max(0, Math.min(0.99, (hostPositionMs / 1000) / Math.max(1, durationSec)));
+        // Sample the give-up moment before the reset clears the status.
+        pushDriftSample({ ts: now, driftMs, rate: currentRate, targetRate: 1.0, action: 'seek', trackRemSec: tTrackRemSec, hostPosMs: hostPositionMs, guestPosMs });
         note('seek', `drift ${Math.round(driftMs)}ms uncorrectable, seeking`);
         player.seek(fraction);
         resetRate('post-seek'); // re-syncs to host → correction state back to idle
@@ -120,10 +130,10 @@ export function useOrbitGuestDriftCorrection(active: boolean): void {
       currentRate = stepRateToward(currentRate, target);
       applyOrbitDriftRate(currentRate);
       if (plan.action === 'soft') {
-        setOrbitDriftStatus({ action: 'soft', currentRate, targetRate: target, expectedDurationSec: plan.expectedDurationSec });
+        publish('soft', target, plan.expectedDurationSec);
         note('soft', `drift ${Math.round(driftMs)}ms → rate ${target.toFixed(2)}× (~${Math.round(plan.expectedDurationSec)}s)`);
       } else {
-        setOrbitDriftStatus({ action: 'hold', currentRate, targetRate: 1.0, expectedDurationSec: null });
+        publish('hold');
         if (currentRate === 1.0) note('hold', `drift ${Math.round(driftMs)}ms within band`);
       }
     };

@@ -13,6 +13,7 @@ import {
   effectiveShuffleIntervalMs,
 } from '../utils/orbit';
 import { estimateLivePosition } from '../api/orbit';
+import { pushOrbitEvent } from '../utils/orbitDiag';
 import OrbitParticipantsPopover from './OrbitParticipantsPopover';
 import OrbitExitModal from './OrbitExitModal';
 import OrbitSettingsPopover from './OrbitSettingsPopover';
@@ -172,6 +173,9 @@ export default function OrbitSessionBar() {
     if (!state.currentTrack) return;
     const trackId = state.currentTrack.trackId;
     const targetMs = estimateLivePosition(state, Date.now());
+    // Mark manual catch-ups in the same log stream as the auto correction, so
+    // the trace can tell a user-driven seek apart from an automatic one.
+    pushOrbitEvent('drift-correction', `manual catch-up → seeking to host @ ${Math.round(targetMs / 1000)}s`);
     const targetSec = Math.max(0, targetMs / 1000);
     const hostPlaying = state.isPlaying;
     try {

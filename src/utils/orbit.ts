@@ -106,6 +106,13 @@ export {
   type DriftCorrectionAction,
   type OrbitDriftStatus,
 } from './orbit/driftCorrectionStatus';
+export {
+  clearDriftTrace,
+  driftTraceCount,
+  formatDriftTraceCsv,
+  pushDriftSample,
+  type DriftSample,
+} from './orbit/driftTrace';
 export { LOOP_TICK_MS as ORBIT_DRIFT_LOOP_TICK_MS } from './orbit/driftCorrectionConstants';
 export { sweepGuestOutboxes } from './orbit/sweep';
 export { cleanupOrphanedOrbitPlaylists } from './orbit/cleanup';

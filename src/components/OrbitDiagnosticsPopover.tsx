@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { Copy, Trash2 } from 'lucide-react';
+import { Activity, Copy, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useOrbitStore } from '../store/orbitStore';
 import { usePlayerStore } from '../store/playerStore';
 import { showToast } from '../utils/ui/toast';
-import { computeOrbitDriftMs, getOrbitDriftStatus } from '../utils/orbit';
+import {
+  clearDriftTrace,
+  computeOrbitDriftMs,
+  driftTraceCount,
+  formatDriftTraceCsv,
+  getOrbitDriftStatus,
+} from '../utils/orbit';
 import {
   clearOrbitEvents,
   formatOrbitEvents,
@@ -36,10 +42,11 @@ export default function OrbitDiagnosticsPopover({ anchorRef, onClose }: Props) {
   const events = useSyncExternalStore(subscribeOrbitEvents, getOrbitEvents, getOrbitEvents);
   const formatted = formatOrbitEvents(events);
 
-  // Tick the mini-display once a second so drift / position read fresh.
+  // Tick the mini-display at the drift loop's cadence (500 ms) so the live
+  // correction rate / drift read in near-real-time, not once a second.
   const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => {
-    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
+    const id = window.setInterval(() => setNowMs(Date.now()), 500);
     return () => window.clearInterval(id);
   }, []);
 
@@ -111,8 +118,23 @@ export default function OrbitDiagnosticsPopover({ anchorRef, onClose }: Props) {
     }
   };
 
+  const handleCopyTrace = async () => {
+    const csv = formatDriftTraceCsv();
+    if (!csv) {
+      showToast(t('orbit.diag.traceEmpty'), 2500, 'info');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(csv);
+      showToast(t('orbit.diag.traceCopied', { count: driftTraceCount() }), 2500, 'info');
+    } catch {
+      showToast(t('orbit.diag.copyFailed'), 4000, 'error');
+    }
+  };
+
   const handleClear = () => {
     clearOrbitEvents();
+    clearDriftTrace();
     showToast(t('orbit.diag.cleared'), 2000, 'info');
   };
 
@@ -177,6 +199,16 @@ export default function OrbitDiagnosticsPopover({ anchorRef, onClose }: Props) {
           >
             <Copy size={13} />
             <span>{t('orbit.diag.copyLabel')}</span>
+          </button>
+          <button
+            type="button"
+            className="orbit-diag-pop__btn"
+            onClick={handleCopyTrace}
+            data-tooltip={t('orbit.diag.traceTooltip')}
+            aria-label={t('orbit.diag.traceTooltip')}
+          >
+            <Activity size={13} />
+            <span>{t('orbit.diag.traceLabel')}</span>
           </button>
           <button
             type="button"
