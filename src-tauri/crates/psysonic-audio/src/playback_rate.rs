@@ -82,6 +82,27 @@ pub fn is_effect_active(atomics: &PlaybackRateAtomics) -> bool {
     }
 }
 
+/// Whether a playback-rate config change must restamp the sample counter to keep
+/// the content (song) position stable.
+///
+/// The counter ↔ position factor is `speed` while the preserve-pitch effect is
+/// active and `1.0` while neutral (see [`effective_position_secs`]). So any
+/// transition that flips active↔neutral, or changes speed while staying active,
+/// changes that factor and needs a restamp. Scoped to the preserve-pitch DSP
+/// family with an unchanged strategy: varispeed has no content/raw factor, and a
+/// strategy switch is handled elsewhere.
+pub(crate) fn rate_change_needs_restamp(
+    old_strategy: u32,
+    new_strategy: u32,
+    was_active: bool,
+    now_active: bool,
+    speed_changed: bool,
+) -> bool {
+    uses_preserve_dsp(old_strategy)
+        && new_strategy == old_strategy
+        && (was_active != now_active || (was_active && now_active && speed_changed))
+}
+
 /// True when preserve-pitch DSP (background worker) should run for this track.
 pub(crate) fn preserve_pitch_will_run(atomics: &PlaybackRateAtomics) -> bool {
     atomics.enabled.load(Ordering::Relaxed)
@@ -658,5 +679,56 @@ mod tests {
             raw_counter_samples_for_content_position(content, 44_100, 2, &atomics);
         let after = content_position_from_samples(restamped, 44_100, 2, &atomics);
         assert!((after - 30.0).abs() < 0.05);
+    }
+
+    #[test]
+    fn rate_change_needs_restamp_covers_active_neutral_toggles() {
+        let sc = STRATEGY_SPEED_CORRECTED;
+        // Both directions of an active↔neutral toggle need a restamp.
+        assert!(rate_change_needs_restamp(sc, sc, false, true, true));
+        assert!(rate_change_needs_restamp(sc, sc, true, false, true));
+        // Active→active with a speed change needs one too.
+        assert!(rate_change_needs_restamp(sc, sc, true, true, true));
+        // Active→active with no speed change, and neutral→neutral, do not.
+        assert!(!rate_change_needs_restamp(sc, sc, true, true, false));
+        assert!(!rate_change_needs_restamp(sc, sc, false, false, false));
+    }
+
+    #[test]
+    fn rate_change_needs_restamp_skips_varispeed_and_strategy_switch() {
+        let sc = STRATEGY_SPEED_CORRECTED;
+        let vs = STRATEGY_VARISPEED;
+        // Varispeed has no content/raw factor → never restamp.
+        assert!(!rate_change_needs_restamp(vs, vs, false, true, true));
+        // A strategy switch is out of scope for the restamp path.
+        assert!(!rate_change_needs_restamp(sc, vs, true, true, true));
+    }
+
+    #[test]
+    fn restamp_keeps_position_across_active_neutral_toggle() {
+        // The bug: toggling the effect on/off must not move the song position.
+        // Start active at 1.10×, sitting at 180 s of content.
+        let a = PlaybackRateAtomics::new();
+        a.enabled.store(true, Ordering::Relaxed);
+        a.strategy.store(STRATEGY_SPEED_CORRECTED, Ordering::Relaxed);
+        a.speed.store(1.10f32.to_bits(), Ordering::Relaxed);
+        let samples = raw_counter_samples_for_content_position(180.0, 44_100, 2, &a);
+        assert!((content_position_from_samples(samples, 44_100, 2, &a) - 180.0).abs() < 0.05);
+
+        // Toggle to neutral (disabled). Without a restamp the position would
+        // jump ~18 s (180 × 0.10); with it, the position is preserved.
+        let old_content = content_position_from_samples(samples, 44_100, 2, &a);
+        a.enabled.store(false, Ordering::Relaxed);
+        let restamped = raw_counter_samples_for_content_position(old_content, 44_100, 2, &a);
+        let after = content_position_from_samples(restamped, 44_100, 2, &a);
+        assert!((after - 180.0).abs() < 0.05, "position jumped to {after}");
+
+        // Back to active at 0.90× — still stable.
+        let old_content2 = content_position_from_samples(restamped, 44_100, 2, &a);
+        a.enabled.store(true, Ordering::Relaxed);
+        a.speed.store(0.90f32.to_bits(), Ordering::Relaxed);
+        let restamped2 = raw_counter_samples_for_content_position(old_content2, 44_100, 2, &a);
+        let after2 = content_position_from_samples(restamped2, 44_100, 2, &a);
+        assert!((after2 - 180.0).abs() < 0.05, "position jumped to {after2}");
     }
 }

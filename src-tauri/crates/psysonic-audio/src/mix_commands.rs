@@ -188,14 +188,13 @@ pub fn audio_set_playback_rate(
     state: State<'_, AudioEngine>,
 ) {
     use crate::playback_rate::{
-        content_position_from_samples, is_effect_active, raw_counter_samples_for_content_position,
-        uses_preserve_dsp, STRATEGY_PRESERVE_PITCH, STRATEGY_SPEED_CORRECTED,
-        STRATEGY_VARISPEED,
+        content_position_from_samples, is_effect_active, rate_change_needs_restamp,
+        raw_counter_samples_for_content_position, STRATEGY_PRESERVE_PITCH,
+        STRATEGY_SPEED_CORRECTED, STRATEGY_VARISPEED,
     };
 
     let clamped_speed = speed.clamp(0.5, 2.0);
     let clamped_pitch = pitch_semitones.clamp(-12.0, 12.0);
-    let old_enabled = state.playback_rate.enabled.load(Ordering::Relaxed);
     let old_strat = state.playback_rate.load_strategy();
     let old_speed = state.playback_rate.load_speed();
     let was_active = is_effect_active(&state.playback_rate);
@@ -206,24 +205,37 @@ pub fn audio_set_playback_rate(
     };
     let speed_changed = (clamped_speed - old_speed).abs() > 0.001;
 
-    let restamp_content = if was_active
-        && enabled == old_enabled
-        && uses_preserve_dsp(old_strat)
-        && new_strat == old_strat
-        && speed_changed
+    // Will the *new* config leave the rate effect active?
+    let new_active = enabled
+        && match new_strat {
+            STRATEGY_PRESERVE_PITCH => {
+                (clamped_speed - 1.0).abs() > 0.001 || clamped_pitch.abs() > 0.001
+            }
+            _ => (clamped_speed - 1.0).abs() > 0.001,
+        };
+
+    // Preserve the content (song) position across any change to the
+    // sample-counter ↔ position mapping: an active↔neutral toggle (enable /
+    // disable, or speed crossing 1.0×) OR a speed change while active. Scoped to
+    // the preserve-pitch DSP family and same strategy — varispeed has no
+    // content/raw factor, and a strategy switch is out of scope here.
+    //
+    // The old condition only restamped active→active, so every enable/disable
+    // toggle reinterpreted `samples_played` under the new factor and jumped the
+    // position (≈ raw_secs × Δspeed — e.g. ±18 s at the 180 s mark on a ±10%
+    // toggle; this is what broke Orbit drift correction).
+    let sample_rate = state.current_sample_rate.load(Ordering::Relaxed);
+    let channels = state.current_channels.load(Ordering::Relaxed);
+    let restamp_content = if sample_rate > 0
+        && channels > 0
+        && rate_change_needs_restamp(old_strat, new_strat, was_active, new_active, speed_changed)
     {
-        let sample_rate = state.current_sample_rate.load(Ordering::Relaxed);
-        let channels = state.current_channels.load(Ordering::Relaxed);
-        if sample_rate > 0 && channels > 0 {
-            Some(content_position_from_samples(
-                state.samples_played.load(Ordering::Relaxed),
-                sample_rate,
-                channels,
-                &state.playback_rate,
-            ))
-        } else {
-            None
-        }
+        Some(content_position_from_samples(
+            state.samples_played.load(Ordering::Relaxed),
+            sample_rate,
+            channels,
+            &state.playback_rate,
+        ))
     } else {
         None
     };
@@ -246,19 +258,19 @@ pub fn audio_set_playback_rate(
         .store(clamped_pitch.to_bits(), Ordering::Relaxed);
 
     if let Some(content_secs) = restamp_content {
-        if is_effect_active(&state.playback_rate) {
-            let sample_rate = state.current_sample_rate.load(Ordering::Relaxed);
-            let channels = state.current_channels.load(Ordering::Relaxed);
-            state.samples_played.store(
-                raw_counter_samples_for_content_position(
-                    content_secs,
-                    sample_rate,
-                    channels,
-                    &state.playback_rate,
-                ),
-                Ordering::Relaxed,
-            );
-        }
+        // Always re-derive the counter for the NEW config — including the
+        // neutral case (raw_counter_… maps content == raw there), which is
+        // exactly the active↔neutral transition the old is_effect_active gate
+        // skipped.
+        state.samples_played.store(
+            raw_counter_samples_for_content_position(
+                content_secs,
+                sample_rate,
+                channels,
+                &state.playback_rate,
+            ),
+            Ordering::Relaxed,
+        );
     }
 }
 
