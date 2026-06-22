@@ -11,7 +11,7 @@ vi.mock('./orbitStore', () => ({
   useOrbitStore: { getState: () => orbitState },
 }));
 
-import { isInOrbitSession } from './orbitSession';
+import { isInOrbitSession, isOrbitGuestSession } from './orbitSession';
 
 beforeEach(() => {
   orbitState.role = null;
@@ -47,6 +47,39 @@ describe('isInOrbitSession', () => {
       orbitState.role = 'host';
       orbitState.phase = phase;
       expect(isInOrbitSession()).toBe(false);
+    },
+  );
+});
+
+describe('isOrbitGuestSession', () => {
+  it.each(['active', 'joining', 'starting'] as const)(
+    "is true for a guest in phase='%s'",
+    phase => {
+      orbitState.role = 'guest';
+      orbitState.phase = phase;
+      expect(isOrbitGuestSession()).toBe(true);
+    },
+  );
+
+  it.each(['active', 'joining', 'starting'] as const)(
+    "is false for the host in phase='%s' (host drives, only guests are gated)",
+    phase => {
+      orbitState.role = 'host';
+      orbitState.phase = phase;
+      expect(isOrbitGuestSession()).toBe(false);
+    },
+  );
+
+  it('is false when not in a session', () => {
+    expect(isOrbitGuestSession()).toBe(false);
+  });
+
+  it.each(['idle', 'ending', 'ended', 'error'] as const)(
+    "is false for a guest in inactive phase='%s'",
+    phase => {
+      orbitState.role = 'guest';
+      orbitState.phase = phase;
+      expect(isOrbitGuestSession()).toBe(false);
     },
   );
 });

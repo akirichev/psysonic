@@ -1,15 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Control points for the test.
-const { inOrbit, getSimilarSongs2, getTopSongs } = vi.hoisted(() => ({
+const { inOrbit, guestInOrbit, getSimilarSongs2, getTopSongs } = vi.hoisted(() => ({
   inOrbit: { value: false },
+  guestInOrbit: { value: false },
   getSimilarSongs2: vi.fn(() => Promise.resolve([])),
   getTopSongs: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock('../api/subsonicArtists', () => ({ getSimilarSongs2, getTopSongs }));
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(() => Promise.resolve()) }));
-vi.mock('./orbitSession', () => ({ isInOrbitSession: () => inOrbit.value }));
+vi.mock('./orbitSession', () => ({
+  isInOrbitSession: () => inOrbit.value,
+  isOrbitGuestSession: () => guestInOrbit.value,
+}));
 vi.mock('./authStore', () => ({
   useAuthStore: { getState: () => ({ infiniteQueueEnabled: false }) },
 }));
@@ -62,6 +66,7 @@ function fakeGet() {
 
 beforeEach(() => {
   inOrbit.value = false;
+  guestInOrbit.value = false;
   getSimilarSongs2.mockClear();
   getTopSongs.mockClear();
 });
@@ -79,5 +84,24 @@ describe('runNext — radio proactive top-up Orbit lockout', () => {
     runNext(vi.fn(), get, /* manual */ false);
     expect(getSimilarSongs2).not.toHaveBeenCalled();
     expect(getTopSongs).not.toHaveBeenCalled();
+  });
+});
+
+describe('runNext — guest never auto-advances', () => {
+  it('does not advance (no playTrack) for an Orbit guest', () => {
+    guestInOrbit.value = true;
+    const state = fakeGet();
+    const get = (() => state) as unknown as () => never;
+    runNext(vi.fn(), get, /* manual */ false);
+    expect(state.playTrack).not.toHaveBeenCalled();
+  });
+
+  it('still advances for the host (only guests are gated)', () => {
+    inOrbit.value = true; // host is in a session...
+    guestInOrbit.value = false; // ...but not a guest
+    const state = fakeGet();
+    const get = (() => state) as unknown as () => never;
+    runNext(vi.fn(), get, /* manual */ false);
+    expect(state.playTrack).toHaveBeenCalledTimes(1);
   });
 });

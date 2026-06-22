@@ -34,6 +34,10 @@ export {
 } from './orbit/helpers';
 export { isOrbitPlaybackSyncActive } from './orbit/sessionActive';
 export {
+  buildGuestPreloadRefs,
+  syncGuestPreloadQueue,
+} from './orbit/guestPreloadQueue';
+export {
   applyOutboxSnapshotsToState,
   computeOrbitDriftMs,
   effectiveShuffleIntervalMs,

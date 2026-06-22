@@ -9,7 +9,7 @@ import {
   isInfiniteQueueFetching,
   setInfiniteQueueFetching,
 } from './infiniteQueueState';
-import { isInOrbitSession } from './orbitSession';
+import { isInOrbitSession, isOrbitGuestSession } from './orbitSession';
 import type { PlayerState, QueueItemRef, Track } from './playerStoreTypes';
 import { toQueueItemRefs } from '../utils/library/queueItemRef';
 import { resolveQueueTrack } from '../utils/library/queueTrackView';
@@ -70,6 +70,12 @@ function appendTracksAndPlayFirst(set: SetState, get: GetState, fresh: Track[]):
  *      sync to the host's next track.
  */
 export function runNext(set: SetState, get: GetState, manual: boolean): void {
+  // Orbit guests never advance on their own — the host drives every track
+  // change. The guest mirrors the host's queue locally only to warm the hot
+  // cache; at track end it waits for `syncToHost` to load the host's next
+  // track. Without this, the mirrored multi-track queue would let `next()`
+  // (track-end fallback, media keys) skip the guest off the host.
+  if (isOrbitGuestSession()) return;
   const { queueItems, queueIndex, repeatMode, currentTrack } = get();
   applySkipStarOnManualNext(currentTrack, manual);
   const nextIdx = queueIndex + 1;

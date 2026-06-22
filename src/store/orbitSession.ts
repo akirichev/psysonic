@@ -15,3 +15,16 @@ export function isInOrbitSession(): boolean {
   if (o.role !== 'host' && o.role !== 'guest') return false;
   return o.phase === 'active' || o.phase === 'joining' || o.phase === 'starting';
 }
+
+/**
+ * True when this client is a *guest* in an Orbit session. The host drives every
+ * track change; a guest must never advance through its queue on its own (it
+ * only mirrors the host's queue locally as preload fodder for the hot cache).
+ * `runNext` uses this to no-op the auto-advance — at track end the guest waits
+ * for `syncToHost` to load the host's next track instead of skipping itself.
+ */
+export function isOrbitGuestSession(): boolean {
+  const o = useOrbitStore.getState();
+  return o.role === 'guest'
+    && (o.phase === 'active' || o.phase === 'joining' || o.phase === 'starting');
+}

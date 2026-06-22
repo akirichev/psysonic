@@ -13,6 +13,7 @@ import {
   planPendingResends,
   forgetPendingSuggestion,
   resetPendingResendState,
+  syncGuestPreloadQueue,
 } from '../utils/orbit';
 import { showToast } from '../utils/ui/toast';
 import i18n from '../i18n';
@@ -381,6 +382,12 @@ export function useOrbitGuest(): void {
         // flip every tick.
         lastAppliedRef.current = { trackId: currentLast.trackId, isPlaying: hostPlaying };
       }
+
+      // Mirror the host's queue into the local (invisible) playerStore queue so
+      // the hot-cache prefetcher and crossfade preload have an upcoming track to
+      // warm. No-op until the guest is actually on the host's track; never
+      // drives playback — runNext guards a guest's auto-advance.
+      syncGuestPreloadQueue(state);
     };
 
     // Self-scheduling tick: fast-poll (500 ms) while we haven't locked in an
