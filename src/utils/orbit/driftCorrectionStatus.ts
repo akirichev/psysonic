@@ -7,7 +7,7 @@
  * the current value when it repaints.
  */
 
-export type DriftCorrectionAction = 'idle' | 'hold' | 'correct' | 'seek' | 'blend' | 'settle';
+export type DriftCorrectionAction = 'idle' | 'hold' | 'correct' | 'seek' | 'blend';
 
 export interface OrbitDriftStatus {
   action: DriftCorrectionAction;

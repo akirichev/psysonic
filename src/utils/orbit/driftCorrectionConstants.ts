@@ -1,56 +1,49 @@
 /**
- * Orbit smooth drift correction — tunable constants (v3: bang-bang + smoothing).
+ * Orbit drift correction — tunable constants (v4: proportional + smooth ramp).
  *
- * A guest that has drifted from the host's live position is nudged back with a
- * pitch-preserving speed change. v3 replaces the v2 ramp (1%/500 ms steps): the
- * test round showed the per-step speed switches caused audio artifacts and the
- * raw drift signal is far too noisy for a fine controller (it swings ±1500 ms
- * tick-to-tick with no real change). So now:
+ * History: v2 stepped a fine ramp but the raw drift was too noisy; v3 went
+ * bang-bang (full ±10% jumps) to dodge audio artifacts — but that was a
+ * backend restamp bug (now fixed), and bang-bang *overshoots* (it drives the
+ * full cap until almost caught up, then with the ~3.5 s measurement latency it
+ * sails past and reverses — "can't lock on"). v4:
  *
- *   - The raw drift is median-smoothed before the controller sees it.
- *   - Correction is bang-bang: jump straight to the ±10% cap, hold until caught
- *     up, then jump back to 1.0× — two speed switches per cycle, not twenty.
- *   - After any speed change / seek the loop settles (ignores measurements) for
- *     a few ticks so a correction can't perturb its own next measurement.
- *
- * The host position only lands in ~5 s quanta, so sub-second sync is impossible
- * anyway — the deadband is sized accordingly.
+ *   - Median-smooth the raw drift (host position lands in ~5 s quanta).
+ *   - **Proportional** target rate: the further off, the closer to the ±10%
+ *     cap; the closer to synced, the gentler — so it converges asymptotically
+ *     instead of overshooting.
+ *   - Ramp the rate gradually toward that target (no jumps). Pitch-preserving
+ *     speed changes are stable now that the restamp is fixed.
+ *   - No auto-seek: past a hard threshold we surface the manual Catch-Up button.
  */
 
 /**
- * Drift at or below this is left alone. Sized against the coarse (~5 s) host
- * position updates — chasing sub-second error is futile and just causes pumping.
+ * Smoothed drift at or below this is left alone — sized against the coarse
+ * (~5 s) host position updates, below which "sync" isn't measurable anyway.
  */
-export const DRIFT_DEADBAND_MS = 1500;
+export const DRIFT_DEADBAND_MS = 1000;
 
 /**
- * Hysteresis exit: while correcting, drop back to 1.0× once the smoothed drift
- * falls to this. Well below the deadband so we don't immediately re-trigger.
+ * Drift at which the proportional rate reaches the full ±10% cap. Below it the
+ * rate scales linearly toward 1.0×, so a small drift gets a small nudge. Larger
+ * = gentler/slower correction.
  */
-export const DRIFT_DONE_MS = 600;
+export const DRIFT_FULL_SCALE_MS = 4000;
 
-/** ±10% product cap on the correction rate. Bang-bang always uses the cap. */
+/** ±10% product cap on the correction rate. */
 export const RATE_MIN = 0.9;
 export const RATE_MAX = 1.1;
 
-/** Drift (ms) closed per second of real time at the ±10% cap. */
-export const CLOSURE_MS_PER_SEC = (RATE_MAX - 1) * 1000; // 100 ms/s
+/** Rate ramps toward the proportional target by this much per tick (gradual). */
+export const RATE_STEP = 0.01;
 
 /**
- * Beyond this smoothed drift a soft nudge is pointless (would take >50 s at the
- * cap) — hard-seek to the host instead. Also the fallback when the remaining
- * track is too short to close the gap softly.
+ * Beyond this smoothed drift a soft nudge is pointless (real desync after a
+ * network stall). We don't auto-seek — we surface the manual Catch-Up button.
  */
-export const DRIFT_SEEK_HARD_MS = 5000;
+export const DRIFT_SEEK_HARD_MS = 8000;
 
 /** Drift-correction loop cadence. Faster than the 2.5 s state poll. */
 export const LOOP_TICK_MS = 500;
-
-/**
- * Ticks to ignore after a speed change or seek, so the engine settles and the
- * correction doesn't read back its own perturbation. 4 ticks ≈ 2 s.
- */
-export const DRIFT_SETTLE_TICKS = 4;
 
 /** Median window over raw drift samples, and the minimum before acting. */
 export const DRIFT_SMOOTH_WINDOW = 5;

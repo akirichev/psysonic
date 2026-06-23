@@ -93,6 +93,7 @@ export {
 } from './orbit/pendingResend';
 export {
   planOrbitDriftCorrection,
+  stepRateToward,
   type DriftCorrectionInput,
   type DriftCorrectionPlan,
 } from './orbit/driftCorrectionPlan';
@@ -122,7 +123,6 @@ export {
 } from './orbit/driftTrace';
 export {
   LOOP_TICK_MS as ORBIT_DRIFT_LOOP_TICK_MS,
-  DRIFT_SETTLE_TICKS as ORBIT_DRIFT_SETTLE_TICKS,
   DRIFT_SMOOTH_WINDOW as ORBIT_DRIFT_SMOOTH_WINDOW,
   DRIFT_SMOOTH_MIN_SAMPLES as ORBIT_DRIFT_SMOOTH_MIN_SAMPLES,
 } from './orbit/driftCorrectionConstants';

@@ -1,64 +1,76 @@
 /**
- * Orbit drift correction — pure bang-bang planner (v3).
+ * Orbit drift correction — pure proportional planner (v4).
  *
- * Decides what to do from the **smoothed** drift and the time left in the track:
- * hold at 1.0×, correct at the ±10% cap, or hard-seek. No ramp, no rate search —
- * the test round showed per-step speed switches cause artifacts and the fine
- * controller chases a noisy signal. Bang-bang makes exactly one speed switch to
- * start a correction and one to end it.
+ * From the **smoothed** drift, pick a target rate proportional to how far off we
+ * are: gentle near synced, up to the ±10% cap when far. The loop then ramps the
+ * live rate gradually toward that target. Proportional + gradual converges
+ * asymptotically instead of overshooting (bang-bang's "can't lock on"), and the
+ * pitch-preserving speed changes are stable now that the backend restamp is
+ * fixed.
  *
- * `driftMs` MUST be the median-smoothed value (see `driftSmoothing`); acting on
- * the raw per-tick drift is what produced the oscillation in the first place.
+ * Past a hard threshold (real desync after a stall) we don't auto-seek — the
+ * loop surfaces the manual Catch-Up button instead.
+ *
+ * `driftMs` MUST be median-smoothed (see `driftSmoothing`).
  */
 
 import {
-  CLOSURE_MS_PER_SEC,
   DRIFT_DEADBAND_MS,
-  DRIFT_DONE_MS,
+  DRIFT_FULL_SCALE_MS,
   DRIFT_SEEK_HARD_MS,
   RATE_MAX,
   RATE_MIN,
+  RATE_STEP,
 } from './driftCorrectionConstants';
 
 export interface DriftCorrectionInput {
   /** Smoothed, signed drift: `> 0` guest ahead (slow down), `< 0` behind (speed up). */
   driftMs: number;
-  /** Seconds of track left at the host (hard ceiling for a soft correction). */
-  trackRemSec: number;
   hostIsPlaying: boolean;
-  /** True while already at a non-1.0 correction rate — widens the exit hysteresis. */
-  correcting: boolean;
 }
 
 export type DriftCorrectionPlan =
   | { action: 'hold' }
-  | { action: 'correct'; rate: number }
+  | { action: 'correct'; targetRate: number }
   | { action: 'seek' };
 
 const HOLD: DriftCorrectionPlan = { action: 'hold' };
 
 export function planOrbitDriftCorrection(input: DriftCorrectionInput): DriftCorrectionPlan {
-  const { driftMs, trackRemSec, hostIsPlaying, correcting } = input;
-
+  const { driftMs, hostIsPlaying } = input;
   if (!hostIsPlaying) return HOLD;
-  if (!(trackRemSec > 0)) return HOLD;
 
   const absDrift = Math.abs(driftMs);
 
-  // Hysteresis: once correcting, keep going until comfortably caught up (DONE);
-  // from rest, only start once the drift clears the larger deadband. The gap
-  // between the two stops the controller flip-flopping at the boundary.
-  if (correcting) {
-    if (absDrift <= DRIFT_DONE_MS) return HOLD;
-  } else if (absDrift <= DRIFT_DEADBAND_MS) {
-    return HOLD;
-  }
-
-  // Too far for a soft nudge, or not enough track left to close it at the cap →
-  // hard-seek to the host instead.
+  // Real desync (e.g. after a network stall) — too far to nudge; offer the
+  // manual catch-up jump rather than auto-seeking.
   if (absDrift > DRIFT_SEEK_HARD_MS) return { action: 'seek' };
-  if (absDrift / CLOSURE_MS_PER_SEC > trackRemSec) return { action: 'seek' };
 
-  // Bang-bang: behind (drift < 0) → speed up to the cap; ahead → slow to the cap.
-  return { action: 'correct', rate: driftMs < 0 ? RATE_MAX : RATE_MIN };
+  // Inside the deadband: acceptable, leave the rate at 1.0×.
+  if (absDrift <= DRIFT_DEADBAND_MS) return HOLD;
+
+  // Proportional magnitude: 0 at the deadband edge, full ±10% at FULL_SCALE.
+  // Continuous across the deadband boundary (no step in target rate).
+  const span = Math.max(1, DRIFT_FULL_SCALE_MS - DRIFT_DEADBAND_MS);
+  const frac = Math.min(1, (absDrift - DRIFT_DEADBAND_MS) / span);
+  const magnitude = (RATE_MAX - 1) * frac;
+  // Behind (drift < 0) → speed up; ahead → slow down.
+  const targetRate = driftMs < 0 ? 1 + magnitude : 1 - magnitude;
+
+  return { action: 'correct', targetRate: clampRate(targetRate) };
+}
+
+function clampRate(rate: number): number {
+  return Math.max(RATE_MIN, Math.min(RATE_MAX, rate));
+}
+
+/**
+ * Move `current` one `RATE_STEP` toward `target`, never overshooting. The loop
+ * calls this once per tick so the rate ramps gradually; snaps exactly to
+ * `target` once within a step (avoids float dust).
+ */
+export function stepRateToward(current: number, target: number, step: number = RATE_STEP): number {
+  const delta = target - current;
+  if (Math.abs(delta) <= step) return target;
+  return current + Math.sign(delta) * step;
 }
