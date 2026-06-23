@@ -50,8 +50,12 @@ export function useComposersBrowseScrollRestore({
   const pendingRef = useRef<PendingScroll | null>(null);
   const doneRef = useRef(false);
 
+  // React Compiler refs rule: ref used as a once-only init guard (checked before first assignment); not render data.
+  // eslint-disable-next-line react-hooks/refs
   if (!initRef.current) {
     initRef.current = true;
+    // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+    // eslint-disable-next-line react-hooks/refs
     pendingRef.current = readPendingScrollRestore(serverId, navigationType, location.state);
   }
 
@@ -59,6 +63,8 @@ export function useComposersBrowseScrollRestore({
     () => readPendingScrollRestore(serverId, navigationType, location.state) !== null,
   );
 
+  // React Compiler immutability rule: intentional imperative mutation of an external/DOM target inside an effect.
+  // eslint-disable-next-line react-hooks/immutability
   useLayoutEffect(() => {
     const pending = pendingRef.current;
     if (doneRef.current || !pending) return;
@@ -71,10 +77,14 @@ export function useComposersBrowseScrollRestore({
     }
     if (loadingMore) return;
 
+    // React Compiler immutability rule: intentional imperative mutation of an external/DOM target inside an effect.
+    // eslint-disable-next-line react-hooks/immutability
     scrollBodyEl.scrollTop = pending.scrollTop;
     scrollBodyEl.dispatchEvent(new Event('scroll', { bubbles: false }));
     pendingRef.current = null;
     doneRef.current = true;
+    // React Compiler set-state-in-effect rule: state set from a DOM/layout measurement.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsScrollRestorePending(false);
     useComposerBrowseSessionStore.getState().clearReturnStash(serverId);
   }, [

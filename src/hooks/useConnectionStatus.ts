@@ -97,6 +97,8 @@ export function useConnectionStatus() {
       prevDevForceOfflineRef.current = devForceOffline;
       if (devForceOffline) {
         setActiveServerReachable(false);
+        // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStatus('disconnected');
       }
       return;
@@ -123,6 +125,8 @@ export function useConnectionStatus() {
       }
       if (isDevOfflineBrowseForced()) {
         setActiveServerReachable(false);
+        // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStatus('disconnected');
       } else {
         setActiveServerReachable(true);

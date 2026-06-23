@@ -30,6 +30,8 @@ export function useMainstageInpageHeaderTight(
   }, [scrollBodyEl]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an external subscription/event callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTight(false);
     // Spread values so deps track filter keys, not a new array identity each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps

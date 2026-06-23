@@ -36,6 +36,8 @@ export function useArtistInfoBatch(
 
   useEffect(() => {
     if (!serverId || ids.length === 0) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setById({});
       return;
     }
@@ -79,6 +81,9 @@ export function useArtistInfoBatch(
     });
 
     return () => { cancelled = true; };
+    // Keyed on idsKey (the stable string form of `ids`); depending on the ids
+    // array directly would re-fetch on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverId, idsKey, similarArtistCount]);
 
   return byId;

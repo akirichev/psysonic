@@ -91,6 +91,9 @@ export default function OfflineLibrary() {
 
   const favoritesTrackCount = useMemo(
     () => countFavoriteAutoTracks(),
+    // countFavoriteAutoTracks() reads the local-playback store; localPlaybackEntries
+    // is the intentional recompute trigger, not a direct input to the body.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [localPlaybackEntries],
   );
 
@@ -129,6 +132,8 @@ export default function OfflineLibrary() {
     if (!hasLoadedOnceRef.current) {
       setLoading(true);
     }
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshCardsFromDisk().then(hydrated => {
       if (cancelled || generation !== cardsRefreshGenerationRef.current) return;
       setCards(hydrated);
@@ -152,6 +157,8 @@ export default function OfflineLibrary() {
   }, [deleteAlbum, refreshOfflineDiskSizes]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an external subscription/event callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshOfflineDiskSizes();
   }, [favoritesTrackCount, mediaDir, refreshOfflineDiskSizes]);
 
@@ -181,6 +188,9 @@ export default function OfflineLibrary() {
 
   const cacheQueueTrackCount = useMemo(
     () => countEphemeralCacheTracks(),
+    // countEphemeralCacheTracks() reads the local-playback store; localPlaybackEntries
+    // is the intentional recompute trigger, not a direct input to the body.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [localPlaybackEntries],
   );
 
@@ -189,11 +199,16 @@ export default function OfflineLibrary() {
 
   const cacheCoverScope = useMemo(
     () => ephemeralCacheCoverScope(),
+    // ephemeralCacheCoverScope() reads the local-playback store; localPlaybackEntries
+    // is the intentional recompute trigger, not a direct input to the body.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [localPlaybackEntries],
   );
 
   useEffect(() => {
     if (!showCacheQueueCard) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCacheCoverQuad([null, null, null, null]);
       return;
     }
@@ -206,6 +221,8 @@ export default function OfflineLibrary() {
 
   useEffect(() => {
     if (!showFavoritesCard) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFavoritesCoverQuad([null, null, null, null]);
       return;
     }

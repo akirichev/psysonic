@@ -51,6 +51,8 @@ export default function PlaybackScheduleBadge({ layoutAnchorRef, className }: Pl
 
   useEffect(() => {
     if (deadlineMs == null) return;
+    // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNowMs(Date.now());
   }, [deadlineMs]);
 

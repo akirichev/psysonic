@@ -50,6 +50,8 @@ export function useComposersBrowseFilters(
   const browseStateRef = useRef<ComposerBrowseReturnState>(DEFAULT_COMPOSER_BROWSE_RETURN_STATE);
   const restoredFromStashRef = useRef(false);
 
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   browseStateRef.current = {
     filter: useLiveSearchScopeStore.getState().query,
     letterFilter,
@@ -69,6 +71,8 @@ export function useComposersBrowseFilters(
       const restored = useComposerBrowseSessionStore.getState().peekReturnStash(serverId);
       if (restored) {
         useLiveSearchScopeStore.getState().setQuery(restored.filter);
+        // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLetterFilter(restored.letterFilter);
         setStarredOnly(restored.starredOnly);
         setViewMode(restored.viewMode);
@@ -90,6 +94,9 @@ export function useComposersBrowseFilters(
       if (!serverId) return;
       const path = window.location.pathname;
       if (isComposerDetailPath(path)) {
+        // Read at cleanup time on purpose: we want the scroll snapshot as it is
+        // at navigation-away. Copying it at effect setup would stash a stale value.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         const snapshot = scrollSnapshotRef?.current;
         useComposerBrowseSessionStore.getState().stashReturnState(serverId, {
           ...browseStateRef.current,

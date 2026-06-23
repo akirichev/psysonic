@@ -23,6 +23,8 @@ export function useVirtualizerScrollMargin(
 ): number {
   const [scrollMargin, setScrollMargin] = useState(0);
   const getterRef = useRef(getScrollElement);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   getterRef.current = getScrollElement;
   useLayoutEffect(() => {
     if (!options.active) return;
@@ -42,6 +44,10 @@ export function useVirtualizerScrollMargin(
     const scrollContent = scrollEl.firstElementChild as Element | null;
     if (scrollContent) ro.observe(scrollContent);
     return () => ro.disconnect();
+    // options.deps is a caller-supplied dependency list spread in on purpose so
+    // this reusable hook re-measures when the caller's layout inputs change;
+    // it cannot be statically verified, which is expected here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.active, wrapRef, ...options.deps]);
   return scrollMargin;
 }

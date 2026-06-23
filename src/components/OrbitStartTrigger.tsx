@@ -47,6 +47,8 @@ export default function OrbitStartTrigger() {
   if (role !== null) return null;
   if (!visible) return null;
 
+  // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+  // eslint-disable-next-line react-hooks/refs
   const anchor = btnRef.current?.getBoundingClientRect();
   const popoverStyle: React.CSSProperties = anchor
     ? {

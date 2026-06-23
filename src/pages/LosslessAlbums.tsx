@@ -48,6 +48,7 @@ const NETWORK_SONGS_PER_FETCH = 100;
 const NETWORK_MAX_FETCHES_PER_LOAD = 2;
 
 function sanitizeFilename(name: string): string {
+  // eslint-disable-next-line no-control-regex -- intentional: strip control chars for safe download filenames
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim() || 'download';
 }
 
@@ -172,6 +173,8 @@ export default function LosslessAlbums() {
     seenIds.current = new Set();
     localOffset.current = 0;
     inFlight.current = false;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAlbums([]);
     setHasMore(true);
     setUnsupported(false);

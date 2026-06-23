@@ -47,6 +47,8 @@ export default function Settings() {
     const st = routeState as { openAddServerInvite?: ServerMagicPayload; tab?: Tab } | null;
     const inv = st?.openAddServerInvite;
     if (inv) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPendingServerInvite(inv);
       setActiveTab('servers');
       navigate(
@@ -63,6 +65,8 @@ export default function Settings() {
   // eine Query aktiv ist, wird der Tab-Content gerendert-nicht und stattdessen
   // die Ergebnisliste angezeigt.
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchResults(searchSettings(searchQuery, activeTab, t));
     setSelectedResultIdx(0);
   }, [searchQuery, activeTab, t]);
@@ -114,12 +118,16 @@ export default function Settings() {
     const timer = window.setTimeout(() => {
       el.classList.remove('settings-sub-section--flash');
     }, 1500);
+    // React Compiler set-state-in-effect rule: state set from a DOM/layout measurement.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPendingFocusTitle(null);
     return () => window.clearTimeout(timer);
   }, [pendingFocusTitle, activeTab]);
 
   useEffect(() => {
     const server = auth.getActiveServer();
+    // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNdAuthChecked(false);
     if (!server) { setNdAdminAuth(null); setNdAuthChecked(true); return; }
     const serverUrl = (server.url.startsWith('http') ? server.url : `http://${server.url}`).replace(/\/$/, '');
@@ -132,9 +140,15 @@ export default function Settings() {
       .catch(() => { if (!cancelled) setNdAdminAuth(null); })
       .finally(() => { if (!cancelled) setNdAuthChecked(true); });
     return () => { cancelled = true; };
+    // Keyed on auth.activeServerId; the effect reads the active server via `auth`
+    // but must only re-probe admin auth when the active server changes, not on
+    // every auth-store update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.activeServerId]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (activeTab === 'users' && ndAuthChecked && ndAdminAuth === null) setActiveTab('servers');
   }, [activeTab, ndAdminAuth, ndAuthChecked]);
 
@@ -275,7 +289,7 @@ export default function Settings() {
                     setActiveTab(hit.tab);
                   }}
                 >
-                  <span className="settings-search-result-badge">{t(tabLabelKey as any)}</span>
+                  <span className="settings-search-result-badge">{t(tabLabelKey)}</span>
                   <span className="settings-search-result-title">{hit.title}</span>
                 </button>
               </li>

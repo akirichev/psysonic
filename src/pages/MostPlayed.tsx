@@ -2,7 +2,7 @@ import { getAlbumList } from '../api/subsonicLibrary';
 import { resolveAlbum } from '../utils/offline/offlineMediaResolve';
 import type { SubsonicAlbum } from '../api/subsonicTypes';
 import { songToTrack } from '../utils/playback/songToTrack';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpDown, ArrowDown, ArrowUp, TrendingUp, UsersRound, Play, ListPlus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -121,10 +121,16 @@ export default function MostPlayed() {
       const result = await getAlbumList('frequent', PAGE_SIZE, 0);
       setAlbums(result);
       setHasMore(result.length === PAGE_SIZE);
-    } catch {}
+    } catch { /* ignore: best-effort */ }
     setLoading(false);
+    // musicLibraryFilterVersion is an intentional re-create trigger: getAlbumList
+    // reads the active library filter internally, so `load` must refresh (and the
+    // mount effect re-run) when that version bumps even though it is unused here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [musicLibraryFilterVersion]);
 
+  // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const loadMore = async () => {
@@ -134,7 +140,7 @@ export default function MostPlayed() {
       const result = await getAlbumList('frequent', PAGE_SIZE, albums.length);
       setAlbums(prev => [...prev, ...result]);
       setHasMore(result.length === PAGE_SIZE);
-    } catch {}
+    } catch { /* ignore: best-effort */ }
     setLoadingMore(false);
   };
 

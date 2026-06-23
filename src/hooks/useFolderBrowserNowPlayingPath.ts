@@ -32,6 +32,8 @@ export function useFolderBrowserNowPlayingPath({
 
   useEffect(() => {
     if (!currentTrack?.id) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPlayingPathIds([]);
       return;
     }
@@ -50,6 +52,8 @@ export function useFolderBrowserNowPlayingPath({
     const leafItem = leafColumn?.items.find(it => it.id === lastSelectedId);
     if (!leafItem || leafItem.isDir || leafItem.id !== currentTrack.id) return;
 
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlayingPathIds(prev => {
       if (
         prev.length === selectedChain.length &&

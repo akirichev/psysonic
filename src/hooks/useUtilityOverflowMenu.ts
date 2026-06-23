@@ -42,6 +42,8 @@ export function useUtilityOverflowMenu(
   }, [floatingPlayerBar, playerBarRef]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from a DOM/layout measurement.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!utilityOverflow) setUtilityMenuOpen(false);
     if (!utilityOverflow && volumeWheelMenuTimerRef.current != null) {
       window.clearTimeout(volumeWheelMenuTimerRef.current);

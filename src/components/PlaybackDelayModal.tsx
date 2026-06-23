@@ -86,6 +86,8 @@ export default function PlaybackDelayModal({ open, onClose, anchorRef }: Playbac
 
   useEffect(() => {
     if (!open) return;
+    // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCustomMinutes('');
     setHoverSeconds(null);
   }, [open]);
@@ -145,6 +147,8 @@ export default function PlaybackDelayModal({ open, onClose, anchorRef }: Playbac
   };
 
   const useAnchor = !!anchorRef;
+  // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+  // eslint-disable-next-line react-hooks/refs
   const anchorEl = anchorRef?.current ?? null;
   void posTick;
   const anchoredPanelStyle =

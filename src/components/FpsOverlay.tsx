@@ -92,6 +92,8 @@ export default function FpsOverlay() {
   } = visibility;
 
   const sparklineNow = useMemo(
+    // React Compiler purity rule: intentional live-timestamp read at render (Date.now()); the value is allowed to differ between renders.
+    // eslint-disable-next-line react-hooks/purity
     () => (live.sampleAt > 0 ? live.sampleAt : Date.now()),
     [live.sampleAt],
   );
@@ -101,6 +103,8 @@ export default function FpsOverlay() {
 
   useEffect(() => {
     if (!showAnalysisPerfOverlay) {
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTpm(0);
       return;
     }
@@ -112,6 +116,8 @@ export default function FpsOverlay() {
 
   useEffect(() => {
     if (!showAnalysisPerfOverlay) {
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQueueStats(null);
       return;
     }
@@ -135,6 +141,8 @@ export default function FpsOverlay() {
 
   useEffect(() => {
     if (!showCoverPerfOverlay) {
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCpm(0);
       setCpmUi(0);
       return;
@@ -150,6 +158,8 @@ export default function FpsOverlay() {
 
   useEffect(() => {
     if (!showCoverPerfOverlay) {
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCoverQueueLines([]);
       return;
     }
@@ -180,6 +190,8 @@ export default function FpsOverlay() {
 
   useEffect(() => {
     if (!showFpsOverlay) {
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFps(0);
       return;
     }

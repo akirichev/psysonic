@@ -85,6 +85,8 @@ export default function TracksPageChrome({
 
   useEffect(() => {
     if (!activeServerId || hideDiscoveryChrome) return;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     rerollHero();
     rerollRandom();
     reloadRated();

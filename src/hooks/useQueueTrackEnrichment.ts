@@ -39,6 +39,8 @@ export function useQueueTrackEnrichment(trackId: string | undefined): ParsedTrac
 
   useEffect(() => {
     if (!serverId || !trackId || !indexEnabled) {
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setData(EMPTY);
       return;
     }

@@ -50,6 +50,8 @@ export default function GenreFilterBar({
 
   useEffect(() => {
     if (catalogGenres != null) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGenreRows(mergeGenreRows(catalogGenres, selected));
       return;
     }

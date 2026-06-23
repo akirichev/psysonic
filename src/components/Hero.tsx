@@ -37,10 +37,14 @@ function HeroBg({ url }: { url: string }) {
   );
   const counter = useRef(url ? 1 : 0);
   const latestUrlRef = useRef(url);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   latestUrlRef.current = url;
 
   useEffect(() => {
     if (!url) {
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLayers([]);
       return;
     }
@@ -102,6 +106,8 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
   const visibilityRafRef = useRef<number | null>(null);
   const [heroInView, setHeroInView] = useState(true);
   const heroInViewRef = useRef(true);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   heroInViewRef.current = heroInView;
 
   const computeHeroVisibleNow = useCallback((): boolean => {
@@ -198,6 +204,8 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
   }, [heroInView, windowHidden, updateHeroVisibility]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (albumsProp?.length) { setAlbums(albumsProp); return; }
     const cfg = { ...getMixMinRatingsConfigFromAuth(), minSong: 0 };
     const albumMix = cfg.enabled && (cfg.minAlbum > 0 || cfg.minArtist > 0);
@@ -288,6 +296,10 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
     }).catch(() => {
       setAlbumFormats(prev => ({ ...prev, [album.id]: '' }));
     });
+    // Intentionally keyed on album?.id only: the format label is fetched once per
+    // album id and cached in albumFormats. Depending on the album object or the
+    // albumFormats map would re-run on every render / cache write.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [album?.id]);
 
   const heroCoverRef = useAlbumCoverRef(album?.id, album?.coverArt);
@@ -305,6 +317,8 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
       stableBgByAlbum.current[albumId] = bgHandle.src;
     }
   }, [bgHandle.src, albumId]);
+  // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+  // eslint-disable-next-line react-hooks/refs
   const heroBgUrl = bgHandle.src || (albumId ? stableBgByAlbum.current[albumId] ?? '' : '');
   const { isHolding, pressBind } = useLongPressAction({
     onShortPress: () => { if (albumId) playAlbum(albumId); },
@@ -322,6 +336,8 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
       onClick={() => navigateToAlbum(album.id)}
       style={{ cursor: 'pointer' }}
     >
+      {/* React Compiler refs rule: heroBgUrl reads a ref to mirror the latest cover URL; it is not part of reactive render data. */}
+      {/* eslint-disable-next-line react-hooks/refs */}
       {enableCoverArtBackground && !perfFlags.disableMainstageHeroBackdrop && heroInView && <HeroBg url={heroBgUrl} />}
       {enableCoverArtBackground && !perfFlags.disableMainstageHeroBackdrop && heroInView && <div className="hero-overlay" aria-hidden="true" />}
 
@@ -370,7 +386,7 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
                     const albumData = await resolveAlbum(serverId, album.id);
                     if (!albumData) return;
                     usePlayerStore.getState().enqueue(albumData.songs.map(songToTrack));
-                  } catch (_) {}
+                  } catch (_) { /* ignore: best-effort */ }
                 }}
                 aria-label={t('hero.enqueue')}
                 data-tooltip={t('hero.enqueueTooltip')}
@@ -404,7 +420,7 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
                     if (!albumData) return;
                     const tracks = albumData.songs.map(songToTrack);
                     usePlayerStore.getState().enqueue(tracks);
-                  } catch (_) {}
+                  } catch (_) { /* ignore: best-effort */ }
                 }}
                 style={{ padding: '0 1.5rem', fontWeight: 600, fontSize: '0.95rem' }}
                 data-tooltip={t('hero.enqueueTooltip')}

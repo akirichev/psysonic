@@ -42,6 +42,7 @@ import { useScopedBrowseSearchQuery } from '../store/liveSearchScopeStore';
 const PAGE_SIZE = 30;
 
 function sanitizeFilename(name: string): string {
+  // eslint-disable-next-line no-control-regex -- intentional: strip control chars for safe download filenames
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim() || 'download';
 }
 
@@ -115,6 +116,8 @@ export default function NewReleases() {
   const loadingGrid = textSearchActive ? textSearchLoading : loading;
   const gridHasMore = textSearchActive ? false : (!genreFiltered && hasMore);
 
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   gridSnapshotRef.current = { albums: displayAlbums, hasMore: gridHasMore };
   useAlbumBrowseScrollSnapshotSync(scrollSnapshotRef, scrollBodyEl, displayAlbums.length);
 
@@ -188,6 +191,10 @@ export default function NewReleases() {
     } finally {
       setLoading(false);
     }
+    // musicLibraryFilterVersion is an intentional re-create trigger (fetchByGenres
+    // reads the active library filter internally); the setters are stable. The
+    // loader must refresh when that version bumps even though it is unused here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [musicLibraryFilterVersion]);
 
   useEffect(() => {

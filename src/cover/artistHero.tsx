@@ -41,6 +41,8 @@ export function ArtistHeroCover({
   }, [artistInfo?.largeImageUrl, artistInfo?.mediumImageUrl]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExternalFailed(false);
     setExternalUrl('');
     if (!candidateUrl) return;

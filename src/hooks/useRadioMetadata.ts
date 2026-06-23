@@ -127,6 +127,8 @@ export function useRadioMetadata(station: InternetRadioStation | null): RadioMet
 
   useEffect(() => {
     if (perfFlags.disableBackgroundPolling) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMetadata(EMPTY_METADATA);
       azuraCastUrlRef.current = null;
       stopElapsedTick();

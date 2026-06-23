@@ -23,6 +23,8 @@ export function useFsIdleFade(onEscape: () => void) {
   }, [resetIdle]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an external subscription/event callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     resetIdle();
     return () => { if (idleTimer.current) clearTimeout(idleTimer.current); };
   }, [resetIdle]);

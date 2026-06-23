@@ -4,6 +4,8 @@ import { onPlaySessionRecorded } from '../store/playSessionRecorded';
 /** Refresh player stats when a listen is persisted or the tab becomes visible again. */
 export function usePlayerStatsLiveRefresh(onRefresh: () => void) {
   const onRefreshRef = useRef(onRefresh);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   onRefreshRef.current = onRefresh;
 
   useEffect(() => {

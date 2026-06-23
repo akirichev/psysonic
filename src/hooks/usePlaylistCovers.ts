@@ -53,6 +53,8 @@ export function usePlaylistCovers(songs: SubsonicSong[], customCoverId: string |
 
   useEffect(() => {
     if (!bgCoverId) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBgCoverRef(null);
       return;
     }

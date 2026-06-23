@@ -37,6 +37,8 @@ function useArtistExternalImage(
   useEffect(() => {
     if (!enabled || !artistId) {
       // Nothing will resolve — not pending, so callers fall back immediately.
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setImage({ src: '', pending: false });
       return;
     }

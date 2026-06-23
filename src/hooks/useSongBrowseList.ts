@@ -141,6 +141,10 @@ export function useSongBrowseList({ enabled, searchQuery, initialRestore }: UseS
 
       return (await runNetworkBrowseSongPage(q, pageOffset, PAGE_SIZE)) ?? [];
     },
+    // musicLibraryFilterVersion is an intentional re-create trigger: the page
+    // loaders read the active genre/library filter state internally, so the
+    // callback must refresh when that version bumps even though it is unused here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [indexEnabled, musicLibraryFilterVersion, offlineBrowseActive, serverId],
   );
 
@@ -218,6 +222,8 @@ export function useSongBrowseList({ enabled, searchQuery, initialRestore }: UseS
     }
   }, [enabled, loading, hasMore, debouncedQuery, offset, fetchSongPage]);
 
+  // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+  // eslint-disable-next-line react-hooks/refs
   return {
     songs,
     offset,
@@ -225,6 +231,8 @@ export function useSongBrowseList({ enabled, searchQuery, initialRestore }: UseS
     hasMore,
     browseUnsupported,
     hasSearched,
+    // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+    // eslint-disable-next-line react-hooks/refs
     localSearchMode: localSearchModeRef.current,
     loadMore,
   };

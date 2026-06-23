@@ -24,6 +24,8 @@ export function AddToPlaylistSubmenu({ songIds, resolveSongIds, onDone, dropDown
   const subRef = useRef<HTMLDivElement>(null);
   const newNameRef = useRef<HTMLInputElement>(null);
   const songIdsRef = useRef(songIds);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   songIdsRef.current = songIds;
   const [adding, setAdding] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);

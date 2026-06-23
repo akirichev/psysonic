@@ -55,6 +55,8 @@ export function useAlbumGridBrowseFilters(
   const [selectedGenres, setSelectedGenres] = useState<string[]>(() => initialState.selectedGenres);
   const restoredFromStashRef = useRef(false);
   const filtersRef = useRef({ selectedGenres, searchQuery: '' });
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   filtersRef.current = {
     selectedGenres,
     searchQuery: useLiveSearchScopeStore.getState().query,
@@ -91,7 +93,11 @@ export function useAlbumGridBrowseFilters(
       if (!serverId) return;
       const path = window.location.pathname;
       if (isAlbumDetailPath(path)) {
+        // Read at cleanup time on purpose: we want the snapshots as they are at
+        // navigation-away. Copying them at effect setup would stash stale values.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         const scrollSnapshot = scrollSnapshotRef?.current;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         const gridSnapshot = gridSnapshotRef?.current;
         const viewportId = inpageScrollViewportIdForSurface(surface);
         const scrollTop = Math.max(

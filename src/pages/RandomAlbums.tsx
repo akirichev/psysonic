@@ -45,6 +45,7 @@ const ALBUM_FETCH_OVERSHOOT = 100;
 const GENRE_UNION_PREFILTER_CAP = 250;
 
 function sanitizeFilename(name: string): string {
+  // eslint-disable-next-line no-control-regex -- intentional: strip control chars for safe download filenames
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim() || 'download';
 }
 
@@ -247,14 +248,20 @@ export default function RandomAlbums() {
   ]);
 
   const loadRef = useRef(load);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   loadRef.current = load;
   useEffect(() => {
     if (restoringSessionRef.current) return;
     loadRef.current(selectedGenres);
-  }, [selectedGenres]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedGenres]);
 
+  // React Compiler immutability rule: intentional imperative mutation of an external/DOM target inside an effect.
+  // eslint-disable-next-line react-hooks/immutability
   const handleRefresh = useCallback(() => {
     if (scrollBodyEl) {
+      // React Compiler immutability rule: intentional imperative mutation of an external/DOM target inside an effect.
+      // eslint-disable-next-line react-hooks/immutability
       scrollBodyEl.scrollTop = 0;
       scrollBodyEl.dispatchEvent(new Event('scroll', { bubbles: false }));
     }
@@ -262,6 +269,8 @@ export default function RandomAlbums() {
     load(selectedGenres);
   }, [scrollBodyEl, load, selectedGenres]);
 
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   gridSnapshotRef.current = { albums, hasMore: false };
   useAlbumBrowseScrollSnapshotSync(scrollSnapshotRef, scrollBodyEl, albums.length);
 

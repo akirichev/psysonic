@@ -64,6 +64,8 @@ export function useAudioDevicesProbe(t: TFunction): UseAudioDevicesProbeResult {
 
   useEffect(() => {
     if (IS_MACOS) return;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshAudioDevices();
   }, [refreshAudioDevices]);
 

@@ -246,7 +246,7 @@ export default function Composers() {
     () =>
       scrollBodyRef.current
       ?? (document.getElementById(APP_MAIN_SCROLL_VIEWPORT_ID) as HTMLElement | null),
-    [],
+    [scrollBodyRef],
   );
 
   const composerListOverscan = Math.max(
@@ -264,6 +264,8 @@ export default function Composers() {
     },
   );
 
+  // React Compiler incompatible-library rule: third-party hook/value the compiler cannot analyze; usage is correct.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const composerListVirtualizer = useVirtualizer({
     count:
       composerBrowsePlainLayout || viewMode !== 'list' ? 0 : composerListFlatRows.length,

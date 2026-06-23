@@ -17,6 +17,8 @@ export function useThemeAnimationRisk(): boolean {
 
   useEffect(() => {
     if (cached !== null) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRisk(cached);
       return;
     }

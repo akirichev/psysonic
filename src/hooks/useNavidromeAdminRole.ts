@@ -36,6 +36,8 @@ export function useNavidromeAdminRole(): NavidromeAdminRole {
 
   useEffect(() => {
     if (!isLoggedIn || !server) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRole('na');
       return;
     }
@@ -63,6 +65,10 @@ export function useNavidromeAdminRole(): NavidromeAdminRole {
     return () => {
       cancelled = true;
     };
+    // Keyed on the server's and identity's primitive fields; depending on the
+    // `server` / `identity` objects would re-probe the admin role on every render
+    // when their identities change but their fields do not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isLoggedIn,
     activeServerId,

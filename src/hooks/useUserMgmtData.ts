@@ -56,6 +56,8 @@ export function useUserMgmtData(serverUrl: string, token: string, t: TFunction):
     }
   }, [serverUrl, token, t]);
 
+  // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, [load]);
 
   return { users, libraries, loading, loadError, load };

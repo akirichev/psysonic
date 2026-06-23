@@ -31,6 +31,8 @@ export function useArtistSimilarArtists(
 
   useEffect(() => {
     if (!artist || audiomuseNavidromeEnabled || !enrichmentConfigured) return;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSimilarArtists([]);
     setSimilarLoading(true);
     getMusicNetworkRuntime().getSimilarArtists(artist.name).then(async names => {
@@ -62,6 +64,8 @@ export function useArtistSimilarArtists(
     if (artistInfoLoading) return;
     if ((info?.similarArtist?.length ?? 0) > 0) return;
 
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSimilarArtists([]);
     setSimilarLoading(true);
     getMusicNetworkRuntime().getSimilarArtists(artist.name).then(async names => {
@@ -84,6 +88,9 @@ export function useArtistSimilarArtists(
       setSimilarArtists(found);
       setSimilarLoading(false);
     }).catch(() => setSimilarLoading(false));
+    // Keyed on artist?.id / artist?.name; depending on the `artist` object would
+    // re-run on every render when its identity changes but its id/name do not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     artist?.id,
     artist?.name,
@@ -97,6 +104,8 @@ export function useArtistSimilarArtists(
   useEffect(() => {
     if (!audiomuseNavidromeEnabled) return;
     if ((info?.similarArtist?.length ?? 0) > 0) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSimilarArtists([]);
       setSimilarLoading(false);
     }

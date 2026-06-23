@@ -97,6 +97,8 @@ export default function OrbitSessionBar() {
     if (role !== 'guest' || !state || !state.currentTrack) {
       overSinceRef.current = null;
       underSinceRef.current = null;
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowCatchUp(false);
       return;
     }
@@ -132,7 +134,7 @@ export default function OrbitSessionBar() {
         overSinceRef.current = null;
       }
     }
-  }, [role, state, nowMs, showCatchUp]);
+  }, [role, state, nowMs, showCatchUp, SHOW_THRESHOLD_MS]);
 
   // Bar is visible while active, ended (pre-ack), or explicitly kicked / soft-removed.
   const shouldShowBar = !!state && (

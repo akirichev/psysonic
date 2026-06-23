@@ -78,7 +78,7 @@ export function useLibraryIndexSync() {
   const refreshAllStatuses = useCallback(async () => {
     if (!masterEnabled || indexedServers.length === 0) return;
     const entries = await Promise.all(
-      indexedServers.map(async ({ key, server }) => {
+      indexedServers.map(async ({ key }) => {
         try {
           const fresh = await libraryGetStatus(key);
           syncPhaseRef.current[key] = fresh.syncPhase;
@@ -127,6 +127,8 @@ export function useLibraryIndexSync() {
 
   useEffect(() => {
     if (!masterEnabled || indexedKeys.length === 0) return;
+    // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void runBootstrap();
   }, [masterEnabled, indexedKeys.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -144,6 +146,10 @@ export function useLibraryIndexSync() {
       if (pollTimer.current) clearTimeout(pollTimer.current);
       pollTimer.current = null;
     };
+    // indexedKeys is derived from indexedServers (already a dep); the poll loop is
+    // keyed on the server set, not on the recomputed key array, to avoid
+    // restarting the poll on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [masterEnabled, indexedServers, refreshAllStatuses]);
 
   useEffect(() => {

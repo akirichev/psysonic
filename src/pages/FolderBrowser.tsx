@@ -25,7 +25,6 @@ export default function FolderBrowser() {
   const currentTrack = usePlayerStore(s => s.currentTrack);
   const isPlaying = usePlayerStore(s => s.isPlaying);
   const playTrack = usePlayerStore(s => s.playTrack);
-  const enqueue = usePlayerStore(s => s.enqueue);
   const openContextMenu = usePlayerStore(s => s.openContextMenu);
   const isContextMenuOpen = usePlayerStore(s => s.contextMenu.isOpen);
 
@@ -46,6 +45,8 @@ export default function FolderBrowser() {
       error: false,
       kind: 'roots',
     };
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setColumns([placeholder]);
     getMusicFolders()
       .then(folders => {
@@ -62,6 +63,8 @@ export default function FolderBrowser() {
   }, []);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setColumnFilters(prev => {
       const next: Record<number, string> = {};
       let changed = false;
@@ -76,6 +79,8 @@ export default function FolderBrowser() {
   }, [columns.length]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isContextMenuOpen) setContextAnchorPos(null);
   }, [isContextMenuOpen]);
 
@@ -213,7 +218,7 @@ export default function FolderBrowser() {
       const queue = visibleItems.filter(it => !it.isDir).map(entryToTrack);
       playTrack(entryToTrack(item), queue.length > 0 ? queue : [entryToTrack(item)]);
     },
-    [columns, filteredItemsByCol, playTrack],
+    [columns, filteredItemsByCol, playTrack, setPlayingPathIds],
   );
 
   const setSelectedInColumn = useCallback((colIndex: number, itemId: string) => {

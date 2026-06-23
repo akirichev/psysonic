@@ -170,6 +170,8 @@ export default function Home() {
       // When lazy initializers already pre-populated state from this same
       // snapshot, re-applying it would only create new array references and
       // trigger unnecessary child re-renders with identical data.
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (!wasPrePopulated) applyFeedSnapshot(cached);
       setLoading(false);
       void warmHomeMainstageCovers(cached);
@@ -225,13 +227,17 @@ export default function Home() {
       }
     })();
     return () => { cancelled = true; };
+    // isVisible / wasPrePopulated are read for one-shot gating inside the loader;
+    // the home feed reloads on server / filter / section / offline changes only,
+    // not when visibility or the pre-populate flag flips.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeServerId,
     musicLibraryFilterVersion,
     homeSections,
     offlineBrowseActive,
     offlineBrowseReloadTs,
-  ]); // eslint-disable-line react-hooks/exhaustive-deps
+  ]);
 
   /** When offline toggles without a library-filter bump, re-apply stale cache if the feed was cleared. */
   useEffect(() => {
@@ -239,6 +245,8 @@ export default function Home() {
     const stale = readHomeFeedCacheStale(activeServerId);
     if (!stale || isHomeFeedSnapshotEmpty(stale)) return;
     if (recent.length > 0 || random.length > 0 || heroAlbums.length > 0) return;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFeedSnapshot(stale);
     setLoading(false);
   }, [activeServerId, connStatus, devForceOffline, offlineBrowseActive]); // eslint-disable-line react-hooks/exhaustive-deps

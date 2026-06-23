@@ -21,6 +21,8 @@ export function useDeviceSyncSourceStatuses(
   // Compute expected paths for each source (for status comparison)
   useEffect(() => {
     if (!targetDir || sources.length === 0) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSourcePathsMap(new Map());
       return;
     }

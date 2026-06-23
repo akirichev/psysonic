@@ -48,9 +48,13 @@ export function LyricsSourcesCustomizer() {
   const [dropTarget, setDropTarget] = useState<LyricsDropTarget>(null);
   const dropTargetRef = useRef<LyricsDropTarget>(null);
   const sourcesRef = useRef(lyricsSources);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   sourcesRef.current = lyricsSources;
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isPsyDragging) { dropTargetRef.current = null; setDropTarget(null); }
   }, [isPsyDragging]);
 

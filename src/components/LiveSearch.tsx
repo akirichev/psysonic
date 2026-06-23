@@ -20,7 +20,7 @@ import {
 import {
   logLibrarySearch,
 } from '../utils/library/libraryDevLog';
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNavigateToAlbum } from '../hooks/useNavigateToAlbum';
 import { Search, Disc3, Users, Music, TextSearch, Database, Globe } from 'lucide-react';
@@ -42,6 +42,8 @@ import ShareSearchResults from './search/ShareSearchResults';
 import {
   LiveSearchScopeBadge,
   LiveSearchScopeGhostBadge,
+} from './search/liveSearchScopeUi';
+import {
   createLiveSearchScopeBackspaceState,
   handleLiveSearchScopeBackspace,
   handleLiveSearchScopeUndo,
@@ -50,7 +52,7 @@ import {
   noteLiveSearchScopeQueryInput,
   resetLiveSearchScopeBackspaceState,
   resolveLiveSearchScopeGhost,
-} from './search/liveSearchScopeUi';
+} from './search/liveSearchScope';
 import { useLiveSearchScopeStore } from '../store/liveSearchScopeStore';
 import { resolveIndexKey } from '../utils/server/serverIndexKey';
 
@@ -98,6 +100,8 @@ function LiveSearchSongThumb({ song }: { song: Pick<SubsonicSong, 'id' | 'albumI
 
 function LiveSearchArtistThumb({ artist }: { artist: Pick<SubsonicArtist, 'id' | 'coverArt'> }) {
   const [failed, setFailed] = useState(false);
+  // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setFailed(false); }, [artist.id, artist.coverArt]);
   if (failed) return <div className="search-result-icon"><Users size={14} /></div>;
   return (
@@ -227,6 +231,8 @@ export default function LiveSearch() {
 
   useEffect(() => {
     if (isLiveSearchDropdownBlocked(scope)) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults(null);
       setOpen(false);
       setSearchSource(null);

@@ -20,7 +20,7 @@ export interface UserFormState {
   libraryIds: number[];
 }
 
-export function initialUserFormState(u: NdUser | undefined, allLibraries: NdLibrary[]): UserFormState {
+function initialUserFormState(u: NdUser | undefined, allLibraries: NdLibrary[]): UserFormState {
   const defaultIds = allLibraries.map(l => l.id);
   return {
     userName: u?.userName ?? '',
@@ -61,11 +61,15 @@ export function UserForm({
   const isEdit = !!initial;
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowNewUserRequiredErrors(false);
   }, [initial?.id]);
 
   useEffect(() => {
     if (!isEdit && form.userName.trim() && form.name.trim() && form.password.trim()) {
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowNewUserRequiredErrors(false);
     }
   }, [isEdit, form.userName, form.name, form.password]);

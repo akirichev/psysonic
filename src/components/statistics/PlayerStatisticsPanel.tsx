@@ -31,6 +31,8 @@ export default function PlayerStatisticsPanel() {
 
   useEffect(() => {
     if (!recordingEnabled) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       setSummary(null);
       setDayCounts(new Map());

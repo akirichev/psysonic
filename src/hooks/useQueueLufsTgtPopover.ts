@@ -65,6 +65,8 @@ export function useQueueLufsTgtPopover(expandReplayGain: boolean) {
   }, [lufsTgtOpen]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an external subscription/event callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!expandReplayGain) setLufsTgtOpen(false);
   }, [expandReplayGain]);
 

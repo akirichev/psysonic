@@ -3,7 +3,7 @@ import { usePlaybackCoverArt } from '../hooks/usePlaybackCoverArt';
 import { usePlaybackTrackCoverRef } from '../cover/useLibraryCoverRef';
 import type { Track } from '../store/playerStoreTypes';
 import { getPlaybackProgressSnapshot, subscribePlaybackProgress } from '../store/playbackProgress';
-import React, { useState, useCallback, useMemo, useRef, useEffect, useSyncExternalStore, CSSProperties } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useSyncExternalStore, CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlaybackLibraryNavigate } from '../hooks/usePlaybackLibraryNavigate';
 import { useTranslation } from 'react-i18next';
@@ -68,6 +68,8 @@ function extractVibrantColor(imageUrl: string): Promise<string> {
 function useAlbumAccentColor(imageUrl: string): string {
   const [color, setColor] = useState('0,0,0');
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from a DOM/layout measurement.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!imageUrl) { setColor('0,0,0'); return; }
     let cancelled = false;
     extractVibrantColor(imageUrl).then(c => { if (!cancelled) setColor(c); });
@@ -96,6 +98,8 @@ function QueueDrawer({ onClose }: { onClose: () => void }) {
 
   // Virtualize so a multi-thousand-track queue keeps DOM at O(visible rows) on
   // mobile too (matches the desktop QueuePanel).
+  // React Compiler incompatible-library rule: third-party hook/value the compiler cannot analyze; usage is correct.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: queue.length,
     getScrollElement: () => listRef.current,
@@ -290,10 +294,12 @@ export default function MobilePlayerView() {
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onEnd);
     };
-  }, [seekFromX]);
+  }, [seekFromX, seek]);
 
   useEffect(() => {
     pendingSeekRef.current = null;
+    // React Compiler set-state-in-effect rule: state set from an external subscription/event callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPreviewProgress(null);
   }, [currentTrack?.id]);
 

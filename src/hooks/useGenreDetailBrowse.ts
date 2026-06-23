@@ -28,8 +28,14 @@ export function useGenreDetailBrowse(
   const restoreKeyRef = useRef('');
   const restoreDisplayCountRef = useRef<number | undefined>(undefined);
   const restoreKey = `${serverId}:${genreName}`;
+  // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+  // eslint-disable-next-line react-hooks/refs
   if (restoreKeyRef.current !== restoreKey) {
+    // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+    // eslint-disable-next-line react-hooks/refs
     restoreKeyRef.current = restoreKey;
+    // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+    // eslint-disable-next-line react-hooks/refs
     restoreDisplayCountRef.current = peekGenreDetailScrollRestore(serverId, genreName)?.displayCount;
   }
 
@@ -55,6 +61,9 @@ export function useGenreDetailBrowse(
       if (!serverId || !genreName) return;
       const path = window.location.pathname;
       if (isAlbumDetailPath(path)) {
+        // Read at cleanup time on purpose: we want the scroll snapshot as it is
+        // at navigation-away. Copying it at effect setup would stash a stale value.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         const snapshot = scrollSnapshotRef?.current;
         const scrollTop = Math.max(
           readInpageScrollTop(GENRE_DETAIL_INPAGE_SCROLL_VIEWPORT_ID),
@@ -74,6 +83,8 @@ export function useGenreDetailBrowse(
 
   return {
     sort,
+    // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+    // eslint-disable-next-line react-hooks/refs
     restoreDisplayCount: restoreDisplayCountRef.current,
   };
 }

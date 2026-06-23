@@ -1,7 +1,7 @@
 import { buildDownloadUrl } from '../api/subsonicStreamUrl';
 import { resolveAlbum } from '../utils/offline/offlineMediaResolve';
 import { songToTrack } from '../utils/playback/songToTrack';
-import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import AlbumCard from '../components/AlbumCard';
 import { albumGridWarmCovers, coverDisplayCssPxForAlbumGrid } from '../cover/layoutSizes';
 import { useLibraryCoverPrefetch } from '../cover/useLibraryCoverPrefetch';
@@ -56,6 +56,7 @@ import { useScopedBrowseSearchQuery } from '../store/liveSearchScopeStore';
 type SortType = AlbumBrowseSort;
 
 function sanitizeFilename(name: string): string {
+  // eslint-disable-next-line no-control-regex -- intentional: strip control chars for safe download filenames
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim() || 'download';
 }
 
@@ -121,6 +122,8 @@ export default function Albums() {
     starredOverrides,
     getScrollRoot,
     scrollRootEl: scrollBodyEl,
+    // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+    // eslint-disable-next-line react-hooks/refs
     restoreDisplayCount: restoreDisplayCountRef.current,
   });
 
@@ -158,7 +161,10 @@ export default function Albums() {
   const loading = textSearchActive ? textSearchLoading : browseData.loading;
   const loadingMore = textSearchActive ? false : browseData.loadingMore;
   const hasMore = textSearchActive ? false : browseData.hasMore;
-  const displayAlbums = textSearchActive ? (textSearchVisibleAlbums ?? []) : browseData.displayAlbums;
+  const displayAlbums = useMemo(
+    () => (textSearchActive ? (textSearchVisibleAlbums ?? []) : browseData.displayAlbums),
+    [textSearchActive, textSearchVisibleAlbums, browseData.displayAlbums],
+  );
   const visibleAlbums = textSearchActive ? (textSearchVisibleAlbums ?? []) : browseData.visibleAlbums;
   const genreFiltered = textSearchActive ? selectedGenres.length > 0 : browseData.genreFiltered;
   const serverFilterActive = textSearchActive
@@ -349,7 +355,7 @@ export default function Albums() {
 
   useEffect(() => {
     if (!indexEnabled && losslessOnly) setLosslessOnly(false);
-  }, [indexEnabled, losslessOnly]);
+  }, [indexEnabled, losslessOnly, setLosslessOnly]);
 
   const sortOptions: { value: SortType; label: string }[] = [
     { value: 'alphabeticalByName',   label: t('albums.sortByName') },

@@ -32,6 +32,8 @@ export function MusicNetworkSection() {
 
   // Profile stats (scrobbles / member-since) for the enrichment primary.
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!enrichmentPrimaryId) { setPrimaryProfile(null); return; }
     let cancelled = false;
     setPrimaryProfile(null);

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Blend, GripVertical, Infinity, ListMusic, MoveRight, Share2, Shuffle, Trash2, Waves } from 'lucide-react';
+import { Blend, GripVertical, Infinity as InfinityIcon, ListMusic, MoveRight, Share2, Shuffle, Trash2, Waves } from 'lucide-react';
 import { useDragDrop, useDragSource } from '../../contexts/DragDropContext';
 import { useQueueToolbarStore, QueueToolbarButtonId } from '../../store/queueToolbarStore';
 
@@ -15,7 +15,7 @@ const QUEUE_TOOLBAR_BUTTON_ICONS: Record<QueueToolbarButtonId, typeof Shuffle | 
   gapless: MoveRight,
   crossfade: Waves,
   autodj: Blend,
-  infinite: Infinity,
+  infinite: InfinityIcon,
 };
 
 const QUEUE_TOOLBAR_LABEL_KEYS: Record<QueueToolbarButtonId, string> = {
@@ -56,9 +56,13 @@ export function QueueToolbarCustomizer() {
   const [dropTarget, setDropTarget] = useState<QueueToolbarDropTarget>(null);
   const dropTargetRef = useRef<QueueToolbarDropTarget>(null);
   const buttonsRef = useRef(buttons);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   buttonsRef.current = buttons;
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isPsyDragging) { dropTargetRef.current = null; setDropTarget(null); }
   }, [isPsyDragging]);
 

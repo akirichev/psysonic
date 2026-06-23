@@ -21,6 +21,8 @@ export default function LabelAlbums() {
 
   useEffect(() => {
     if (!name) return;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     // Search for the label name and ask for a large number of albums

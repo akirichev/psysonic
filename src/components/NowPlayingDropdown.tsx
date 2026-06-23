@@ -1,4 +1,3 @@
-import { CoverArtImage } from '../cover/CoverArtImage';
 import { TrackCoverArtImage } from '../cover/TrackCoverArtImage';
 import { getNowPlaying } from '../api/subsonicScrobble';
 import type { SubsonicNowPlaying } from '../api/subsonicTypes';
@@ -45,6 +44,8 @@ export default function NowPlayingDropdown() {
     let ms = entry.positionMs;
     if (entry.state === 'playing') {
       const rate = entry.playbackRate && entry.playbackRate > 0 ? entry.playbackRate : 1;
+      // React Compiler purity rule: intentional live-timestamp read at render (Date.now()); the value is allowed to differ between renders.
+      // eslint-disable-next-line react-hooks/purity
       ms += (Date.now() - fetchedAtRef.current) * rate;
     }
     const maxMs = entry.duration > 0 ? entry.duration * 1000 : ms;
@@ -206,6 +207,8 @@ export default function NowPlayingDropdown() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* React Compiler refs rule: the row renderer reads a ref for latest presence state; intentional, not reactive render data. */}
+              {/* eslint-disable-next-line react-hooks/refs */}
               {visible.map((stream, idx) => {
                 const presence = nowPlayingPresence(stream);
                 const presenceLabel = t(`nowPlaying.presence.${presence}`);

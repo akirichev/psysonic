@@ -46,6 +46,8 @@ export default function Login() {
   useEffect(() => {
     const inv = (location.state as { openAddServerInvite?: ServerMagicPayload } | null)?.openAddServerInvite;
     if (!inv) return;
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowPass(false);
     setBlockPasswordReveal(true);
     setForm({
@@ -107,7 +109,7 @@ export default function Login() {
 
     // Test connection directly with entered credentials — don't touch the store yet.
     // This avoids any race condition with Zustand's async store rehydration.
-    let ping: Awaited<ReturnType<typeof pingWithCredentials>> = { ok: false };
+    let ping: Awaited<ReturnType<typeof pingWithCredentials>>;
     try {
       ping = await pingWithCredentials(profile.url.trim(), profile.username.trim(), profile.password);
     } catch {

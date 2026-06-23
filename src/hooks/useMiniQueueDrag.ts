@@ -29,6 +29,8 @@ export function useMiniQueueDrag({
   useEffect(() => {
     if (!isPsyDragging) {
       dropTargetRef.current = null;
+      // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDropTarget(null);
     }
   }, [isPsyDragging]);
@@ -44,7 +46,7 @@ export function useMiniQueueDrag({
     const onPsyDrop = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (!detail?.data) return;
-      let parsed: any = null;
+      let parsed: { type?: string; index?: number };
       try { parsed = JSON.parse(detail.data); } catch { return; }
       const tgt = dropTargetRef.current;
       dropTargetRef.current = null;
@@ -74,7 +76,7 @@ export function useMiniQueueDrag({
       const cx = d.clientX;
       const cy = d.clientY;
       if (typeof cx !== 'number' || typeof cy !== 'number') return;
-      let parsed: { type?: string; index?: number } | null = null;
+      let parsed: { type?: string; index?: number };
       try {
         parsed = JSON.parse(d.data);
       } catch {

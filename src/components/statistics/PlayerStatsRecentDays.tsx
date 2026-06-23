@@ -47,8 +47,12 @@ export default function PlayerStatsRecentDays({
   const [details, setDetails] = useState<Map<string, PlaySessionDayDetail>>(() => new Map());
   const [loadingDates, setLoadingDates] = useState<Set<string>>(() => new Set());
   const detailsRef = useRef(details);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   detailsRef.current = details;
   const expandedRef = useRef(expandedDates);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   expandedRef.current = expandedDates;
 
   const loadDetail = useCallback(async (date: string) => {
@@ -69,6 +73,8 @@ export default function PlayerStatsRecentDays({
 
   useEffect(() => {
     let cancelled = false;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     libraryGetPlayerStatsRecentDays(PLAYER_STATS_RECENT_DAYS_LIMIT)
       .then(rows => {
@@ -129,6 +135,8 @@ export default function PlayerStatsRecentDays({
 
   useEffect(() => {
     if (!heatmapSelectedDate) return;
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpandedDates(prev => new Set(prev).add(heatmapSelectedDate));
     void ensureDetail(heatmapSelectedDate);
   }, [heatmapSelectedDate, ensureDetail]);

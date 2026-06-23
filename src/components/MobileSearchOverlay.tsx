@@ -22,6 +22,8 @@ import ShareSearchResults from './search/ShareSearchResults';
 import {
   LiveSearchScopeBadge,
   LiveSearchScopeGhostBadge,
+} from './search/liveSearchScopeUi';
+import {
   createLiveSearchScopeBackspaceState,
   handleLiveSearchScopeBackspace,
   handleLiveSearchScopeUndo,
@@ -30,7 +32,7 @@ import {
   noteLiveSearchScopeQueryInput,
   resetLiveSearchScopeBackspaceState,
   resolveLiveSearchScopeGhost,
-} from './search/liveSearchScopeUi';
+} from './search/liveSearchScope';
 
 const STORAGE_KEY = 'psysonic_recent_searches';
 const MAX_RECENT = 6;
@@ -63,6 +65,9 @@ function MobileSearchSongThumb({
 }) {
   const coverRef = useMemo(
     () => (song.albumId?.trim() ? albumCoverRefForSong(song) : undefined),
+    // Keyed on song's identity fields; depending on the `song` object would
+    // recompute the ref on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [song.id, song.albumId, song.coverArt, song.discNumber],
   );
   if (!coverRef) return null;
@@ -80,6 +85,8 @@ function MobileSearchSongThumb({
 
 function MobileSearchArtistThumb({ artist }: { artist: Pick<SubsonicArtist, 'id' | 'coverArt'> }) {
   const [failed, setFailed] = useState(false);
+  // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setFailed(false); }, [artist.id, artist.coverArt]);
   if (failed) {
     return (
@@ -141,7 +148,13 @@ export default function MobileSearchOverlay({ onClose }: { onClose: () => void }
     return () => { document.body.style.overflow = prev; };
   }, []);
 
+  // doSearch wraps a debounce() result, so the useCallback argument is not an
+  // inline function and its deps can't be statically analysed. It is recreated
+  // only on musicLibraryFilterVersion (search() reads the active filter state).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const doSearch = useCallback(
+    // React Compiler rule: memoization shape is intentional here.
+    // eslint-disable-next-line react-hooks/use-memo
     debounce(async (q: string) => {
       if (!q.trim()) { setResults(null); setLoading(false); return; }
       setLoading(true);
@@ -154,6 +167,8 @@ export default function MobileSearchOverlay({ onClose }: { onClose: () => void }
 
   useEffect(() => {
     if (isLiveSearchDropdownBlocked(scope)) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults(null);
       setLoading(false);
       return;
@@ -183,7 +198,7 @@ export default function MobileSearchOverlay({ onClose }: { onClose: () => void }
     showToast(t('search.addedToQueueToast', { title: track.title }), 2200, 'info');
     onClose();
   };
-  const useRecent = (term: string) => {
+  const applyRecentSearch = (term: string) => {
     setQuery(term, { recordUndo: true });
     inputRef.current?.focus();
   };
@@ -268,7 +283,7 @@ export default function MobileSearchOverlay({ onClose }: { onClose: () => void }
               <div className="mobile-search-section">
                 <div className="mobile-search-section-label">{t('search.recentSearches')}</div>
                 {recentSearches.map(term => (
-                  <button key={term} className="mobile-search-item" onClick={() => useRecent(term)}>
+                  <button key={term} className="mobile-search-item" onClick={() => applyRecentSearch(term)}>
                     <div className="mobile-search-avatar">
                       <Clock size={18} />
                     </div>

@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { setIsAudioPaused } from './engineState';
 import type { PlayerState } from './playerStoreTypes';
 import { flushQueueSyncToServer } from './queueSync';
-import { markPlaybackActive, markPlaybackIdle } from './queuePlaybackIdle';
+import { markPlaybackIdle } from './queuePlaybackIdle';
 import { playListenSessionFinalize, playListenSessionOnPause } from './playListenSession';
 import { playbackReportPaused, playbackReportStopped } from './playbackReportSession';
 import { pauseRadio, stopRadio } from './radioPlayer';
@@ -101,7 +101,8 @@ export function createTransportLightActions(set: SetState, get: GetState): Pick<
     togglePlay: () => {
       if (!tryAcquireTogglePlayLock()) return;
       const { isPlaying } = get();
-      isPlaying ? get().pause() : get().resume();
+      if (isPlaying) get().pause();
+      else get().resume();
     },
   };
 }

@@ -31,6 +31,8 @@ export function useInpageScrollSentinel({
   intersectingRef,
 }: UseInpageScrollSentinelArgs): RefCallback<HTMLDivElement | null> {
   const onIntersectRef = useRef(onIntersect);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   onIntersectRef.current = onIntersect;
 
   const setIntersecting = useCallback((hit: boolean) => {
@@ -65,6 +67,10 @@ export function useInpageScrollSentinel({
     );
     observer.observe(node);
     observerInst.current = observer;
+    // scrollRootEl is an intentional re-create trigger: when the resolved scroll
+    // root element changes the sentinel must re-bind its observer to the new root,
+    // even though the body reads it via getScrollRoot() rather than directly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, getScrollRoot, scrollRootEl, rootMargin, setIntersecting]);
 
   useEffect(() => {

@@ -28,6 +28,8 @@ export function LoadPlaylistModal({ onClose, onLoad }: Props) {
   };
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPlaylists();
   }, []);
 

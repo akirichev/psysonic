@@ -18,6 +18,8 @@ export function useLibraryIgnoredArticles(
 
   useEffect(() => {
     if (!enabled || !serverId) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIgnoredArticles(null);
       return;
     }

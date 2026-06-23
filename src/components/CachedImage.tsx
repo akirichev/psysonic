@@ -43,6 +43,11 @@ type ResolvedSlice = { key: string | null; url: string };
  *   loading immediately.  Pass false for CSS background-image consumers that
  *   should only see a stable blob URL (prevents a double crossfade).
  */
+// useCachedUrl is the headless companion of CachedImage — it shares the same
+// caching contract and the module-local ResolvedSlice type, and is documented
+// alongside the component in src/CLAUDE.md. Intentional co-location; the
+// fast-refresh rule is an HMR-only concern.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCachedUrl(
   fetchUrl: string,
   cacheKey: string,
@@ -54,6 +59,8 @@ export function useCachedUrl(
   // `fetchUrl` were an effect dependency, cleanup would run every frame, call
   // `releaseUrl`, revoke the blob, and break <img> until onError hides it.
   const fetchUrlRef = useRef(fetchUrl);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   fetchUrlRef.current = fetchUrl;
 
   // Pair blob URL with the `cacheKey` it belongs to. After `cacheKey` changes,
@@ -71,6 +78,8 @@ export function useCachedUrl(
   );
 
   const getPriorityRef = useRef(getPriority);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   getPriorityRef.current = getPriority;
 
   useEffect(() => {
@@ -100,6 +109,8 @@ export function useCachedUrl(
     const sync = acquireUrl(cacheKey);
     if (sync) {
       ownedKeyRef.current = cacheKey;
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResolvedSlice({ key: cacheKey, url: sync });
       return release;
     }
@@ -211,6 +222,8 @@ export default function CachedImage({
   // useLayoutEffect: one paint with `loaded` still true + a stale/wrong `src`
   // showed a broken-cover flash in the player bar when switching tracks (#606).
   useLayoutEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoaded(false);
     setFallbackSrc(undefined);
   }, [cacheKey]);

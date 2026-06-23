@@ -97,10 +97,14 @@ export default function RandomMix() {
   };
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!contextMenuOpen) setContextMenuSongId(null);
   }, [contextMenuOpen]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSongs();
     setGenresLoading(true);
     void fetchGenreCatalog(activeServerId, indexEnabled)
@@ -120,6 +124,9 @@ export default function RandomMix() {
         setDisplayedGenres([]);
       })
       .finally(() => setGenresLoading(false));
+    // fetchSongs is a local helper recreated each render; the mix reload is keyed
+    // on the library filter / server / index, not on the function identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [musicLibraryFilterVersion, activeServerId, indexEnabled]);
 
   const filteredSongs = filterRandomMixSongs(songs, { excludeAudiobooks, customGenreBlacklist, mixRatingCfg });
@@ -159,7 +166,7 @@ export default function RandomMix() {
         targetSize: overrideSize ?? randomMixSize,
       });
       setGenreMixSongs(list);
-    } catch {}
+    } catch { /* ignore: best-effort */ }
     setGenreMixLoading(false);
     setGenreMixComplete(true);
   };

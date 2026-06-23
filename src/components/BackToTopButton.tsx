@@ -35,6 +35,8 @@ export default function BackToTopButton({
   const [host, setHost] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from a DOM/layout measurement.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHost(document.querySelector<HTMLElement>('.app-shell-route-host'));
     const el = document.getElementById(viewportId);
     if (!el) return;

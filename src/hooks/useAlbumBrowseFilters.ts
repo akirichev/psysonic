@@ -100,6 +100,8 @@ export function useAlbumBrowseFilters(
   const filtersRef = useRef<AlbumBrowseReturnFilters>(DEFAULT_ALBUM_BROWSE_RETURN_FILTERS);
   /** Guards against re-reset when `albumBrowseRestore` is cleared from location state. */
   const restoredFromStashRef = useRef(false);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   filtersRef.current = {
     selectedGenres,
     yearFrom,
@@ -122,6 +124,8 @@ export function useAlbumBrowseFilters(
       const restored = useAlbumBrowseSessionStore.getState().peekReturnStash(serverId, ALBUMS_SURFACE);
       if (restored) {
         useLiveSearchScopeStore.getState().setQuery(restored.searchQuery ?? '');
+        // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedGenres(restored.selectedGenres);
         setYearFrom(restored.yearFrom);
         setYearTo(restored.yearTo);
@@ -149,6 +153,9 @@ export function useAlbumBrowseFilters(
       if (!serverId) return;
       const path = window.location.pathname;
       if (isAlbumDetailPath(path)) {
+        // Read at cleanup time on purpose: we want the scroll snapshot as it is
+        // at navigation-away. Copying it at effect setup would stash a stale value.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         const snapshot = scrollSnapshotRef?.current;
         const scrollTop = Math.max(
           readInpageScrollTop(ALBUMS_INPAGE_SCROLL_VIEWPORT_ID),

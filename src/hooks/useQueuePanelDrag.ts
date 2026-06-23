@@ -43,6 +43,8 @@ export function useQueuePanelDrag({
   useEffect(() => {
     if (!isPsyDragging) {
       externalDropTargetRef.current = null;
+      // React Compiler set-state-in-effect rule: state set from a DOM/layout measurement.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExternalDropTarget(null);
     }
   }, [isPsyDragging]);
@@ -55,7 +57,14 @@ export function useQueuePanelDrag({
       const detail = (e as CustomEvent).detail;
       if (!detail?.data) return;
 
-      let parsedData: any = null;
+      let parsedData: {
+        type?: string;
+        index?: number;
+        track?: Track;
+        tracks?: Track[];
+        serverId?: string;
+        id?: string;
+      };
       try { parsedData = JSON.parse(detail.data); } catch { return; }
 
       // Radio streams are not tracks — reject silently
@@ -70,17 +79,17 @@ export function useQueuePanelDrag({
         : usePlayerStore.getState().queueItems.length;
 
       if (parsedData.type === 'queue_reorder') {
-        const fromIdx: number = parsedData.index;
+        const fromIdx = parsedData.index as number;
         psyDragFromIdxRef.current = null;
         if (fromIdx !== insertIdx) reorderQueue(fromIdx, insertIdx);
       } else if (parsedData.type === 'song') {
-        enqueueAt([parsedData.track], insertIdx);
+        enqueueAt([parsedData.track as Track], insertIdx);
       } else if (parsedData.type === 'songs') {
         enqueueAt(parsedData.tracks as Track[], insertIdx);
       } else if (parsedData.type === 'album') {
         const serverId = resolveMediaServerId(parsedData.serverId);
         if (!serverId) return;
-        const albumData = await resolveAlbum(serverId, parsedData.id);
+        const albumData = await resolveAlbum(serverId, parsedData.id as string);
         if (!albumData) return;
         enqueueAt(albumData.songs.map(songToTrack), insertIdx);
       }
@@ -99,7 +108,7 @@ export function useQueuePanelDrag({
       const cx = d.clientX;
       const cy = d.clientY;
       if (typeof cx !== 'number' || typeof cy !== 'number') return;
-      let parsed: { type?: string; index?: number } | null = null;
+      let parsed: { type?: string; index?: number } | null;
       try {
         parsed = JSON.parse(d.data);
       } catch {

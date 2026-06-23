@@ -25,7 +25,43 @@ export type CoverArtImageProps = {
   ensurePriority?: CoverPrefetchPriority;
 } & Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'>;
 
-export function CoverArtImage({
+/**
+ * Guard wrapper: with no `coverRef` we render a provisional placeholder and run
+ * no hooks. The hook-bearing body lives in `CoverArtImageResolved`, which only
+ * ever mounts with a non-null `coverRef` — so its hooks are unconditional.
+ */
+export function CoverArtImage(props: CoverArtImageProps) {
+  if (!props.coverRef) {
+    const {
+      coverRef: _coverRef,
+      displayCssPx: _displayCssPx,
+      surface: _surface,
+      fullRes: _fullRes,
+      fetchQueueBias: _fetchQueueBias,
+      observeRootMargin: _observeRootMargin,
+      observeScrollRootId: _observeScrollRootId,
+      ensurePriority: _ensurePriority,
+      onError: _onError,
+      className,
+      alt,
+      ...rest
+    } = props;
+    return (
+      <div
+        className={className}
+        data-cover-provisional="true"
+        role="img"
+        aria-label={alt ?? ''}
+        {...(rest as React.HTMLAttributes<HTMLDivElement>)}
+      />
+    );
+  }
+  return <CoverArtImageResolved {...props} coverRef={props.coverRef} />;
+}
+
+type CoverArtImageResolvedProps = Omit<CoverArtImageProps, 'coverRef'> & { coverRef: CoverArtRef };
+
+function CoverArtImageResolved({
   coverRef,
   displayCssPx,
   surface,
@@ -38,19 +74,7 @@ export function CoverArtImage({
   ensurePriority: ensurePriorityProp,
   onError: restOnError,
   ...rest
-}: CoverArtImageProps) {
-  if (!coverRef) {
-    return (
-      <div
-        className={className}
-        data-cover-provisional="true"
-        role="img"
-        aria-label={alt ?? ''}
-        {...(rest as React.HTMLAttributes<HTMLDivElement>)}
-      />
-    );
-  }
-
+}: CoverArtImageResolvedProps) {
   const pinnedHigh = ensurePriorityProp === 'high';
   const [ensurePriority, setEnsurePriority] = useState<CoverPrefetchPriority>(
     ensurePriorityProp ?? 'middle',
@@ -61,6 +85,8 @@ export function CoverArtImage({
   const [imgLoadFailed, setImgLoadFailed] = useState(false);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (ensurePriorityProp) setEnsurePriority(ensurePriorityProp);
   }, [ensurePriorityProp]);
 
@@ -69,6 +95,8 @@ export function CoverArtImage({
   }, [seenViewport]);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setImgLoadFailed(false);
   }, [coverRef.cacheEntityId, coverRef.cacheKind, coverRef.fetchCoverArtId, displayCssPx, surface, fullRes]);
 

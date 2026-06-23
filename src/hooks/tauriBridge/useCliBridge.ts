@@ -184,11 +184,15 @@ export function useCliBridge(navigate: NavigateFunction) {
         }).catch(() => {});
       }
     }).then(u => unsubs.push(u));
-    listen<any>('cli:player-command', async e => {
+    listen<Record<string, unknown>>('cli:player-command', async e => {
       await executeCliPlayerCommand({ payload: e.payload ?? {}, navigate });
     }).then(u => unsubs.push(u));
     return () => {
       unsubs.forEach(u => u());
     };
+    // Listeners registered once on mount; `navigate` is captured by closure and
+    // stays valid (router navigation is not location-dependent), so the Tauri
+    // event subscriptions are intentionally not torn down on every navigation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

@@ -40,6 +40,8 @@ export default function StarRating({
   const cappedValue = Math.min(Math.max(0, value), selectCap);
 
   React.useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (value > 0) setSuppressHoverPreview(false);
   }, [value]);
 
@@ -68,6 +70,8 @@ export default function StarRating({
 
     if (next < prev) {
       const star = Math.max(1, Math.min(selectCap, prev));
+      // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (next === 0) setSuppressHoverPreview(true);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setClearShrinkStar(star));

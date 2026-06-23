@@ -38,6 +38,8 @@ export function SidebarCustomizer() {
   const [dropTarget, setDropTarget] = useState<DropTarget>(null);
   const dropTargetRef = useRef<DropTarget>(null);
   const itemsRef = useRef(items);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   itemsRef.current = items;
   const randomNavMode = useAuthStore(s => s.randomNavMode);
   const setRandomNavMode = useAuthStore(s => s.setRandomNavMode);
@@ -59,6 +61,8 @@ export function SidebarCustomizer() {
   const systemItems  = items.filter(cfg => ALL_NAV_ITEMS[cfg.id]?.section === 'system');
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isPsyDragging) { dropTargetRef.current = null; setDropTarget(null); }
   }, [isPsyDragging]);
 

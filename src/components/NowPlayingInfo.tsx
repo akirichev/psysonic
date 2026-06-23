@@ -118,10 +118,14 @@ export default function NowPlayingInfo() {
   const bioRef = useRef<HTMLParagraphElement | null>(null);
 
   // Reset per-track UI state when the track changes
+  // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setBioExpanded(false); setShowAllTours(false); }, [artistId, songId]);
 
   // Artist bio + image
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!subsonicReady || !subsonicServerId || !artistId) { setArtistInfoEntry(null); return; }
     const cacheKey = queuePanelCacheKey(subsonicServerId, artistId);
     const cached = artistInfoCache.get(cacheKey);
@@ -136,6 +140,8 @@ export default function NowPlayingInfo() {
 
   // Song detail (for OpenSubsonic contributors[])
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!subsonicReady || !subsonicServerId || !songId) { setSongDetailEntry(null); return; }
     const cacheKey = queuePanelCacheKey(subsonicServerId, songId);
     const cached = songDetailCache.get(cacheKey);
@@ -150,6 +156,8 @@ export default function NowPlayingInfo() {
 
   // Bandsintown — only when opt-in toggle is on
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!enableBandsintown || !artistName) { setTourEvents([]); return; }
     let cancelled = false;
     setTourLoading(true);

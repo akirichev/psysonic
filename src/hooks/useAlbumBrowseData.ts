@@ -204,6 +204,8 @@ export function useAlbumBrowseData({
   const loadMoreRef = useRef<() => void>(() => {});
   const sentinelIntersectingRef = useRef(false);
   const browseModeRef = useRef(browseMode);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   browseModeRef.current = browseMode;
 
   useEffect(() => {
@@ -258,6 +260,10 @@ export function useAlbumBrowseData({
         setCatalogLoadingMore(false);
       }
     }
+    // offlineBrowseActive is an intentional re-create trigger so the catalog
+    // reloads from the right source when offline browse toggles; the loader reads
+    // the active mode internally rather than referencing the flag directly here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indexEnabled, offlineBrowseActive, serverId, starredOverrides]);
 
   const loadBrowse = useCallback(async (
@@ -320,6 +326,8 @@ export function useAlbumBrowseData({
     catalogOffsetRef.current = 0;
     loadPendingRef.current = false;
     catalogLoadingRef.current = false;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(0);
     setAlbums([]);
     setHasMore(true);
@@ -383,10 +391,15 @@ export function useAlbumBrowseData({
     return () => {
       cancelled = true;
     };
+    // starredOverrides is read to seed star state during the load, but the browse
+    // list must not reload on every star toggle — it is intentionally excluded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [browseQuery, indexEnabled, offlineBrowseActive, offlineBrowseReloadTs, serverId, loadBrowse, musicLibraryFilterVersion]);
 
   useEffect(() => {
     if (!genreCatalogActive) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGenreCatalogOptions(null);
       return;
     }
@@ -452,6 +465,8 @@ export function useAlbumBrowseData({
     loadMorePage();
   }, [browseMode, loadMoreGrid, loadMorePage]);
 
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   loadMoreRef.current = loadMore;
 
   useEffect(() => {

@@ -81,6 +81,8 @@ export function useQueueResizer({
     const leftBtn = document.querySelector('.sidebar .collapse-btn') as HTMLElement | null;
     if (!leftBtn) return;
 
+    // React Compiler set-state-in-effect rule: state set from a DOM/layout measurement.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     syncQueueHandleTop();
     const raf = requestAnimationFrame(syncQueueHandleTop);
 

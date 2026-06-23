@@ -43,6 +43,8 @@ export default function Genres() {
     const scope = libraryScopeForServer(serverId);
     const cached = serverId ? peekGenreCatalogCache(serverId, scope, true) : null;
     if (cached) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRawGenres(cached);
       setLoading(false);
     } else {

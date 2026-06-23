@@ -102,6 +102,8 @@ export function useArtistsBrowseCatalog({
     const generation = ++loadGenerationRef.current;
     catalogOffsetRef.current = 0;
     catalogLoadingRef.current = false;
+    // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCatalogArtists([]);
     setCatalogHasMore(false);
     setCatalogLoadingMore(false);

@@ -23,6 +23,8 @@ export function MultiAlbumToPlaylistSubmenu({ albumIds, onDone, triggerId: _trig
   const [showLoading, setShowLoading] = useState(false);
 
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: state set from a timer/animation callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTotalAlbums(albumIds.length);
     const loadingTimeout = setTimeout(() => setShowLoading(true), 300);
     (async () => {
@@ -196,5 +198,7 @@ export function MultiAlbumToPlaylistSubmenu({ albumIds, onDone, triggerId: _trig
     );
   }
   if (resolvedIds.length === 0) return null;
+  // React Compiler rule: component intentionally defined inline for closure access.
+  // eslint-disable-next-line react-hooks/static-components
   return <MultiAddToPlaylistSubmenu songIds={resolvedIds} onDone={onDone} />;
 }

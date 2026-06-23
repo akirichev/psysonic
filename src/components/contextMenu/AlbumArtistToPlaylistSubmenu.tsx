@@ -14,6 +14,8 @@ export function AlbumToPlaylistSubmenu({ albumId, onDone, triggerId }: AlbumProp
   useEffect(() => {
     const serverId = resolveMediaServerId();
     if (!serverId) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResolvedIds([]);
       return;
     }

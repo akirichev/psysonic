@@ -129,12 +129,18 @@ export default function AlbumRow({
       window.removeEventListener('resize', handleScroll);
       ro.disconnect();
     };
+    // handleScroll/recomputeArtworkBudget are recreated each render but read live
+    // refs/props; the listeners are intentionally (re)bound only when the row data
+    // or artwork config changes, not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uniqueAlbums, interactivityDisabled, windowArtworkByViewport, initialArtworkBudget]);
 
   // Reset when the row’s identity changes (new data / server), not when the list grows via
   // “load more” — reusing albums.length would shrink the budget mid-scroll and flash placeholders.
   const rowArtworkResetKey = uniqueAlbums[0]?.id ?? '';
   useEffect(() => {
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setArtworkBudget(initialArtworkBudget);
   }, [initialArtworkBudget, rowArtworkResetKey]);
 
@@ -198,6 +204,10 @@ export default function AlbumRow({
     return () => {
       cancelled = true;
     };
+    // handleScroll/recomputeArtworkBudget/onScrollRestoreComplete are recreated
+    // each render but read live state; the restore pass is intentionally keyed on
+    // the row identity / layout signals, not on those callback identities.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowArtworkResetKey, windowArtworkByViewport, initialArtworkBudget, uniqueAlbums.length]);
 
   useLayoutEffect(() => {

@@ -1,19 +1,14 @@
-import { getInternetRadioStations, createInternetRadioStation, updateInternetRadioStation, deleteInternetRadioStation, uploadRadioCoverArt, deleteRadioCoverArt, uploadRadioCoverArtBytes, searchRadioBrowser, getTopRadioStations, fetchUrlBytes } from '../api/subsonicRadio';
-import { buildCoverArtUrl, coverArtCacheKey } from '../api/subsonicStreamUrl';
-import { type InternetRadioStation, type RadioBrowserStation, RADIO_PAGE_SIZE } from '../api/subsonicTypes';
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Cast, Plus, Trash2, X, Globe, Camera, Loader2, Search, Heart, Check } from 'lucide-react';
-import { useDragSource, useDragDrop } from '../contexts/DragDropContext';
+import { getInternetRadioStations, createInternetRadioStation, updateInternetRadioStation, deleteInternetRadioStation, uploadRadioCoverArt, deleteRadioCoverArt } from '../api/subsonicRadio';
+import { type InternetRadioStation } from '../api/subsonicTypes';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { Plus, Search } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { setRadioVolume } from '../store/radioPlayer';
 import { fadeOut } from '../utils/playback/fadeOut';
-import CachedImage from '../components/CachedImage';
 import { invalidateCoverArt } from '../utils/imageCache';
-import CustomSelect from '../components/CustomSelect';
 import { useTranslation } from 'react-i18next';
-import { open } from '@tauri-apps/plugin-shell';
 import { showToast } from '../utils/ui/toast';
-import RadioToolbar, { type RadioSortBy } from '../components/internetRadio/RadioToolbar';
+import RadioToolbar from '../components/internetRadio/RadioToolbar';
 import AlphabetFilterBar from '../components/internetRadio/AlphabetFilterBar';
 import RadioCard from '../components/internetRadio/RadioCard';
 import RadioEditModal from '../components/internetRadio/RadioEditModal';
@@ -71,6 +66,8 @@ export default function InternetRadio() {
     const currentIds = new Set(stations.map(s => s.id));
     const merged = saved.filter((id: string) => currentIds.has(id));
     stations.forEach(s => { if (!merged.includes(s.id)) merged.push(s.id); });
+    // React Compiler set-state-in-effect rule: local state synced with store/prop inputs when the effect’s dependencies change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setManualOrder(merged);
   }, [stations]);
 
@@ -205,7 +202,7 @@ export default function InternetRadio() {
     try {
       await deleteInternetRadioStation(s.id);
       setStations(prev => prev.filter(st => st.id !== s.id));
-    } catch {}
+    } catch { /* ignore: best-effort */ }
     setDeleteConfirmId(null);
   };
 

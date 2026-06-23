@@ -25,6 +25,8 @@ interface Props {
  */
 export default function PagedSongList({ songs, hasMore, loadingMore, onLoadMore, showBpm }: Props) {
   const onLoadMoreRef = useRef(onLoadMore);
+  // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
+  // eslint-disable-next-line react-hooks/refs
   onLoadMoreRef.current = onLoadMore;
 
   const bindSentinel = useInpageScrollSentinel({

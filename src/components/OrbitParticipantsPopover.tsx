@@ -28,6 +28,8 @@ export default function OrbitParticipantsPopover({ anchorRef, onClose }: Props) 
   const role  = useOrbitStore(s => s.role);
   const popRef = useRef<HTMLDivElement>(null);
   const [confirm, setConfirm] = useState<{ user: string; mode: 'remove' | 'ban' } | null>(null);
+  // React Compiler purity rule: intentional live-timestamp read at render (Date.now()); the value is allowed to differ between renders.
+  // eslint-disable-next-line react-hooks/purity
   const nowMs = Date.now();
 
   // Close on outside click / Escape — unless a confirm dialog is open
@@ -55,6 +57,8 @@ export default function OrbitParticipantsPopover({ anchorRef, onClose }: Props) 
 
   if (!state) return null;
 
+  // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
+  // eslint-disable-next-line react-hooks/refs
   const anchor = anchorRef.current?.getBoundingClientRect();
   const style: React.CSSProperties = anchor
     ? {

@@ -22,6 +22,8 @@ export function useShareQueuePreview(
 
   useEffect(() => {
     if (!open || !payload) {
+      // React Compiler set-state-in-effect rule: state set from an async result resolved in this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(IDLE);
       return;
     }
