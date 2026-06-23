@@ -25,13 +25,13 @@ import {
 } from './driftCorrectionConstants';
 
 /**
- * Automatic speed nudging is **disabled**: in practice every pitch-preserving
- * rate change is audible (tempo wobble / DSP distortion), and the host's sync
- * at track change plus the manual Catch-Up button keep the guest aligned well
- * enough. The proportional controller below is kept behind this flag in case the
- * preserve-pitch DSP improves enough to revisit it.
+ * Toggle for the automatic proportional speed nudging. We disabled it once
+ * because every pitch-preserving rate change was audible in practice (tempo
+ * wobble / DSP distortion); it's re-enabled now for another round of live
+ * testing. Flip to `false` to fall back to "hold 1.0× + manual Catch-Up button
+ * past DRIFT_CATCHUP_BUTTON_MS" without touching the controller below.
  */
-const SPEED_CORRECTION_ENABLED = false;
+const SPEED_CORRECTION_ENABLED = true;
 
 export interface DriftCorrectionInput {
   /** Smoothed, signed drift: `> 0` guest ahead (slow down), `< 0` behind (speed up). */
