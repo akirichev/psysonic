@@ -42,6 +42,13 @@ export const RATE_STEP = 0.01;
  */
 export const DRIFT_SEEK_HARD_MS = 8000;
 
+/**
+ * With speed correction disabled, the manual Catch-Up button appears once the
+ * smoothed drift stays above this. Below it the small offset is left alone
+ * (inaudible on music); above it the user can take a clean catch-up seek.
+ */
+export const DRIFT_CATCHUP_BUTTON_MS = 3000;
+
 /** Drift-correction loop cadence. Faster than the 2.5 s state poll. */
 export const LOOP_TICK_MS = 500;
 

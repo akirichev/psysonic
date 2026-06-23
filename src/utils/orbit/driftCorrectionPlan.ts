@@ -15,6 +15,7 @@
  */
 
 import {
+  DRIFT_CATCHUP_BUTTON_MS,
   DRIFT_DEADBAND_MS,
   DRIFT_FULL_SCALE_MS,
   DRIFT_SEEK_HARD_MS,
@@ -22,6 +23,15 @@ import {
   RATE_MIN,
   RATE_STEP,
 } from './driftCorrectionConstants';
+
+/**
+ * Automatic speed nudging is **disabled**: in practice every pitch-preserving
+ * rate change is audible (tempo wobble / DSP distortion), and the host's sync
+ * at track change plus the manual Catch-Up button keep the guest aligned well
+ * enough. The proportional controller below is kept behind this flag in case the
+ * preserve-pitch DSP improves enough to revisit it.
+ */
+const SPEED_CORRECTION_ENABLED = false;
 
 export interface DriftCorrectionInput {
   /** Smoothed, signed drift: `> 0` guest ahead (slow down), `< 0` behind (speed up). */
@@ -42,6 +52,13 @@ export function planOrbitDriftCorrection(input: DriftCorrectionInput): DriftCorr
 
   const absDrift = Math.abs(driftMs);
 
+  if (!SPEED_CORRECTION_ENABLED) {
+    // Hold 1.0× (no audible nudging) and only surface the manual Catch-Up
+    // button once the drift is large enough to be worth a clean seek.
+    return absDrift > DRIFT_CATCHUP_BUTTON_MS ? { action: 'seek' } : HOLD;
+  }
+
+  // ── Proportional speed correction (disabled — kept for a future DSP revisit) ──
   // Real desync (e.g. after a network stall) — too far to nudge; offer the
   // manual catch-up jump rather than auto-seeking.
   if (absDrift > DRIFT_SEEK_HARD_MS) return { action: 'seek' };
