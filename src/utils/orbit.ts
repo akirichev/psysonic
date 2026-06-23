@@ -34,6 +34,11 @@ export {
 } from './orbit/helpers';
 export { isOrbitPlaybackSyncActive } from './orbit/sessionActive';
 export {
+  makeHostPositionStamper,
+  type HostPositionStamper,
+  type PositionStamp,
+} from './orbit/hostPositionStamp';
+export {
   buildGuestPreloadRefs,
   syncGuestPreloadQueue,
 } from './orbit/guestPreloadQueue';

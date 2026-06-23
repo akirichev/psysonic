@@ -10,6 +10,7 @@ import {
   maybeShuffleQueue,
   effectiveShuffleIntervalMs,
   makeCoalescedRunner,
+  makeHostPositionStamper,
   readOrbitTransitionSettings,
   suggestionKey,
 } from '../utils/orbit';
@@ -57,13 +58,23 @@ export function useOrbitHost(): void {
   useEffect(() => {
     if (!active || !sessionPlaylistId) return;
 
+    // Pairs `positionAt` with the position it actually belongs to, so a frozen
+    // (coarse-updating) host `currentTime` doesn't make the guest's
+    // extrapolation stall-then-jump. See `makeHostPositionStamper`.
+    const stampPosition = makeHostPositionStamper();
+
     const snapshotPlayerPatch = (hostUsername: string): Partial<OrbitState> => {
       const p = usePlayerStore.getState();
       const now = Date.now();
+      const { positionMs, positionAt } = stampPosition(
+        Math.round((p.currentTime ?? 0) * 1000),
+        p.isPlaying,
+        now,
+      );
       return {
         isPlaying: p.isPlaying,
-        positionMs: Math.round((p.currentTime ?? 0) * 1000),
-        positionAt: now,
+        positionMs,
+        positionAt,
         currentTrack: p.currentTrack
           ? {
               trackId: p.currentTrack.id,
