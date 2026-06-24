@@ -239,13 +239,15 @@ impl<S: Source<Item = f32>> Source for EqualPowerFadeIn<S> {
     }
 }
 
-// ─── LinearGainEnvelopeIn — AutoDJ edge-mix incoming linear fade-in ──────────
+// ─── LinearGainEnvelopeIn — AutoDJ edge-mix incoming equal-power fade-in ─────
 //
-// Incoming track B on the AutoDJ edge-mix path: gain rises *linearly* from
-// `start_gain` (= 1 − linear_B(0), may be > 0 when B starts loud) to `end_gain`
-// (always 1.0) across the mix window, then holds `end_gain`. Unlike the
-// equal-power sin fade-in this is a plain lerp, matched to the linear sample sum
-// (`out = sampleA·gA + sampleB·gB`) the maintainer algorithm specifies.
+// Incoming track B on the AutoDJ edge-mix path: gain rises via equal-power
+// power-lerp from `start_gain` (= 1 − linear_B(0), may be > 0 when B starts loud)
+// to `end_gain` (always 1.0) across the mix window, then holds `end_gain`:
+//   g(t) = sqrt(start²·(1−t) + end²·t)
+// For a symmetric 0→1 fade this matches sin(t·π/2); for non-zero endpoints it
+// generalises scenario A/B while keeping g_A²+g_B² ≈ 1 when paired with the
+// outgoing power-lerp on Track A.
 
 pub(crate) struct LinearGainEnvelopeIn<S: Source<Item = f32>> {
     inner: S,
@@ -282,7 +284,7 @@ impl<S: Source<Item = f32>> Iterator for LinearGainEnvelopeIn<S> {
             self.end_gain
         } else {
             let t = self.sample_count as f32 / self.fade_samples as f32;
-            self.start_gain + (self.end_gain - self.start_gain) * t
+            (self.start_gain.powi(2) * (1.0 - t) + self.end_gain.powi(2) * t).sqrt()
         };
         self.sample_count += 1;
         Some((sample * gain).clamp(-1.0, 1.0))
@@ -324,11 +326,12 @@ pub(crate) struct TriggeredFadeOut<S: Source<Item = f32>> {
     inner: S,
     trigger: Arc<AtomicBool>,
     fade_total_samples: Arc<AtomicU64>,
-    // AutoDJ edge-mix: when `linear` is set at trigger time, fade *linearly* from
-    // 1.0 to `end_gain` over the fade window, then **hold** `end_gain` until the
-    // inner source exhausts (generalised scenario A — the recording carries the
-    // outgoing track the rest of the way at a fixed engine gain). When `linear`
-    // is false the classic equal-power `cos(t·π/2) → 0 → None` path runs.
+    // AutoDJ edge-mix: when `linear` is set at trigger time, fade via equal-power
+    // power-lerp from 1.0 to `end_gain` over the fade window, then **hold**
+    // `end_gain` until the inner source exhausts (generalised scenario A — the
+    // recording carries the outgoing track the rest of the way at a fixed engine
+    // gain). When `linear` is false the classic equal-power `cos(t·π/2) → 0 →
+    // None` path runs.
     linear: Arc<AtomicBool>,
     end_gain_bits: Arc<AtomicU32>,
     fade_progress: u64,
@@ -387,7 +390,7 @@ impl<S: Source<Item = f32>> Iterator for TriggeredFadeOut<S> {
             let sample = self.inner.next()?;
             let t = self.fade_progress as f32 / self.cached_total as f32;
             let gain = if self.cached_linear {
-                1.0 + (self.cached_end_gain - 1.0) * t
+                (1.0 * (1.0 - t) + self.cached_end_gain.powi(2) * t).sqrt()
             } else {
                 (t * std::f32::consts::FRAC_PI_2).cos()
             };
@@ -692,7 +695,8 @@ mod edge_mix_tests {
         let out: Vec<f32> =
             LinearGainEnvelopeIn::new(Ones(8), Duration::from_secs(1), 0.25, 1.0).collect();
         assert!((out[0] - 0.25).abs() < 1e-4); // p=0 → start_gain
-        assert!((out[2] - 0.625).abs() < 1e-4); // p=0.5 → 0.25 + 0.75·0.5
+        // p=0.5 → sqrt(0.25²·0.5 + 1²·0.5)
+        assert!((out[2] - 0.7289).abs() < 1e-3);
         assert!((out[4] - 1.0).abs() < 1e-4); // after fade → end_gain
         assert!((out[7] - 1.0).abs() < 1e-4);
     }
@@ -708,7 +712,8 @@ mod edge_mix_tests {
         );
         let out: Vec<f32> = src.collect();
         assert!((out[0] - 1.0).abs() < 1e-4); // p=0 → outgoing_gain_start (1.0)
-        assert!((out[2] - 0.75).abs() < 1e-4); // p=0.5 → 1 + (0.5−1)·0.5
+        // p=0.5 → sqrt(1·0.5 + 0.5²·0.5)
+        assert!((out[2] - 0.7906).abs() < 1e-3);
         assert!((out[4] - 0.5).abs() < 1e-4); // held at end_gain
         assert!((out[7] - 0.5).abs() < 1e-4);
         assert_eq!(out.len(), 8); // not exhausted — A keeps playing under B
@@ -740,5 +745,17 @@ mod edge_mix_tests {
         let out: Vec<f32> = src.collect();
         assert_eq!(out.len(), 4); // cos → 0 then None
         assert!((out[0] - 1.0).abs() < 1e-4); // cos(0) = 1
+    }
+
+    #[test]
+    fn edge_mix_power_lerp_is_constant_power_for_symmetric_crossfade() {
+        // g_A: 1→0, g_B: 0→1 via power-lerp → g_A² + g_B² = 1 at every sample.
+        let fade_samples = 4u64;
+        for i in 0..fade_samples {
+            let t = i as f32 / fade_samples as f32;
+            let g_a = (1.0 * (1.0 - t)).sqrt();
+            let g_b = (0.0 * (1.0 - t) + 1.0 * t).sqrt();
+            assert!((g_a.powi(2) + g_b.powi(2) - 1.0).abs() < 1e-4, "i={i}");
+        }
     }
 }

@@ -1,10 +1,9 @@
 /**
- * AutoDJ edge-mix — waveform-driven linear blend (algorithm by Ivan Pelipenko,
+ * AutoDJ edge-mix — waveform-driven equal-power blend (algorithm by Ivan Pelipenko,
  * @peri4ko). Each track boundary ("edge") is analysed from the *existing* cached
  * waveform bins: an edge has a duration and a clamped linear envelope. At mix
- * time we derive effective linear gain curves for the outgoing and incoming
- * track, the engine multiplies samples and sums (no equal-power sin/cos on the
- * AutoDJ path).
+ * time we derive effective gain endpoints for the outgoing and incoming track;
+ * the engine applies equal-power power-lerp curves and sums the sinks.
  *
  * This module is the pure, testable core (no Tauri/store deps). It does NOT do
  * silence trimming — that stays in `waveformSilence.ts` and is an orthogonal
@@ -44,8 +43,16 @@ const SUSTAINABLE_FACTOR = 0.9;
 const MANUAL_SKIP_MAX_BLEND_SEC = 2.0;
 /** A's own outro fade must be at least this long to be trusted (scenario A). */
 const OWN_FADE_TRUST_SEC = 1.0;
+/**
+ * Minimum pleasant blend when both edges are hard loud↔loud (ported from main
+ * `planCrossfadeTransition` / `STANDARD_BLEND_SEC`).
+ */
+const STANDARD_BLEND_SEC = 2.0;
 
 export type WaveformEncoding = 'pcm_u8' | 'byte_envelope';
+
+/** How the content edge was classified during span measurement. */
+export type EdgeKind = 'hard' | 'ramp' | 'silent';
 
 /** Edge linear shape after clamp-refit. Mix uses `y0` + `seconds` only (`y1` is debug). */
 export interface EdgeShape {
@@ -59,6 +66,8 @@ export interface EdgeShape {
 
 export interface AnalyzedEdge {
   side: 'start' | 'end';
+  /** `hard` = loud boundary (contiguous loud run); `ramp` = natural fade/rise; `silent` = degenerate. */
+  kind: EdgeKind;
   shape: EdgeShape;
 }
 
@@ -243,16 +252,23 @@ export function analyzeEdge(
   const past = (idx: number) => (side === 'start' ? idx >= contentEndBin : idx < contentStartBin);
 
   let runBins = 0;
+  let kind: EdgeKind;
   if (loudAt(edgeBin)) {
     let i = edgeBin;
     while (!past(i) && loudAt(i)) { i += step; runBins++; }
+    kind = 'hard';
   } else {
     // Walk the quiet envelope until it reaches the loud body. If it never does
     // (whole content below threshold — silent/degenerate track), there is no
     // edge to ride → fall back to the min_duration clamp.
     let i = edgeBin;
     while (!past(i) && !loudAt(i)) { i += step; runBins++; }
-    if (past(i)) runBins = 0;
+    if (past(i)) {
+      runBins = 0;
+      kind = 'silent';
+    } else {
+      kind = 'ramp';
+    }
   }
   const rawSeconds = runBins * secPerBin;
   const edgeSeconds = clamp(rawSeconds, minDuration, maxDuration);
@@ -272,7 +288,7 @@ export function analyzeEdge(
   const y0 = clamp01(b);
   const y1 = clamp01(a * edgeSeconds + b);
 
-  return { side, shape: { seconds: edgeSeconds, y0, y1 } };
+  return { side, kind, shape: { seconds: edgeSeconds, y0, y1 } };
 }
 
 interface FinalizeInputs {
@@ -302,6 +318,14 @@ function finalizeTransitionDur(
   const aContentLen = Math.max(0, io.aContentEndSec - io.aContentStartSec);
   const bPlayable = Math.max(0, io.bContentEndSec - io.bStartSec);
   const sustainable = Math.min(aContentLen, bPlayable) * SUSTAINABLE_FACTOR;
+
+  // Hard loud↔loud: don't butt with a near-cut — blend at least STANDARD_BLEND_SEC
+  // (same intent as main planCrossfadeTransition), capped by sustainability.
+  if (edgeA.kind === 'hard' && edgeB.kind === 'hard') {
+    const floor = Math.min(STANDARD_BLEND_SEC, sustainable, maxDuration);
+    td = Math.max(td, floor);
+  }
+
   td = Math.min(td, sustainable);
 
   if (io.mixStartA != null) {

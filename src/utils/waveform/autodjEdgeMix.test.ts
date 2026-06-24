@@ -51,6 +51,24 @@ function fadeInBins(riseSec: number, n = N): number[] {
   return Array.from({ length: n }, (_, i) => (i >= riseBins ? pcmBinForT(1) : pcmBinForT(i / riseBins)));
 }
 
+/**
+ * Track ending in loud stabs separated by quiet gaps (regression: contiguous loud
+ * run at the content edge is short, but hard↔hard must still get STANDARD_BLEND).
+ */
+function endStabsBins(stabSec = 0.5, gapSec = 0.35, stabCount = 3, n = N): number[] {
+  const secPerBin = DUR / n;
+  const stabBins = Math.max(1, Math.round(stabSec / secPerBin));
+  const gapBins = Math.max(1, Math.round(gapSec / secPerBin));
+  const bins = new Array(n).fill(pcmBinForT(0.08));
+  let i = n - 1;
+  for (let s = 0; s < stabCount && i >= 0; s++) {
+    for (let k = 0; k < stabBins && i >= 0; k++, i--) bins[i] = pcmBinForT(1);
+    for (let k = 0; k < gapBins && i >= 0; k++, i--) bins[i] = pcmBinForT(0.08);
+  }
+  while (i >= 0) { bins[i] = pcmBinForT(1); i--; }
+  return bins;
+}
+
 describe('normU8 / encoding (§16.1 G1)', () => {
   it('maps the PCM percentile range 8…255 to [0,1]', () => {
     expect(normU8(8, 'pcm_u8')).toBeCloseTo(0, 6);
@@ -137,6 +155,12 @@ describe('analyzeEdge — duration & shape (§3)', () => {
     expect(endEdge!.shape.y0).toBeCloseTo(1, 1);
   });
 
+  it('classifies edge kind: hard / ramp / silent', () => {
+    expect(analyzeEdge(constBins(1), DUR, 'end')!.kind).toBe('hard');
+    expect(analyzeEdge(fadeOutBins(6), DUR, 'end')!.kind).toBe('ramp');
+    expect(analyzeEdge(constBins(0), DUR, 'end')!.kind).toBe('silent');
+  });
+
   it('silence-only track → raw 0 → min_duration, y0 ≈ 0 (fallback threshold path)', () => {
     const edge = analyzeEdge(constBins(0), DUR, 'end');
     expect(edge).not.toBeNull();
@@ -212,7 +236,17 @@ describe('planEdgeMix — end-of-track AutoDJ (§4)', () => {
     expect(plan!.incomingGainAtMixStart).toBeLessThan(0.05); // loud B rises from ~0
   });
 
-  it('documents the linear-sum clipping risk: g_A(0) + g_B(0) can exceed 1 (§10.5)', () => {
+  it('hard↔hard stabs at A end still blend ≥ STANDARD_BLEND (not a near-cut)', () => {
+    // Regression from user report: A ends in loud stabs with gaps; contiguous loud
+    // run is ~1 s but the mix must feel like a real crossfade.
+    const plan = planEdgeMix(endStabsBins(), DUR, 235.2, constBins(1), DUR, 4.8, DUR);
+    expect(plan).not.toBeNull();
+    expect(plan!.transitionDur).toBeGreaterThanOrEqual(1.9);
+    expect(plan!.outgoingGainAtMixEnd).toBeLessThan(0.05);
+    expect(plan!.incomingGainAtMixStart).toBeLessThan(0.05);
+  });
+
+  it('documents endpoint overlap: g_A(0) + g_B(0) can exceed 1 before equal-power curve (§10.5)', () => {
     // Loud outgoing A + quiet-intro B (linear_B(0) ≈ 0 → incoming_start ≈ 1).
     const plan = planEdgeMix(constBins(1), DUR, DUR, rampBins(0, 1), DUR, 0, DUR);
     expect(plan).not.toBeNull();

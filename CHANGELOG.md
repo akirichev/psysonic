@@ -100,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **By [@cucadmuh](https://github.com/cucadmuh), PR [#1167](https://github.com/Psychotoxical/psysonic/pull/1167)**, algorithm by [@peri4ko](https://github.com/peri4ko)
 
 * AutoDJ now blends tracks using the **shape of the audio at each edge** — it measures how each track ends and how the next one begins, then crossfades over exactly that musical region with matched gain curves instead of a generic equal-power fade. Transitions follow real fade-outs and intros more closely; smooth skip uses the same model from your current position.
+* Blend curves use **equal-power interpolation** between waveform-derived gain endpoints (constant perceived loudness during the overlap, like classic crossfade), and **hard loud↔loud** pairs get at least a ~2 s overlap so stabs and abrupt endings still feel blended.
 * New **Transition length** controls under Settings → Audio → Track transitions: optional **Min** and **Max** bounds (each with an **Auto** setting) cap how short or long an AutoDJ blend can be. Auto leaves the length entirely up to the audio.
 * Classic Crossfade and Gapless are unchanged.
 
