@@ -1,7 +1,7 @@
 export const tracks = {
   title: 'Треки',
-  subtitle: 'Листать. Искать. Открывать.',
-  heroEyebrow: 'Трек момента',
+  subtitle: 'Листай. Ищи. Открывай.',
+  heroEyebrow: 'Рекомендуем',
   heroReroll: 'Выбрать другой',
   playSong: 'Воспроизвести',
   enqueueSong: 'В очередь',
