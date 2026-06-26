@@ -6,8 +6,12 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useNavigateToAlbum } from '../hooks/useNavigateToAlbum';
 import { Play, ListPlus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CoverArtImage } from '../cover/CoverArtImage';
-import { useCoverArt } from '../cover/useCoverArt';
 import { useAlbumCoverRef } from '../cover/useLibraryCoverRef';
+import { useArtistBanner, useArtistFanart } from '../cover/useArtistFanart';
+import { usePlaybackCoverArt } from '../cover/usePlaybackCoverArt';
+import { artistCoverRef } from '../cover/ref';
+import { useHeroBackdrop } from '../cover/useHeroBackdrop';
+import { useCachedUrl } from './CachedImage';
 import { usePlayerStore } from '../store/playerStore';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -19,7 +23,7 @@ import { usePerfProbeFlags } from '../utils/perf/perfFlags';
 import { playAlbum, playAlbumShuffled } from '../utils/playback/playAlbum';
 import { useLongPressAction } from '../hooks/useLongPressAction';
 import { LongPressWaveOverlay } from './LongPressWaveOverlay';
-import { albumArtistDisplayName } from '../utils/album/deriveAlbumHeaderArtistRefs';
+import { albumArtistDisplayName, deriveAlbumArtistRefs } from '../utils/album/deriveAlbumHeaderArtistRefs';
 
 const INTERVAL_MS = 10000;
 const HERO_ALBUM_COUNT = 8;
@@ -30,11 +34,15 @@ const HERO_FG_CSS_PX = 220;
 /** Hero blurred backdrop (full banner height). */
 const HERO_BG_CSS_PX = 360;
 
-// Crossfading background — same layer pattern as FullscreenPlayer
-function HeroBg({ url }: { url: string }) {
-  const [layers, setLayers] = useState<Array<{ url: string; id: number; visible: boolean }>>(() =>
-    url ? [{ url, id: 0, visible: true }] : []
-  );
+// Crossfading background — same layer pattern as FullscreenPlayer. Each layer
+// carries its own `position` (the banner stays centered, portrait-ish fanart /
+// artist covers raise the focal point), so a crossfade never re-frames the
+// outgoing image. `position` is keyed off `url` (it only changes when the url
+// changes) so the effect dep stays `[url]`.
+function HeroBg({ url, position }: { url: string; position?: string }) {
+  const [layers, setLayers] = useState<
+    Array<{ url: string; position?: string; id: number; visible: boolean }>
+  >(() => (url ? [{ url, position, id: 0, visible: true }] : []));
   const counter = useRef(url ? 1 : 0);
   const latestUrlRef = useRef(url);
   // React Compiler refs rule: ref kept in sync with the latest value for use in effects/handlers/cleanup; not render data.
@@ -49,16 +57,46 @@ function HeroBg({ url }: { url: string }) {
       return;
     }
     const id = counter.current++;
-    setLayers(prev => [...prev, { url, id, visible: false }]);
-    const t1 = setTimeout(() => {
-      if (latestUrlRef.current !== url) return;
+    setLayers(prev => [...prev, { url, position, id, visible: false }]);
+
+    let revealed = false;
+    let cleanup: ReturnType<typeof setTimeout> | undefined;
+    const reveal = () => {
+      if (revealed || latestUrlRef.current !== url) return;
+      revealed = true;
+      // Crossfade this layer in; the others fade out, then get dropped.
       setLayers(prev => prev.map(l => ({ ...l, visible: l.id === id })));
-    }, 20);
-    const t2 = setTimeout(() => {
-      if (latestUrlRef.current !== url) return;
-      setLayers(prev => prev.filter(l => l.id === id));
-    }, 900);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+      cleanup = setTimeout(() => {
+        if (latestUrlRef.current !== url) return;
+        setLayers(prev => prev.filter(l => l.id === id));
+      }, 900);
+    };
+
+    // Reveal only once the bytes are decoded, so the crossfade never fades in a
+    // blank / half-loaded image (the flicker the bare 20 ms timer had). The
+    // preload + scheduling happen exactly once here per url — no per-render
+    // <img> ref / onLoad, so this can't stack updates like the reverted attempt.
+    const pre = new Image();
+    pre.decoding = 'async';
+    pre.src = url;
+    let fallback: ReturnType<typeof setTimeout> | undefined;
+    if (pre.complete && pre.naturalWidth > 0) {
+      reveal();
+    } else {
+      pre.onload = reveal;
+      pre.onerror = reveal;
+      fallback = setTimeout(reveal, 1500);
+    }
+
+    return () => {
+      if (fallback) clearTimeout(fallback);
+      if (cleanup) clearTimeout(cleanup);
+      pre.onload = null;
+      pre.onerror = null;
+    };
+    // `position` is intentionally omitted — it tracks `url` 1:1, and adding it
+    // would spawn a duplicate layer if it ever changed without the url.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
   return (
@@ -68,7 +106,7 @@ function HeroBg({ url }: { url: string }) {
           key={layer.id}
           className="hero-bg-image"
           src={layer.url}
-          style={{ opacity: layer.visible ? 1 : 0 }}
+          style={{ opacity: layer.visible ? 1 : 0, objectPosition: layer.position }}
           aria-hidden="true"
           alt=""
           loading="eager"
@@ -91,7 +129,7 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
   const isMobile = useIsMobile();
   const musicLibraryFilterVersion = useAuthStore(s => s.musicLibraryFilterVersion);
   const mixMinRatingFilterEnabled = useAuthStore(s => s.mixMinRatingFilterEnabled);
-  const enableCoverArtBackground = useThemeStore(s => s.enableCoverArtBackground);
+  const mainstageBackdrop = useThemeStore(s => s.backdrops.mainstageHero);
   const mixMinRatingAlbum = useAuthStore(s => s.mixMinRatingAlbum);
   const mixMinRatingArtist = useAuthStore(s => s.mixMinRatingArtist);
   const [albums, setAlbums] = useState<SubsonicAlbum[]>(() =>
@@ -303,23 +341,41 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
   }, [album?.id]);
 
   const heroCoverRef = useAlbumCoverRef(album?.id, album?.coverArt);
-  const bgHandle = useCoverArt(heroCoverRef, HERO_BG_CSS_PX, {
-    surface: 'dense',
-    ensurePriority: 'high',
-  });
-
-  // Per-album fallback so a cache miss on the current slide does not flash empty,
-  // but never reuse another album's art (that caused bg/foreground desync on fast nav).
-  const stableBgByAlbum = useRef<Record<string, string>>({});
   const albumId = album?.id;
-  useEffect(() => {
-    if (bgHandle.src && albumId) {
-      stableBgByAlbum.current[albumId] = bgHandle.src;
-    }
-  }, [bgHandle.src, albumId]);
-  // React Compiler refs rule: ref read imperatively outside reactive rendering; not used to compute the render output.
-  // eslint-disable-next-line react-hooks/refs
-  const heroBgUrl = bgHandle.src || (albumId ? stableBgByAlbum.current[albumId] ?? '' : '');
+
+  // Mainstage hero backdrop — the album artist's fanart, resolved exactly like
+  // the artist-detail header (banner → 16:9 fanart → Navidrome artist cover).
+  // Fed entirely from the album already in hand (artist id + name + album title),
+  // so there is no getArtist/getAlbum round-trip: the MBID lookup + fanart fetch
+  // live Rust-side in cover_cache, and the artist cover ref needs only the id.
+  const heroArtist = useMemo(
+    () => (album ? deriveAlbumArtistRefs(album)[0] : undefined),
+    [album],
+  );
+  const heroArtistId = heroArtist?.id;
+  const heroBanner = useArtistBanner(heroArtistId, {
+    artistName: heroArtist?.name,
+    albumTitle: album?.name,
+  });
+  const heroFanart = useArtistFanart(heroArtistId, {
+    artistName: heroArtist?.name,
+    albumTitle: album?.name,
+  });
+  const heroArtistCoverRef = useMemo(
+    () => (heroArtistId ? artistCoverRef(heroArtistId) : undefined),
+    [heroArtistId],
+  );
+  const ndArtist = usePlaybackCoverArt(heroArtistCoverRef, HERO_BG_CSS_PX, { fullRes: true });
+  const ndArtistUrl = useCachedUrl(ndArtist.src, ndArtist.cacheKey, true);
+  const heroBackdrop = useHeroBackdrop(
+    mainstageBackdrop.sources,
+    { banner: heroBanner, fanart: heroFanart, navidrome: ndArtistUrl },
+    albumId,
+  );
+  const showHeroBackdrop =
+    mainstageBackdrop.enabled &&
+    !perfFlags.disableMainstageHeroBackdrop &&
+    heroInView;
   const { isHolding, pressBind } = useLongPressAction({
     onShortPress: () => { if (albumId) playAlbum(albumId); },
     onLongPress: () => { if (albumId) playAlbumShuffled(albumId); },
@@ -336,10 +392,8 @@ export default function Hero({ albums: albumsProp }: HeroProps = {}) {
       onClick={() => navigateToAlbum(album.id)}
       style={{ cursor: 'pointer' }}
     >
-      {/* React Compiler refs rule: heroBgUrl reads a ref to mirror the latest cover URL; it is not part of reactive render data. */}
-      {/* eslint-disable-next-line react-hooks/refs */}
-      {enableCoverArtBackground && !perfFlags.disableMainstageHeroBackdrop && heroInView && <HeroBg url={heroBgUrl} />}
-      {enableCoverArtBackground && !perfFlags.disableMainstageHeroBackdrop && heroInView && <div className="hero-overlay" aria-hidden="true" />}
+      {showHeroBackdrop && <HeroBg url={heroBackdrop.url} position={heroBackdrop.position} />}
+      {showHeroBackdrop && <div className="hero-overlay" aria-hidden="true" />}
 
       {/* key causes re-mount → animate-fade-in triggers on each album change */}
       <div className="hero-content" key={album.id}>
