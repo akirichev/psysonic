@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coerceWaveformBins, waveformBlobLenOk } from './waveformParse';
+import { coerceWaveformBins, waveformBlobLenOk } from '@/features/waveform/utils/waveformParse';
 
 describe('waveformBlobLenOk', () => {
   it('accepts the legacy single-curve length (500)', () => {

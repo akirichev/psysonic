@@ -3,7 +3,7 @@ import {
   _resetWaveformRefreshGenForTest,
   bumpWaveformRefreshGen,
   getWaveformRefreshGen,
-} from './waveformRefreshGen';
+} from '@/features/waveform/store/waveformRefreshGen';
 
 afterEach(() => {
   _resetWaveformRefreshGenForTest();

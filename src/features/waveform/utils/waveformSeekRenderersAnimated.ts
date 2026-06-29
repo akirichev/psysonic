@@ -1,4 +1,4 @@
-import { AnimState, getColors, setShadowBlur, setupCanvas } from './waveformSeekHelpers';
+import { AnimState, getColors, setShadowBlur, setupCanvas } from '@/features/waveform/utils/waveformSeekHelpers';
 
 export function drawPulseWave(
   canvas: HTMLCanvasElement,

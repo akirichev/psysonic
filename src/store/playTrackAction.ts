@@ -51,7 +51,7 @@ import {
   loudnessGainDbForEngineBind,
 } from './loudnessGainCache';
 import { refreshLoudnessForTrack } from './loudnessRefresh';
-import { fetchWaveformBins, refreshWaveformForTrack } from './waveformRefresh';
+import { fetchWaveformBins, refreshWaveformForTrack } from '@/features/waveform';
 import { deriveNormalizationSnapshot } from './normalizationSnapshot';
 import { useOrbitStore } from './orbitStore';
 import {

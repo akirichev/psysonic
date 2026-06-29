@@ -1,17 +1,17 @@
-import { getPlaybackProgressSnapshot, subscribePlaybackProgress } from '../store/playbackProgress';
+import { getPlaybackProgressSnapshot, subscribePlaybackProgress } from '@/store/playbackProgress';
 import { useEffect, useRef, useState } from 'react';
-import { usePlayerStore } from '../store/playerStore';
-import { usePreviewStore } from '../store/previewStore';
-import { useAuthStore } from '../store/authStore';
+import { usePlayerStore } from '@/store/playerStore';
+import { usePreviewStore } from '@/store/previewStore';
+import { useAuthStore } from '@/store/authStore';
 import {
   ANIMATED_STYLES, AnimState,
   STATIC_REDRAW_FORCE_MS, STATIC_REDRAW_MIN_MS,
   fmt, invalidateColorCache, isBarQuantizedSeekStyle, makeAnimState,
   quantizeProgressByBars,
-} from '../utils/waveform/waveformSeekHelpers';
-import { drawSeekbar } from '../utils/waveform/waveformSeekRenderers';
-import { useWaveformHeights } from '../hooks/useWaveformHeights';
-import { useWaveformInterpolation } from '../hooks/useWaveformInterpolation';
+} from '@/features/waveform/utils/waveformSeekHelpers';
+import { drawSeekbar } from '@/features/waveform/utils/waveformSeekRenderers';
+import { useWaveformHeights } from '@/features/waveform/hooks/useWaveformHeights';
+import { useWaveformInterpolation } from '@/features/waveform/hooks/useWaveformInterpolation';
 
 // ── main component ────────────────────────────────────────────────────────────
 //

@@ -1,7 +1,7 @@
 import {
   BAR_COUNT, SEG_COUNT,
   getColors, setShadowBlur, setupCanvas, waveformBarThickness,
-} from './waveformSeekHelpers';
+} from '@/features/waveform/utils/waveformSeekHelpers';
 
 export function drawWaveform(
   canvas: HTMLCanvasElement,

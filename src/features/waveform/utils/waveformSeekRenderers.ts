@@ -1,12 +1,12 @@
-import type { SeekbarStyle } from '../../store/authStoreTypes';
-import { bumpPerfCounter } from '../perf/perfTelemetry';
-import { AnimState, makeAnimState } from './waveformSeekHelpers';
+import type { SeekbarStyle } from '@/store/authStoreTypes';
+import { bumpPerfCounter } from '@/utils/perf/perfTelemetry';
+import { AnimState, makeAnimState } from '@/features/waveform/utils/waveformSeekHelpers';
 import {
   drawBar, drawLineDot, drawNeon, drawSegmented, drawThick, drawWaveform,
-} from './waveformSeekRenderersStatic';
+} from '@/features/waveform/utils/waveformSeekRenderersStatic';
 import {
   drawLiquidFill, drawParticleTrail, drawPulseWave, drawRetroTape,
-} from './waveformSeekRenderersAnimated';
+} from '@/features/waveform/utils/waveformSeekRenderersAnimated';
 
 export function drawSeekbar(
   canvas: HTMLCanvasElement,

@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import type { SeekbarStyle } from '../store/authStoreTypes';
-import type { AnimState } from '../utils/waveform/waveformSeekHelpers';
+import type { SeekbarStyle } from '@/store/authStoreTypes';
+import type { AnimState } from '@/features/waveform/utils/waveformSeekHelpers';
 import {
   ANIMATED_STYLES, BAR_COUNT, FLAT_WAVE_NORM, WAVE_MORPH_MS,
   binsToHeights, easeOutCubic, heightsNearlyEqual,
   makeFlatWaveHeights, makeHeights,
-} from '../utils/waveform/waveformSeekHelpers';
-import { drawSeekbar } from '../utils/waveform/waveformSeekRenderers';
+} from '@/features/waveform/utils/waveformSeekHelpers';
+import { drawSeekbar } from '@/features/waveform/utils/waveformSeekRenderers';
 
 interface Args {
   trackId: string | undefined;

@@ -3,7 +3,7 @@ import type { TFunction } from 'i18next';
 import type { RadioMetadata } from '../../hooks/useRadioMetadata';
 import { useThemeStore } from '../../store/themeStore';
 import { formatTrackTime, playbarMinuteFieldWidth } from '../../utils/format/formatDuration';
-import WaveformSeek from '../WaveformSeek';
+import { WaveformSeek } from '@/features/waveform';
 import { PlaybackTime, ToggleClock } from './PlaybackClock';
 
 interface Props {

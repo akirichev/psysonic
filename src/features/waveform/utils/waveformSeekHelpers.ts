@@ -1,4 +1,4 @@
-import type { SeekbarStyle } from '../../store/authStoreTypes';
+import type { SeekbarStyle } from '@/store/authStoreTypes';
 
 export function fmt(s: number): string {
   if (!s || isNaN(s)) return '0:00';

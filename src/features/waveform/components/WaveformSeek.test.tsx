@@ -25,7 +25,7 @@ vi.mock('@/api/subsonic', () => ({
 }));
 
 
-import WaveformSeek from './WaveformSeek';
+import WaveformSeek from '@/features/waveform/components/WaveformSeek';
 import { renderWithProviders } from '@/test/helpers/renderWithProviders';
 import { usePlayerStore } from '@/store/playerStore';
 import { useAuthStore } from '@/store/authStore';

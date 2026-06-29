@@ -16,7 +16,7 @@ import { SettingsGroup } from './SettingsGroup';
 import { SettingsToggle } from './SettingsToggle';
 import { SettingsSubCard, SettingsField, SettingsValue } from './SettingsSubCard';
 import { SettingsSegmented, type SegmentedOption } from './SettingsSegmented';
-import { SeekbarPreview } from '../WaveformSeekPreview';
+import { SeekbarPreview } from '@/features/waveform';
 import WindowButtonPreview from '../WindowButtonPreview';
 
 export function AppearanceTab() {

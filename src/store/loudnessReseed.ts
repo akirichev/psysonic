@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { getPlaybackIndexKey } from '../utils/playback/playbackServer';
 import { useAuthStore } from './authStore';
 import { usePlayerStore } from './playerStore';
-import { bumpWaveformRefreshGen } from './waveformRefreshGen';
+import { bumpWaveformRefreshGen } from '@/features/waveform';
 import { clearLoudnessCacheStateForTrackId } from './loudnessGainCache';
 import { resetLoudnessBackfillStateForTrackId } from './loudnessBackfillState';
 

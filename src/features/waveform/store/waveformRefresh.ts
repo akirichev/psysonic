@@ -1,8 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
-import { coerceWaveformBins } from '../utils/waveform/waveformParse';
-import { getPlaybackIndexKey } from '../utils/playback/playbackServer';
-import { usePlayerStore } from './playerStore';
-import { getWaveformRefreshGen } from './waveformRefreshGen';
+import { coerceWaveformBins } from '@/features/waveform/utils/waveformParse';
+import { getPlaybackIndexKey } from '@/utils/playback/playbackServer';
+import { usePlayerStore } from '@/store/playerStore';
+import { getWaveformRefreshGen } from '@/features/waveform/store/waveformRefreshGen';
 
 /** Subsonic-server waveform-cache row as Rust hands it back. */
 export type WaveformCachePayload = {

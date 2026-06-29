@@ -15,7 +15,7 @@ import {
 import { getBytePreloadingId, setBytePreloadingId } from './gaplessPreloadState';
 import { refreshLoudnessForTrack } from './loudnessRefresh';
 import { usePlayerStore } from './playerStore';
-import { fetchWaveformBins } from './waveformRefresh';
+import { fetchWaveformBins } from '@/features/waveform';
 
 // Crossfade pre-buffer budget: begin downloading the next track this many
 // seconds before it needs to play (the crossfade start), so a large lossless

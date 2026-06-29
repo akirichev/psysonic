@@ -14,7 +14,7 @@ import { backdropFromConfig } from '../../cover/artistBackdrop';
 import { useThemeStore } from '../../store/themeStore';
 import { useFsIdleFade } from '../../hooks/useFsIdleFade';
 import { useQueueTrackAt } from '../../hooks/useQueueTracks';
-import WaveformSeek from '../WaveformSeek';
+import { WaveformSeek } from '@/features/waveform';
 import { FsQueueModal } from './FsQueueModal';
 import { FsLyricsApple } from './FsLyricsApple';
 import { FsPlayBtn } from './FsPlayBtn';

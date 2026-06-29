@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import type { SeekbarStyle } from '../store/authStoreTypes';
-import { getPlaybackProgressSnapshot } from '../store/playbackProgress';
+import type { SeekbarStyle } from '@/store/authStoreTypes';
+import { getPlaybackProgressSnapshot } from '@/store/playbackProgress';
 import {
   ANIMATED_STYLES, AnimState, INTERPOLATION_PAINT_MIN_MS,
   isBarQuantizedSeekStyle, quantizeProgressByBars,
-} from '../utils/waveform/waveformSeekHelpers';
-import { drawSeekbar } from '../utils/waveform/waveformSeekRenderers';
+} from '@/features/waveform/utils/waveformSeekHelpers';
+import { drawSeekbar } from '@/features/waveform/utils/waveformSeekRenderers';
 
 interface Args {
   duration: number;
