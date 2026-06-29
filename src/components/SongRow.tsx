@@ -11,7 +11,7 @@ import { useDragDrop } from '../contexts/DragDropContext';
 import { useOrbitSongRowBehavior } from '../hooks/useOrbitSongRowBehavior';
 import { formatTrackTime } from '../utils/format/formatDuration';
 import { resolveTrackArtistRefs } from '../utils/playback/trackArtistRefs';
-import { tooltipAttrs } from './tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 
 interface Props {
   song: SubsonicSong;

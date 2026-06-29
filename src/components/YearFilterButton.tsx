@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { CalendarRange, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import FilterQuickClear from './FilterQuickClear';
-import { tooltipAttrs } from './tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 import {
   ALBUM_YEAR_MAX,
   ALBUM_YEAR_MIN,

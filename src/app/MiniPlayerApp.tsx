@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { DragDropProvider } from '../contexts/DragDropContext';
 import MiniPlayer from '../components/MiniPlayer';
 import GlobalConfirmModal from '../components/GlobalConfirmModal';
-import TooltipPortal from '../components/TooltipPortal';
+import TooltipPortal from '@/ui/TooltipPortal';
 import FpsOverlay from '../components/FpsOverlay';
 import { useThemeStore } from '../store/themeStore';
 import { useFontStore } from '../store/fontStore';

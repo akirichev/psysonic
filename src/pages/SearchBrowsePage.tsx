@@ -11,7 +11,7 @@ import ArtistRow from '../components/ArtistRow';
 import PagedSongList from '../components/PagedSongList';
 import CustomSelect from '../components/CustomSelect';
 import StarFilterButton from '../components/StarFilterButton';
-import { tooltipAttrs } from '../components/tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 import { APP_MAIN_SCROLL_VIEWPORT_ID } from '../constants/appScroll';
 import { useAuthStore } from '../store/authStore';
 import { usePlayerStore } from '../store/playerStore';

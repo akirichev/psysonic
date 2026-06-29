@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { Check, Filter, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import FilterQuickClear from './FilterQuickClear';
-import { tooltipAttrs } from './tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 
 type GenreRow = GenreFilterOption;
 

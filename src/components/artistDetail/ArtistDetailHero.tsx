@@ -21,7 +21,7 @@ import type { CoverArtRef } from '../../cover/types';
 import LastfmIcon from '../LastfmIcon';
 import WikipediaIcon from '../WikipediaIcon';
 import StarRating from '../StarRating';
-import { tooltipAttrs } from '../tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 import { offlineActionPolicy, type OfflineActionPolicy } from '../../utils/offline/offlineActionPolicy';
 
 interface Props {

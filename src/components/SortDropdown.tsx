@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowDownUp, Check } from 'lucide-react';
-import { tooltipAttrs } from './tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 
 export interface SortOption<V extends string> {
   value: V;

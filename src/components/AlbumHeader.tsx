@@ -18,7 +18,7 @@ import { formatLongDuration } from '../utils/format/formatDuration';
 import { formatMb } from '../utils/format/formatBytes';
 import { sanitizeHtml } from '../utils/sanitizeHtml';
 import { OpenArtistRefInline } from './OpenArtistRefInline';
-import { tooltipAttrs } from './tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 import { offlineActionPolicy, type OfflineActionPolicy } from '../utils/offline/offlineActionPolicy';
 import { deriveAlbumGenreTags } from '../utils/library/genreTags';
 import { genreColor } from '../utils/library/genreColor';

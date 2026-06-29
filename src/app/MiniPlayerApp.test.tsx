@@ -30,7 +30,7 @@ vi.mock('../i18n', () => ({
 }));
 vi.mock('../components/MiniPlayer', () => ({ default: () => <div data-testid="mini-player" /> }));
 vi.mock('../components/GlobalConfirmModal', () => ({ default: () => <div data-testid="confirm-modal" /> }));
-vi.mock('../components/TooltipPortal', () => ({ default: () => <div data-testid="tooltip-portal" /> }));
+vi.mock('@/ui/TooltipPortal', () => ({ default: () => <div data-testid="tooltip-portal" /> }));
 vi.mock('../components/FpsOverlay', () => ({ default: () => <div data-testid="fps-overlay" /> }));
 vi.mock('../contexts/DragDropContext', () => ({
   DragDropProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,

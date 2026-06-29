@@ -40,7 +40,7 @@ import { ServerCapabilityHeaderBadge } from './ServerCapabilityHeaderBadge';
 import { useListReorderDnd } from '../../hooks/useListReorderDnd';
 import { applyListReorderById, type ListReorderDropTarget } from '../../utils/componentHelpers/listReorder';
 import { ReorderGripHandle } from './ReorderGripHandle';
-import { tooltipAttrs } from '../tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 
 const AUDIOMUSE_NV_PLUGIN_URL = 'https://github.com/NeptuneHub/AudioMuse-AI-NV-plugin';
 

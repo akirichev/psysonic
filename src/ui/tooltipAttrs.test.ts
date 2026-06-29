@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { tooltipAttrs } from './tooltipAttrs';
+import { tooltipAttrs } from '@/ui/tooltipAttrs';
 
 describe('tooltipAttrs', () => {
   it('pairs data-tooltip with a matching aria-label', () => {

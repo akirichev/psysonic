@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { renderWithProviders } from '@/test/helpers/renderWithProviders';
-import TooltipPortal from './TooltipPortal';
+import TooltipPortal from '@/ui/TooltipPortal';
 
 function Fixture() {
   return (
