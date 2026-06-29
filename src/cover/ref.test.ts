@@ -64,9 +64,18 @@ describe('albumCoverRef', () => {
 });
 
 describe('resolveDistinctDiscCoversForAlbum', () => {
-  it('detects mf-* fetch id before album page visit', () => {
-    expect(resolveDistinctDiscCoversForAlbum('al-box', 'mf-d2')).toBe(true);
-    expect(resolveDistinctDiscCoversForAlbum('al-box', 'al-box')).toBe(false);
+  it('defaults to album-scoped for an unknown album', () => {
+    // A single mf-<id> cover is per-song art, not per-disc — must not be guessed
+    // as distinct (would surface per-track covers in the player/queue).
+    expect(resolveDistinctDiscCoversForAlbum('al-unknown')).toBe(false);
+  });
+
+  it('respects remembered true for differing disc art', () => {
+    rememberAlbumDistinctDiscCovers('al-distinct-box', [
+      { id: 't1', albumId: 'al-distinct-box', coverArt: 'mf-a', discNumber: 1 },
+      { id: 't2', albumId: 'al-distinct-box', coverArt: 'mf-b', discNumber: 2 },
+    ]);
+    expect(resolveDistinctDiscCoversForAlbum('al-distinct-box')).toBe(true);
   });
 
   it('respects remembered false for same art on all discs', () => {
@@ -74,29 +83,39 @@ describe('resolveDistinctDiscCoversForAlbum', () => {
       { id: 't1', albumId: 'al-same', coverArt: 'mf-x', discNumber: 1 },
       { id: 't2', albumId: 'al-same', coverArt: 'mf-x', discNumber: 2 },
     ]);
-    expect(resolveDistinctDiscCoversForAlbum('al-same', 'mf-x')).toBe(false);
+    expect(resolveDistinctDiscCoversForAlbum('al-same')).toBe(false);
   });
 });
 
 describe('albumCoverRefForSong', () => {
-  it('keys per-disc without library resolve', () => {
+  it('keys by album id for an unknown album', () => {
     const ref = albumCoverRefForSong({
       id: 't2',
       albumId: 'al-box',
       coverArt: 'mf-d2',
       discNumber: 2,
     });
+    expect(ref?.cacheEntityId).toBe('al-box');
+  });
+
+  it('keys per-disc when told explicitly', () => {
+    const ref = albumCoverRefForSong(
+      { id: 't2', albumId: 'al-box', coverArt: 'mf-d2', discNumber: 2 },
+      true,
+    );
     expect(ref?.cacheEntityId).toBe('mf-d2');
   });
 });
 
 describe('albumCoverRefForPlayback', () => {
-  it('keys per-disc from mf coverArt before album page visit', () => {
+  it('keys by album id from mf coverArt before album page visit', () => {
+    // Bug fix: a playlist track whose album was never opened must resolve to the
+    // album cache slot (album cover), not a per-track slot (per-track cover).
     const ref = albumCoverRefForPlayback(
-      { albumId: 'al-box', coverArt: 'mf-disc2', id: 't2', discNumber: 2 },
+      { albumId: 'al-pl', coverArt: 'mf-disc2', id: 't2', discNumber: 2 },
       { kind: 'active' },
     );
-    expect(ref?.cacheEntityId).toBe('mf-disc2');
+    expect(ref?.cacheEntityId).toBe('al-pl');
     expect(ref?.fetchCoverArtId).toBe('mf-disc2');
   });
 

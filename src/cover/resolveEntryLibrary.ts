@@ -185,7 +185,7 @@ export async function resolveTrackCoverRefFromLibrary(
   const albumId = song.albumId?.trim();
   const distinct =
     distinctDiscCovers
-    ?? (albumId ? resolveDistinctDiscCoversForAlbum(albumId, song.coverArt, song) : false);
+    ?? (albumId ? resolveDistinctDiscCoversForAlbum(albumId) : false);
   const trackId = song.id?.trim();
   const fromLibrary = trackId
     ? await libraryResolveCoverEntry(libraryServerIdFromScope(serverScope), 'track', trackId)

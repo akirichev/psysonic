@@ -58,8 +58,8 @@ export function useAlbumCoverRef(
   const libraryResolve = options?.libraryResolve !== false;
   const scopeKey = coverScopeKey(serverScope);
   const distinctDiscCovers = useMemo(
-    () => resolveDistinctDiscCoversForAlbum(albumId ?? '', fallbackCoverArt),
-    [albumId, fallbackCoverArt],
+    () => resolveDistinctDiscCoversForAlbum(albumId ?? ''),
+    [albumId],
   );
   const syncRef = useMemo(() => {
     const id = albumId?.trim();
@@ -146,15 +146,8 @@ export function useTrackCoverRef(
   const discNumber = song?.discNumber;
 
   const distinctDiscCovers = useMemo(
-    () => (albumId?.trim()
-      ? resolveDistinctDiscCoversForAlbum(albumId, coverArt, {
-        id: songId ?? '',
-        albumId,
-        coverArt,
-        discNumber,
-      })
-      : false),
-    [albumId, coverArt, discNumber, songId],
+    () => (albumId?.trim() ? resolveDistinctDiscCoversForAlbum(albumId) : false),
+    [albumId],
   );
 
   const syncRef = useMemo(() => {
@@ -267,12 +260,7 @@ export function usePlaybackTrackCoverRef(
     const al = albumId?.trim();
     if (!tid || !al || !track) return;
     let cancelled = false;
-    const distinctDiscCovers = resolveDistinctDiscCoversForAlbum(al, track.coverArt, {
-      id: tid,
-      albumId: al,
-      coverArt: track.coverArt,
-      discNumber: track.discNumber,
-    });
+    const distinctDiscCovers = resolveDistinctDiscCoversForAlbum(al);
     void resolveTrackCoverRefFromLibrary(
       { ...track, id: tid, albumId: al } as Pick<SubsonicSong, 'id' | 'albumId' | 'coverArt' | 'discNumber'>,
       scope,

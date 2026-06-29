@@ -34,36 +34,22 @@ export function forgetAlbumDistinctDiscCovers(albumId: string): void {
   albumDistinctDiscCoversByAlbumId.delete(albumId.trim());
 }
 
-export type DistinctDiscCoversHint = Pick<
-  SubsonicSong,
-  'discNumber' | 'coverArt' | 'id' | 'albumId'
->;
-
 /**
- * Whether per-disc `mf-*` cache slots apply — from album tracklist memory or song hints
- * when the album page has not been opened yet.
+ * Synchronous answer for "does this album use genuine per-disc artwork?", used
+ * for the initial cover ref before the library index resolves.
+ *
+ * Per-disc artwork can only be determined from the full tracklist (see
+ * {@link albumHasDistinctDiscCovers}). A single track's `mf-<id>` cover or disc
+ * number is no signal: Navidrome (and other OpenSubsonic servers) give every
+ * track its own `mf-<id>` coverArt, so guessing per-disc from one track marked
+ * ordinary per-song albums as distinct and routed playback to a per-track cache
+ * slot — surfacing per-track art in Now Playing / the queue when a song was
+ * played from a playlist (the album page seeds the truth, so it looked correct
+ * there). Trust only the value remembered from a known tracklist; default to
+ * album-scoped and let the library index correct genuine per-disc albums.
  */
-export function resolveDistinctDiscCoversForAlbum(
-  albumId: string,
-  fetchCoverArtId?: string | null,
-  songHint?: DistinctDiscCoversHint,
-): boolean {
-  const album = albumId.trim();
-  if (!album) return false;
-
-  const known = albumDistinctDiscCoversByAlbumId.get(album);
-  if (known === true) return true;
-  if (known === false) return false;
-
-  if (songHint) {
-    const cover = songHint.coverArt?.trim();
-    if ((songHint.discNumber ?? 1) > 1 && Boolean(cover && cover !== album)) return true;
-  }
-
-  const fetch = fetchCoverArtId?.trim();
-  if (fetch && fetch !== album && fetch.startsWith('mf-')) return true;
-
-  return false;
+export function resolveDistinctDiscCoversForAlbum(albumId: string): boolean {
+  return albumDistinctDiscCoversByAlbumId.get(albumId.trim()) === true;
 }
 
 function resolveAlbumCoverRefOptions(
@@ -116,7 +102,7 @@ export function albumCoverRefForSong(
   const albumId = song.albumId?.trim();
   const distinct =
     distinctDiscCovers
-    ?? (albumId ? resolveDistinctDiscCoversForAlbum(albumId, song.coverArt, song) : false);
+    ?? (albumId ? resolveDistinctDiscCoversForAlbum(albumId) : false);
   const entry = resolveTrackCoverEntry(song, distinct);
   return entry ? coverEntryToRef(entry, serverScope) : undefined;
 }
@@ -127,11 +113,7 @@ export function albumCoverRefForPlayback(
 ): CoverArtRef | undefined {
   const albumId = track.albumId?.trim();
   if (!albumId) return undefined;
-  const distinctDiscCovers = resolveDistinctDiscCoversForAlbum(
-    albumId,
-    track.coverArt,
-    { ...track, albumId } as DistinctDiscCoversHint,
-  );
+  const distinctDiscCovers = resolveDistinctDiscCoversForAlbum(albumId);
   return albumCoverRefForSong(
     { ...track, albumId } as Pick<SubsonicSong, 'albumId' | 'coverArt' | 'id' | 'discNumber'>,
     distinctDiscCovers,
