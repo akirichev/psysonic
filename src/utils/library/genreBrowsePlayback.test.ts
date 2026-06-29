@@ -26,7 +26,11 @@ vi.mock('./libraryReady', () => ({
   libraryIsReady: vi.fn(),
 }));
 
-vi.mock('./genreAlbumBrowse', () => ({
+// Spread the real leaf module so other consumers pulled in transitively (the
+// album barrel reaches this via the artist↔album edge → useGenreAlbumBrowse needs
+// GENRE_ALBUM_FIRST_PAGE); only fetchGenreAlbumTotal is stubbed here.
+vi.mock('./genreAlbumBrowse', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./genreAlbumBrowse')>()),
   fetchGenreAlbumTotal: vi.fn(),
 }));
 
