@@ -34,7 +34,7 @@ vi.mock('@/utils/orbitBulkGuard', () => ({
   orbitBulkGuard: vi.fn(async () => true),
 }));
 
-vi.mock('@/hooks/useOfflineBrowseContext', () => ({
+vi.mock('@/features/offline', () => ({
   useOfflineBrowseContext: () => ({
     active: false,
     serverId: 'srv-1',

@@ -1,4 +1,4 @@
-import { resolveAlbum, resolveArtist, resolveMediaServerId } from '../offline/offlineMediaResolve';
+import { resolveAlbum, resolveArtist, resolveMediaServerId } from '@/features/offline';
 import { songToTrack } from './songToTrack';
 import { shuffleArray } from './shuffleArray';
 import { usePlayerStore } from '../../store/playerStore';

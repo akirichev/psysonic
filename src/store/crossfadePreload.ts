@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from './authStore';
 import { autodjMaxOverlapCapSec } from '../utils/playback/autodjOverlapCap';
 import { computeWaveformSilence, planCrossfadeTransition } from '../utils/waveform/waveformSilence';
-import { findLocalPlaybackUrl } from '../utils/offline/offlineLibraryHelpers';
+import { findLocalPlaybackUrl } from '@/features/offline';
 import { playbackCacheKeyForRef } from '../utils/playback/playbackServer';
 import { resolvePlaybackUrl } from '../utils/playback/resolvePlaybackUrl';
 import { resolveQueueTrack } from '../utils/library/queueTrackView';

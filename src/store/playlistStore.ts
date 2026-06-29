@@ -4,8 +4,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { createPlaylist as apiCreatePlaylist } from '../api/subsonicPlaylists';
 import { useAuthStore } from './authStore';
-import { isOfflineBrowseActive } from '../utils/offline/offlineBrowseMode';
-import { fetchOfflineBrowsablePlaylists } from '../utils/offline/offlinePlaylistBrowse';
+import { isOfflineBrowseActive } from '@/features/offline';
+import { fetchOfflineBrowsablePlaylists } from '@/features/offline';
 interface PlaylistStore {
   recentIds: string[];
   playlists: SubsonicPlaylist[];

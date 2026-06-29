@@ -4,7 +4,7 @@ import type { SubsonicAlbum, SubsonicArtist, SubsonicSong } from '../../api/subs
 import type { Track } from '../../store/playerStoreTypes';
 import { songToTrack } from '../playback/songToTrack';
 import { runBulkPlayAll, runBulkShuffle } from '../playback/runBulkPlay';
-import { resolveAlbum, resolveMediaServerId } from '../offline/offlineMediaResolve';
+import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 
 /** Ordered artist discography tracks for play-all / shuffle (network or local bytes). */
 export async function fetchArtistDetailTracks(

@@ -5,7 +5,7 @@ import type { SubsonicPlaylist } from '../../api/subsonicTypes';
 import {
   defaultSmartFilters, type SmartFilters,
 } from '../../utils/playlist/playlistsSmart';
-import { offlineActionPolicy, type OfflineActionPolicy } from '../../utils/offline/offlineActionPolicy';
+import { offlineActionPolicy, type OfflineActionPolicy } from '@/features/offline';
 import PlaylistsNewFolderButton from './PlaylistsNewFolderButton';
 import PlaylistsFolderViewToggle from './PlaylistsFolderViewToggle';
 

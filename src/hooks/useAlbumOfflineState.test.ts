@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useOfflineJobStore } from '../store/offlineJobStore';
+import { useOfflineJobStore } from '@/features/offline';
 import { useAlbumOfflineState } from './useAlbumOfflineState';
 
 describe('useAlbumOfflineState', () => {

@@ -8,8 +8,8 @@ import {
   runLocalBrowseAlbums,
   runNetworkBrowseAlbums,
 } from '../utils/library/browseTextSearch';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
-import { offlineLocalBrowseEnabled, searchOfflineLocalAlbums } from '../utils/offline/offlineLocalBrowse';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineLocalBrowseEnabled, searchOfflineLocalAlbums } from '@/features/offline';
 
 /**
  * Debounced album title search with local-vs-network race when the

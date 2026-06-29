@@ -5,17 +5,17 @@ import { useAuthStore } from '../store/authStore';
 import {
   loadAlbumFromLibraryIndex,
   loadArtistFromLibraryIndex,
-} from '../utils/offline/offlineLibraryIndexLoad';
+} from '@/features/offline';
 import {
   resolveAlbum,
   resolveArtist,
   type ResolvedAlbum,
-} from '../utils/offline/offlineMediaResolve';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
+} from '@/features/offline';
+import { useOfflineBrowseContext } from '@/features/offline';
 import {
   loadArtistFromLocalPlayback,
   offlineLocalBrowseEnabled,
-} from '../utils/offline/offlineLocalBrowse';
+} from '@/features/offline';
 import { readDetailServerId } from '../utils/navigation/detailServerScope';
 import { libraryIsReady } from '../utils/library/libraryReady';
 import {

@@ -4,7 +4,7 @@ import { onInvoke } from '@/test/mocks/tauri';
 import { resetOrbitStore, resetPlayerStore } from '@/test/helpers/storeReset';
 import type { Track } from '../../store/playerStoreTypes';
 
-vi.mock('../offline/offlineMediaResolve', () => ({
+vi.mock('@/features/offline', () => ({
   resolveAlbumForActiveServer: vi.fn(),
 }));
 
@@ -12,7 +12,7 @@ vi.mock('./fadeOut', () => ({
   fadeOut: vi.fn(async () => undefined),
 }));
 
-import { resolveAlbumForActiveServer } from '../offline/offlineMediaResolve';
+import { resolveAlbumForActiveServer } from '@/features/offline';
 import { useOrbitStore } from '../../store/orbitStore';
 import { usePlayerStore } from '../../store/playerStore';
 import { playAlbum, playAlbumShuffled } from './playAlbum';

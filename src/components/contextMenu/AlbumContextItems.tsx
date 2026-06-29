@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Play, ListPlus, Heart, Download, ChevronRight, ChevronsRight, User, ListMusic, Star, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { resolveAlbum, resolveMediaServerId } from '../../utils/offline/offlineMediaResolve';
+import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 import { star, unstar } from '../../api/subsonicStarRating';
 import type { SubsonicAlbum } from '../../api/subsonicTypes';
 import { songToTrack } from '../../utils/playback/songToTrack';

@@ -1,6 +1,6 @@
 import { useLocalPlaybackStore } from '../store/localPlaybackStore';
-import { useOfflineJobStore } from '../store/offlineJobStore';
-import { isOfflinePinComplete } from '../utils/offline/offlineLibraryHelpers';
+import { useOfflineJobStore } from '@/features/offline';
+import { isOfflinePinComplete } from '@/features/offline';
 
 export type AlbumOfflineStatus = 'none' | 'queued' | 'downloading' | 'cached';
 

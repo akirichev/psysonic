@@ -1,5 +1,5 @@
 import { Cloud, CloudOff } from 'lucide-react';
-import { useDevOfflineBrowseStore } from '../store/devOfflineBrowseStore';
+import { useDevOfflineBrowseStore } from '@/features/offline';
 
 /** DEV-only: simulate full offline (disconnect UI, block Subsonic, local playback only). */
 export default function DevNetworkModeToggle() {

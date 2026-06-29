@@ -18,7 +18,7 @@ vi.mock('../utils/library/advancedSearchLocal', () => ({
   runLocalSongBrowse: vi.fn(async () => []),
 }));
 
-vi.mock('./useOfflineBrowseReloadToken', () => ({
+vi.mock('@/features/offline', () => ({
   useOfflineBrowseReloadToken: () => undefined,
 }));
 

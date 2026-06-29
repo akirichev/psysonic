@@ -6,9 +6,9 @@ import {
   Loader2, Lock, Pencil, Play, Search, Shuffle, Sparkles, Trash2,
 } from 'lucide-react';
 import type { SubsonicPlaylist, SubsonicSong } from '../../api/subsonicTypes';
-import type { ZipDownload } from '../../store/zipDownloadStore';
+import type { ZipDownload } from '@/features/offline';
 import type { AlbumOfflineStatus } from '../../hooks/useAlbumOfflineState';
-import { dequeueOfflinePin } from '../../utils/offline/offlinePinQueue';
+import { dequeueOfflinePin } from '@/features/offline';
 import { useThemeStore } from '../../store/themeStore';
 import { usePlaylistLayoutStore, type PlaylistLayoutItemId } from '../../store/playlistLayoutStore';
 import {
@@ -18,7 +18,7 @@ import type { CoverArtId } from '../../cover/types';
 import { AlbumCoverArtImage } from '../../cover/AlbumCoverArtImage';
 import { PLAYLIST_MAIN_COVER_CSS_PX } from '../../hooks/usePlaylistCovers';
 import { PlaylistSmartCoverCell } from '../playlists/PlaylistCoverImages';
-import type { OfflineActionPolicy } from '../../utils/offline/offlineActionPolicy';
+import type { OfflineActionPolicy } from '@/features/offline';
 
 interface Props {
   playlist: SubsonicPlaylist;

@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { useLocation } from 'react-router-dom';
 import { getMusicNetworkRuntime, type RecentTrack, type StatsPeriod, type TopItem } from '@/music-network';
-import { useOfflineBrowseContext } from '@/hooks/useOfflineBrowseContext';
+import { useOfflineBrowseContext } from '@/features/offline';
 import { usePlayerStatsRecordingEnabled } from '@/features/stats/hooks/usePlayerStatsRecordingEnabled';
 import { useEnrichmentPrimaryLabel } from '@/hooks/useEnrichmentPrimaryLabel';
 

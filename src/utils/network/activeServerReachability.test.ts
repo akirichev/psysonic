@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useDevOfflineBrowseStore } from '../../store/devOfflineBrowseStore';
+import { useDevOfflineBrowseStore } from '@/features/offline';
 import {
   getActiveServerReachable,
   isActiveServerReachable,

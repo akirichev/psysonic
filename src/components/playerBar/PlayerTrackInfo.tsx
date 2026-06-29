@@ -21,8 +21,8 @@ import {
   usePlayerBarLayoutStore,
   type PlayerBarLayoutItemId,
 } from '../../store/playerBarLayoutStore';
-import { useOfflineBrowseContext } from '../../hooks/useOfflineBrowseContext';
-import { offlineActionPolicy } from '../../utils/offline/offlineActionPolicy';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineActionPolicy } from '@/features/offline';
 
 interface Props {
   currentTrack: Track | null;

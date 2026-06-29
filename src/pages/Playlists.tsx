@@ -1,4 +1,4 @@
-import { resolveMediaServerId, resolvePlaylist } from '../utils/offline/offlineMediaResolve';
+import { resolveMediaServerId, resolvePlaylist } from '@/features/offline';
 import { getGenres } from '../api/subsonicGenres';
 import { filterSongsToActiveLibrary } from '../api/subsonicLibrary';
 import type { SubsonicPlaylist, SubsonicGenre } from '../api/subsonicTypes';
@@ -27,8 +27,8 @@ import PlaylistsHeader from '../components/playlists/PlaylistsHeader';
 import PlaylistCard from '../components/playlists/PlaylistCard';
 import { usePerfProbeFlags } from '../utils/perf/perfFlags';
 import { VirtualCardGrid } from '../components/VirtualCardGrid';
-import { useOfflineBrowseContext } from '../hooks/useOfflineBrowseContext';
-import { offlineActionPolicy } from '../utils/offline/offlineActionPolicy';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineActionPolicy } from '@/features/offline';
 import { Info } from 'lucide-react';
 import PlaylistsFolderView from '../components/playlists/PlaylistsFolderView';
 import { usePlaylistFolderStore } from '../store/playlistFolderStore';

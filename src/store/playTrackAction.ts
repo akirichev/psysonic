@@ -30,7 +30,7 @@ import { stampTrackServerId, stampTrackServerIds } from '../utils/playback/track
 import {
   findLocalPlaybackUrl,
   hasLocalPersistentPlaybackBytes,
-} from '../utils/offline/offlineLibraryHelpers';
+} from '@/features/offline';
 import { resolvePlaybackUrl } from '../utils/playback/resolvePlaybackUrl';
 import { resolveReplayGainDb } from '../utils/audio/resolveReplayGainDb';
 import { audioPlayHiResBlendArgs } from '../utils/audio/hiResCrossfadeResample';

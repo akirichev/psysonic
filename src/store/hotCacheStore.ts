@@ -2,7 +2,7 @@ import type { QueueItemRef } from './playerStoreTypes';
 import { create } from 'zustand';
 import type { HotCacheEntry } from './hotCacheStoreTypes';
 import { useLocalPlaybackStore, type LocalPlaybackEntry } from './localPlaybackStore';
-import { entryBelongsToServer } from '../utils/offline/offlineLibraryHelpers';
+import { entryBelongsToServer } from '@/features/offline';
 import { invoke } from '@tauri-apps/api/core';
 import { getMediaDir } from '../utils/media/mediaDir';
 

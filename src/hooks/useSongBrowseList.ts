@@ -14,13 +14,13 @@ import {
 } from '../utils/library/browseTextSearch';
 import { useAuthStore } from '../store/authStore';
 import { useLibraryIndexStore } from '../store/libraryIndexStore';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
-import { useOfflineBrowseReloadToken } from './useOfflineBrowseReloadToken';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { useOfflineBrowseReloadToken } from '@/features/offline';
 import {
   fetchOfflineLocalBrowsableSongPage,
   offlineLocalBrowseEnabled,
   searchOfflineLocalBrowsableSongs,
-} from '../utils/offline/offlineLocalBrowse';
+} from '@/features/offline';
 
 const PAGE_SIZE = 50;
 

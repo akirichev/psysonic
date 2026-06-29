@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { join } from '@tauri-apps/api/path';
 import { buildDownloadUrl } from '../../api/subsonicStreamUrl';
 import type { SubsonicPlaylist } from '../../api/subsonicTypes';
-import { useZipDownloadStore } from '../../store/zipDownloadStore';
+import { useZipDownloadStore } from '@/features/offline';
 import { sanitizeFilename } from '../componentHelpers/playlistDetailHelpers';
 
 export interface RunPlaylistZipDownloadDeps {

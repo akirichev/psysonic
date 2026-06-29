@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { usePlayerStore } from '@/store/playerStore';
-import { useOfflineJobStore } from '@/store/offlineJobStore';
-import { clearOfflinePinTasks } from '@/utils/offline/offlinePinQueue';
+import { useOfflineJobStore } from '@/features/offline';
+import { clearOfflinePinTasks } from '@/features/offline';
 import { useDeviceSyncJobStore } from '@/features/deviceSync';
 import { useAuthStore } from '@/store/authStore';
 import { useSidebarStore } from '@/features/sidebar/store/sidebarStore';
@@ -23,9 +23,9 @@ import { useSidebarNewReleasesUnread } from '@/features/sidebar/hooks/useSidebar
 import { useSidebarNavDnd } from '@/features/sidebar/hooks/useSidebarNavDnd';
 import { useSidebarLibraryDropdown } from '@/features/sidebar/hooks/useSidebarLibraryDropdown';
 import { useSidebarScrollVisible } from '@/features/sidebar/hooks/useSidebarScrollVisible';
-import { isOfflineSidebarNavAllowed } from '@/utils/offline/offlineNavPolicy';
-import { useOfflineBrowseContext } from '@/hooks/useOfflineBrowseContext';
-import { offlineBrowseNavFlags } from '@/utils/offline/offlineBrowseContext';
+import { isOfflineSidebarNavAllowed } from '@/features/offline';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineBrowseNavFlags } from '@/features/offline';
 import { useSidebarPerfProbe } from '@/features/sidebar/hooks/useSidebarPerfProbe';
 import SidebarPerfProbeModal from '@/features/sidebar/components/SidebarPerfProbeModal';
 import SidebarNavBody from '@/features/sidebar/components/SidebarNavBody';

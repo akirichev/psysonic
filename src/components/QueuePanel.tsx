@@ -1,6 +1,6 @@
 import { Play } from 'lucide-react';
 import { updatePlaylist } from '../api/subsonicPlaylists';
-import { resolvePlaylist, resolveMediaServerId } from '../utils/offline/offlineMediaResolve';
+import { resolvePlaylist, resolveMediaServerId } from '@/features/offline';
 import { songToTrack } from '../utils/playback/songToTrack';
 import type { Track } from '../store/playerStoreTypes';
 import { useState, useRef, useMemo } from 'react';

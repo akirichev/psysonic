@@ -1,5 +1,5 @@
 import { buildStreamUrlForServer } from '../../api/subsonicStreamUrl';
-import { findLocalPlaybackUrl } from '../offline/offlineLibraryHelpers';
+import { findLocalPlaybackUrl } from '@/features/offline';
 import { resolveServerIdForIndexKey } from '../server/serverLookup';
 import { getPlaybackCacheServerKey, getPlaybackServerId } from './playbackServer';
 

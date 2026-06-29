@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
 import { useLocalPlaybackStore } from '../store/localPlaybackStore';
-import { isOfflinePinComplete } from '../utils/offline/offlineLibraryHelpers';
+import { isOfflinePinComplete } from '@/features/offline';
 import { CoverArtImage } from '../cover/CoverArtImage';
 import { useAlbumCoverRef } from '../cover/useLibraryCoverRef';
 import { coverStorageKeyFromRef } from '../cover/storageKeys';

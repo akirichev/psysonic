@@ -19,7 +19,7 @@ import { formatMb } from '../utils/format/formatBytes';
 import { sanitizeHtml } from '../utils/sanitizeHtml';
 import { OpenArtistRefInline } from './OpenArtistRefInline';
 import { tooltipAttrs } from '@/ui/tooltipAttrs';
-import { offlineActionPolicy, type OfflineActionPolicy } from '../utils/offline/offlineActionPolicy';
+import { offlineActionPolicy, type OfflineActionPolicy } from '@/features/offline';
 import { deriveAlbumGenreTags } from '../utils/library/genreTags';
 import { genreColor } from '../utils/library/genreColor';
 

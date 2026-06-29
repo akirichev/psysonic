@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ListMusic, Plus } from 'lucide-react';
-import { resolveAlbum, resolveMediaServerId, resolvePlaylist } from '../../utils/offline/offlineMediaResolve';
+import { resolveAlbum, resolveMediaServerId, resolvePlaylist } from '@/features/offline';
 import type { SubsonicPlaylist } from '../../api/subsonicTypes';
 import { usePlaylistStore } from '../../store/playlistStore';
 import { showToast } from '../../utils/ui/toast';

@@ -5,7 +5,7 @@ import {
   getSongWithCredentials,
 } from '../../api/subsonicEntityWithCredentials';
 import { getSong } from '../../api/subsonicLibrary';
-import { resolveAlbum, resolveArtist } from '../offline/offlineMediaResolve';
+import { resolveAlbum, resolveArtist } from '@/features/offline';
 import type { SubsonicAlbum, SubsonicArtist, SubsonicSong } from '../../api/subsonicTypes';
 import { useAuthStore } from '../../store/authStore';
 import type { ServerProfile } from '../../store/authStoreTypes';

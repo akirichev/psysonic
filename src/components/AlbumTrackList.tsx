@@ -15,7 +15,7 @@ import { TrackRow } from './albumTrackList/TrackRow';
 import { AlbumTrackListMobile } from './albumTrackList/AlbumTrackListMobile';
 import { TracklistColumnPicker } from './albumTrackList/TracklistColumnPicker';
 import { TracklistHeaderRow } from './albumTrackList/TracklistHeaderRow';
-import { offlineActionPolicy, type OfflineActionPolicy } from '../utils/offline/offlineActionPolicy';
+import { offlineActionPolicy, type OfflineActionPolicy } from '@/features/offline';
 
 export type { SortKey } from '../utils/componentHelpers/albumTrackListHelpers';
 

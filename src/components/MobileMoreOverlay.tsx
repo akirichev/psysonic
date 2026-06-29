@@ -6,9 +6,9 @@ import { useSidebarStore } from '@/features/sidebar';
 import { useAuthStore } from '../store/authStore';
 import { ALL_NAV_ITEMS } from '../config/navItems';
 import { useLuckyMixAvailable } from '../hooks/useLuckyMixAvailable';
-import { isOfflineSidebarNavAllowed } from '../utils/offline/offlineNavPolicy';
-import { useOfflineBrowseContext } from '../hooks/useOfflineBrowseContext';
-import { offlineBrowseNavFlags } from '../utils/offline/offlineBrowseContext';
+import { isOfflineSidebarNavAllowed } from '@/features/offline';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineBrowseNavFlags } from '@/features/offline';
 
 const BOTTOM_NAV_ROUTES = new Set(['/', '/albums', '/now-playing']);
 

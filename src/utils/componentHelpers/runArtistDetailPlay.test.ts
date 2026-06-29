@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SubsonicAlbum } from '../../api/subsonicTypes';
-import * as offlineMediaResolve from '../offline/offlineMediaResolve';
+import * as offlineMediaResolve from '@/features/offline';
 import { fetchArtistDetailTracks, runArtistDetailPlayTopSong } from './runArtistDetailPlay';
 
-vi.mock('../offline/offlineMediaResolve', () => ({
+vi.mock('@/features/offline', () => ({
   resolveAlbum: vi.fn(),
   resolveMediaServerId: vi.fn((id?: string | null) => id ?? 'srv-1'),
 }));

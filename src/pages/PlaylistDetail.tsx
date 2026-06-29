@@ -6,12 +6,12 @@ import { useTracklistColumns, type ColDef } from '../utils/useTracklistColumns';
 import { usePlayerStore } from '../store/playerStore';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlaylistStore } from '../store/playlistStore';
-import { useOfflineStore } from '../store/offlineStore';
+import { useOfflineStore } from '@/features/offline';
 import { useLocalPlaybackStore } from '../store/localPlaybackStore';
 import { useAlbumOfflineState } from '../hooks/useAlbumOfflineState';
 import { useAuthStore } from '../store/authStore';
-import { useDownloadModalStore } from '../store/downloadModalStore';
-import { useZipDownloadStore } from '../store/zipDownloadStore';
+import { useDownloadModalStore } from '@/features/offline';
+import { useZipDownloadStore } from '@/features/offline';
 import { useDragDrop } from '../contexts/DragDropContext';
 import { useTranslation } from 'react-i18next';
 import type { SpotifyCsvTrack } from '../utils/playlist/spotifyCsvImport';
@@ -40,8 +40,8 @@ import { usePlaylistDerived } from '../hooks/usePlaylistDerived';
 import { usePlaylistRouteEffects } from '../hooks/usePlaylistRouteEffects';
 import { useBulkPlPickerOutsideClick } from '../hooks/useBulkPlPickerOutsideClick';
 import { usePlaylistDnDReorder } from '../hooks/usePlaylistDnDReorder';
-import { useOfflineBrowseContext } from '../hooks/useOfflineBrowseContext';
-import { offlineActionPolicy } from '../utils/offline/offlineActionPolicy';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineActionPolicy } from '@/features/offline';
 
 // ── Column configuration ──────────────────────────────────────────────────────
 const PL_COLUMNS: readonly ColDef[] = [

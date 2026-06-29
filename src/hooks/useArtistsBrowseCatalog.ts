@@ -6,13 +6,13 @@ import {
   fetchLocalArtistCatalogChunk,
   fetchNetworkStarredArtists,
 } from '../utils/library/browseTextSearch';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
-import { useOfflineBrowseReloadToken } from './useOfflineBrowseReloadToken';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { useOfflineBrowseReloadToken } from '@/features/offline';
 import {
   fetchOfflineLocalArtistCatalogChunk,
   fetchOfflineLocalStarredArtists,
   offlineLocalBrowseEnabled,
-} from '../utils/offline/offlineLocalBrowse';
+} from '@/features/offline';
 
 /** Local-index artist catalog buffer grows by this many rows per background SQL chunk. */
 export const ARTIST_CATALOG_CHUNK_SIZE = 200;

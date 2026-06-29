@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useOfflineBrowseContext } from '@/hooks/useOfflineBrowseContext';
+import { useOfflineBrowseContext } from '@/features/offline';
 import { usePlayerStatsRecordingEnabled } from '@/features/stats/hooks/usePlayerStatsRecordingEnabled';
 
 export default function StatisticsTabBar() {

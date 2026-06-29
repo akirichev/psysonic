@@ -7,9 +7,9 @@ import type {
 } from '../api/subsonicTypes';
 import { useAuthStore } from '../store/authStore';
 import { useConnectionStatus } from './useConnectionStatus';
-import { loadArtistFromLibraryIndex } from '../utils/offline/offlineLibraryIndexLoad';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
-import { loadArtistFromLocalPlayback, offlineLocalBrowseEnabled } from '../utils/offline/offlineLocalBrowse';
+import { loadArtistFromLibraryIndex } from '@/features/offline';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { loadArtistFromLocalPlayback, offlineLocalBrowseEnabled } from '@/features/offline';
 import { readDetailServerId } from '../utils/navigation/detailServerScope';
 import { runLocalArtistLosslessBrowse } from '../utils/library/browseTextSearch';
 import { isLosslessSuffix } from '../utils/library/losslessFormats';

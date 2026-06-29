@@ -8,7 +8,7 @@ import { fetchLyrics, parseLrc, LrcLine } from '../api/lrclib';
 import { fetchNeteaselyrics } from '../api/netease';
 import { fetchLyricsPlus, hasWordSync } from '../api/lyricsplus';
 import { useAuthStore } from '../store/authStore';
-import { useOfflineStore } from '../store/offlineStore';
+import { useOfflineStore } from '@/features/offline';
 import { useHotCacheStore } from '../store/hotCacheStore';
 import { getCachedLyrics, putCachedLyrics, lyricsCacheKey } from '../utils/cache/lyricsPersistentCache';
 export type LyricsSource = 'server' | 'lrclib' | 'netease' | 'embedded' | 'lyricsplus';

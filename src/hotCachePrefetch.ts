@@ -28,7 +28,7 @@ import {
   resetAnalysisPruneState,
 } from './hotCachePrefetch/analysisPrune';
 import { reconcileEphemeralCache } from './utils/cache/ephemeralTierReconcile';
-import { hasLocalPersistentPlaybackBytes } from './utils/offline/offlineLibraryHelpers';
+import { hasLocalPersistentPlaybackBytes } from '@/features/offline';
 
 /** Periodic index↔disk sync (stale rows + empty dirs); unindexed files evicted only on budget pressure. */
 const EPHEMERAL_MAINTENANCE_MS = 10 * 60 * 1000;

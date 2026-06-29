@@ -85,7 +85,7 @@ export async function star(
     const indexEnabled = useLibraryIndexStore.getState().isIndexEnabled(serverId);
     void refreshStarredAlbumIndexFromServer(serverId, indexEnabled).catch(() => {});
   }
-  void import('../utils/offline/favoritesOfflineSync')
+  void import('@/features/offline')
     .then(m => m.onFavoritesOfflineStarChange(id, type, true, serverId ?? undefined))
     .catch(() => {});
 }
@@ -108,7 +108,7 @@ export async function unstar(
     const indexEnabled = useLibraryIndexStore.getState().isIndexEnabled(serverId);
     void refreshStarredAlbumIndexFromServer(serverId, indexEnabled).catch(() => {});
   }
-  void import('../utils/offline/favoritesOfflineSync')
+  void import('@/features/offline')
     .then(m => m.onFavoritesOfflineStarChange(id, type, false, serverId ?? undefined))
     .catch(() => {});
 }

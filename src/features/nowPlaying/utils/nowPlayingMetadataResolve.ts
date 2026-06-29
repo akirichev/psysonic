@@ -21,7 +21,7 @@ import { getArtistForServer, getTopSongsForServer } from '@/api/subsonicArtists'
 import { getAlbumForServer, getSongForServer } from '@/api/subsonicLibrary';
 import type { SubsonicAlbum, SubsonicSong } from '@/api/subsonicTypes';
 import { shouldAttemptSubsonicForServer } from '@/utils/network/subsonicNetworkGuard';
-import { loadAlbumFromLibraryIndex, loadArtistFromLibraryIndex } from '@/utils/offline/offlineLibraryIndexLoad';
+import { loadAlbumFromLibraryIndex, loadArtistFromLibraryIndex } from '@/features/offline';
 import { trackToSong } from '@/utils/library/advancedSearchLocal';
 import { libraryIsReady } from '@/utils/library/libraryReady';
 

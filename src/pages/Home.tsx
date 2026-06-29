@@ -29,9 +29,9 @@ import {
   type HomeFeedSnapshot,
 } from '../store/homeFeedCache';
 import { useConnectionStatus } from '../hooks/useConnectionStatus';
-import { useOfflineBrowseContext } from '../hooks/useOfflineBrowseContext';
-import { useOfflineBrowseReloadToken } from '../hooks/useOfflineBrowseReloadToken';
-import { useDevOfflineBrowseStore } from '../store/devOfflineBrowseStore';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { useOfflineBrowseReloadToken } from '@/features/offline';
+import { useDevOfflineBrowseStore } from '@/features/offline';
 
 /** Match Random Albums overshoot when mix filter uses album/artist axes so hero + discover row can still fill. */
 const HOME_RANDOM_FETCH = 100;

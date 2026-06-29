@@ -2,7 +2,7 @@ import type { ServerProfile } from './authStoreTypes';
 import type { HotCacheEntry } from './hotCacheStoreTypes';
 import { localPlaybackEntryKey } from './localPlaybackKeys';
 import type { LocalPlaybackEntry, PinSource } from './localPlaybackStore';
-import type { OfflineAlbumMeta, OfflineTrackMeta } from './offlineStore';
+import type { OfflineAlbumMeta, OfflineTrackMeta } from '@/features/offline';
 import { resolveIndexKey } from '../utils/server/serverIndexKey';
 
 const MIGRATION_FLAG = 'psysonic-local-playback-migrated-v1';

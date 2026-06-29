@@ -6,7 +6,7 @@ import {
   Loader2, Play, Radio, Share2, Shuffle, Users,
 } from 'lucide-react';
 import type { SubsonicAlbum, SubsonicArtist, SubsonicArtistInfo } from '../../api/subsonicTypes';
-import { useOfflineStore } from '../../store/offlineStore';
+import { useOfflineStore } from '@/features/offline';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { useArtistOfflineState } from '../../hooks/useArtistOfflineState';
@@ -22,7 +22,7 @@ import LastfmIcon from '../LastfmIcon';
 import WikipediaIcon from '../WikipediaIcon';
 import StarRating from '../StarRating';
 import { tooltipAttrs } from '@/ui/tooltipAttrs';
-import { offlineActionPolicy, type OfflineActionPolicy } from '../../utils/offline/offlineActionPolicy';
+import { offlineActionPolicy, type OfflineActionPolicy } from '@/features/offline';
 
 interface Props {
   artist: SubsonicArtist;

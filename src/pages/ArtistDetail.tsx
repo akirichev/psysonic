@@ -20,8 +20,8 @@ import { useArtistSimilarArtists } from '../hooks/useArtistSimilarArtists';
 import {
   runArtistDetailPlayAll, runArtistDetailPlayTopSong, runArtistDetailShuffle, runArtistDetailStartRadio,
 } from '../utils/componentHelpers/runArtistDetailPlay';
-import { useOfflineBrowseContext } from '../hooks/useOfflineBrowseContext';
-import { offlineActionPolicy } from '../utils/offline/offlineActionPolicy';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineActionPolicy } from '@/features/offline';
 import {
   runArtistEntityRating, runArtistToggleStar, runArtistShare, runArtistImageUpload,
 } from '../utils/componentHelpers/runArtistDetailActions';

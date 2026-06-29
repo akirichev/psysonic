@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { useAnalysisStrategyStore } from '../../store/analysisStrategyStore';
 import { useCoverStrategyStore } from '../../store/coverStrategyStore';
 import { useLocalPlaybackStore } from '../../store/localPlaybackStore';
-import { useOfflineStore } from '../../store/offlineStore';
+import { useOfflineStore } from '@/features/offline';
 import { usePlayerStore } from '../../store/playerStore';
 import { rewriteFrontendStoreKeysForRemap } from './rewriteFrontendStoreKeys';
 

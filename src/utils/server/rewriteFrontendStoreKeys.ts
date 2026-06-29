@@ -3,7 +3,7 @@ import { useAnalysisStrategyStore } from '../../store/analysisStrategyStore';
 import { useCoverStrategyStore } from '../../store/coverStrategyStore';
 import { useLocalPlaybackStore } from '../../store/localPlaybackStore';
 import { useLibraryIndexStore } from '../../store/libraryIndexStore';
-import { useOfflineStore } from '../../store/offlineStore';
+import { useOfflineStore } from '@/features/offline';
 import { usePlayerStore } from '../../store/playerStore';
 import { serverIndexKeyFromUrl } from './serverIndexKey';
 

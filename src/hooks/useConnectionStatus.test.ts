@@ -18,7 +18,7 @@ vi.mock('@/utils/perf/perfFlags', () => ({
 }));
 
 import { pingWithCredentialsForProfile } from '@/api/subsonic';
-import { useDevOfflineBrowseStore } from '@/store/devOfflineBrowseStore';
+import { useDevOfflineBrowseStore } from '@/features/offline';
 import { resetActiveServerConnectionSnapshot, setConnectionStatus } from '@/utils/network/activeServerReachability';
 import { useConnectionStatus } from './useConnectionStatus';
 

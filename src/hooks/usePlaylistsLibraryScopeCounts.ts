@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { filterSongsToActiveLibrary } from '../api/subsonicLibrary';
 import { getPlaylist } from '../api/subsonicPlaylists';
 import type { SubsonicPlaylist } from '../api/subsonicTypes';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
+import { useOfflineBrowseContext } from '@/features/offline';
 
 export interface PlaylistsLibraryScopeCountsResult {
   filteredSongCountByPlaylist: Record<string, number>;

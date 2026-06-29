@@ -14,7 +14,7 @@ import { codecLabel, type ColKey } from '../../utils/componentHelpers/albumTrack
 import { formatLongDuration } from '../../utils/format/formatDuration';
 import { formatLastSeen } from '../../utils/componentHelpers/userMgmtHelpers';
 import i18n from '../../i18n';
-import { offlineActionPolicy, type OfflineActionPolicy } from '../../utils/offline/offlineActionPolicy';
+import { offlineActionPolicy, type OfflineActionPolicy } from '@/features/offline';
 import { resolveTrackArtistRefs } from '../../utils/playback/trackArtistRefs';
 
 type ContextMenuFn = (

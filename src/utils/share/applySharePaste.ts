@@ -1,5 +1,5 @@
 import { getSong } from '../../api/subsonicLibrary';
-import { resolveAlbum, resolveArtist } from '../offline/offlineMediaResolve';
+import { resolveAlbum, resolveArtist } from '@/features/offline';
 import type { SubsonicSong } from '../../api/subsonicTypes';
 import { songToTrack } from '../playback/songToTrack';
 import type { Location, NavigateFunction } from 'react-router-dom';

@@ -8,7 +8,7 @@ import {
 import {
   disableFavoritesOfflineSync,
   scheduleFavoritesOfflineSync,
-} from '@/utils/offline/favoritesOfflineSync';
+} from '@/features/offline';
 
 function semaphoreTooltipKey(semaphore: FavoritesOfflineSemaphore): string {
   switch (semaphore) {

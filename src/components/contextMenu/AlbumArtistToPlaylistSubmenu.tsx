@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { resolveAlbum, resolveArtist, resolveMediaServerId } from '../../utils/offline/offlineMediaResolve';
+import { resolveAlbum, resolveArtist, resolveMediaServerId } from '@/features/offline';
 import { AddToPlaylistSubmenu } from './AddToPlaylistSubmenu';
 
 interface AlbumProps {

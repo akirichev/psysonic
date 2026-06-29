@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { useFavoritesOfflineSyncStore } from '@/store/favoritesOfflineSyncStore';
+import { useFavoritesOfflineSyncStore } from '@/features/offline';
 import { useLocalPlaybackStore } from '@/store/localPlaybackStore';
-import { useOfflineJobStore } from '@/store/offlineJobStore';
-import { FAVORITES_OFFLINE_JOB_ID } from '@/utils/offline/favoritesOfflineConstants';
-import { entryBelongsToServer } from '@/utils/offline/offlineLibraryHelpers';
+import { useOfflineJobStore } from '@/features/offline';
+import { FAVORITES_OFFLINE_JOB_ID } from '@/features/offline';
+import { entryBelongsToServer } from '@/features/offline';
 
 export type FavoritesOfflineUiStatus =
   | 'disabled'

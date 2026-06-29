@@ -4,8 +4,8 @@ import { filterSongsToActiveLibrary } from '../../api/subsonicLibrary';
 import type { SubsonicPlaylist, SubsonicSong } from '../../api/subsonicTypes';
 import { useAuthStore } from '../../store/authStore';
 import { usePlaylistStore } from '../../store/playlistStore';
-import { isOfflineBrowseActive } from '../offline/offlineBrowseMode';
-import { resolvePlaylist } from '../offline/offlineMediaResolve';
+import { isOfflineBrowseActive } from '@/features/offline';
+import { resolvePlaylist } from '@/features/offline';
 
 export interface RunPlaylistLoadDeps {
   id: string;

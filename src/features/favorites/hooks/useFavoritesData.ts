@@ -9,12 +9,12 @@ import { usePlayerStore } from '@/store/playerStore';
 import type { TopFavoriteArtist } from '@/features/favorites/components/TopFavoriteArtists';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { isActiveServerReachable } from '@/utils/network/activeServerReachability';
-import { useOfflineBrowseContext } from '@/hooks/useOfflineBrowseContext';
-import { useOfflineBrowseReloadToken } from '@/hooks/useOfflineBrowseReloadToken';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { useOfflineBrowseReloadToken } from '@/features/offline';
 import {
   loadStarredFromAllLibraryIndexes,
   loadStarredFromAllServersOnline,
-} from '@/utils/offline/offlineStarredLoad';
+} from '@/features/offline';
 
 export interface FavoritesDataResult {
   albums: SubsonicAlbum[];

@@ -3,7 +3,7 @@ import { ListPlus, Search, X } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { useSelectionStore } from '../../store/selectionStore';
 import { AddToPlaylistSubmenu } from '../ContextMenu';
-import { offlineActionPolicy, type OfflineActionPolicy } from '../../utils/offline/offlineActionPolicy';
+import { offlineActionPolicy, type OfflineActionPolicy } from '@/features/offline';
 
 interface Props {
   filterText: string;

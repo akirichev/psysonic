@@ -1,5 +1,5 @@
 import { getRandomAlbums } from '../api/subsonicLibrary';
-import { resolveAlbum, resolveMediaServerId } from '../utils/offline/offlineMediaResolve';
+import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 import type { SubsonicAlbum } from '../api/subsonicTypes';
 import { songToTrack } from '../utils/playback/songToTrack';
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';

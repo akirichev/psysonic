@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useZipDownloadBridge } from '../hooks/tauriBridge/useZipDownloadBridge';
+import { useZipDownloadBridge } from '@/features/offline';
 import { usePreviewBridge } from '../hooks/tauriBridge/usePreviewBridge';
 import { useAudioDeviceBridge } from '../hooks/tauriBridge/useAudioDeviceBridge';
 import { useCliBridge } from '../hooks/tauriBridge/useCliBridge';

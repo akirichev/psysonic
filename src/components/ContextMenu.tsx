@@ -17,11 +17,11 @@ import { useContextMenuKeyboardNav } from '../hooks/useContextMenuKeyboardNav';
 import { useContextMenuRating } from '../hooks/useContextMenuRating';
 import { usePlaybackLibraryNavigate } from '../hooks/usePlaybackLibraryNavigate';
 import { useNavigate } from 'react-router-dom';
-import { useOfflineBrowseContext } from '../hooks/useOfflineBrowseContext';
+import { useOfflineBrowseContext } from '@/features/offline';
 import {
   offlineActionPolicy,
   type OfflineSurface,
-} from '../utils/offline/offlineActionPolicy';
+} from '@/features/offline';
 import ContextMenuItems from './contextMenu/ContextMenuItems';
 
 function contextMenuSurfaceForType(type: string | null): OfflineSurface {

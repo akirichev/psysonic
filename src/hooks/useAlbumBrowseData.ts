@@ -30,13 +30,13 @@ import {
   ALBUM_YEAR_FILTER_DEBOUNCE_MS,
   resolveAlbumYearBounds,
 } from '../utils/library/albumYearFilter';
-import { loadOfflineAlbumBrowseInitial } from '../utils/offline/offlineAlbumBrowseCatalog';
-import { useOfflineBrowseReloadToken } from './useOfflineBrowseReloadToken';
+import { loadOfflineAlbumBrowseInitial } from '@/features/offline';
+import { useOfflineBrowseReloadToken } from '@/features/offline';
 import {
   fetchAlbumBrowseCatalogChunk,
   mergeAlbumCatalogChunk,
 } from '../utils/library/albumBrowseCatalogChunk';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
+import { useOfflineBrowseContext } from '@/features/offline';
 import { useClientSliceInfiniteScroll } from './useClientSliceInfiniteScroll';
 import { useDebouncedValue } from './useDebouncedValue';
 import { useInpageScrollSentinel } from './useInpageScrollSentinel';

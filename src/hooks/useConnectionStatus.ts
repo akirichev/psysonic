@@ -19,7 +19,7 @@ import { usePerfProbeFlags } from '../utils/perf/perfFlags';
 import {
   isDevOfflineBrowseForced,
   useDevOfflineBrowseStore,
-} from '../store/devOfflineBrowseStore';
+} from '@/features/offline';
 
 // Backward-compatible re-export for call sites that still import from the hook.
 export { isLanUrl };

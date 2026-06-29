@@ -5,8 +5,8 @@ import { useAuthStore } from './store/authStore';
 import { useLocalPlaybackStore } from './store/localPlaybackStore';
 import { layoutFingerprintFromLibraryTrack } from './utils/media/mediaLayout';
 import { getMediaDir } from './utils/media/mediaDir';
-import { runLegacyOfflineFileMigration } from './utils/migrations/legacyOfflineFileMigration';
-import { reconcileLibraryTierForServer } from './utils/offline/libraryTierReconcile';
+import { runLegacyOfflineFileMigration } from '@/features/offline';
+import { reconcileLibraryTierForServer } from '@/features/offline';
 import { resolveServerIdForIndexKey } from './utils/server/serverLookup';
 import { serverIndexKeyFromUrl } from './utils/server/serverIndexKey';
 

@@ -9,8 +9,8 @@ import {
   runNetworkBrowseArtists,
   type LibrarySearchSurface,
 } from '../utils/library/browseTextSearch';
-import { useOfflineBrowseContext } from './useOfflineBrowseContext';
-import { offlineLocalBrowseEnabled, searchOfflineLocalArtists } from '../utils/offline/offlineLocalBrowse';
+import { useOfflineBrowseContext } from '@/features/offline';
+import { offlineLocalBrowseEnabled, searchOfflineLocalArtists } from '@/features/offline';
 
 /**
  * Debounced artist/composer name search with local-vs-network race when the
