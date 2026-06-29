@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * New **Square Corners** toggle under **Settings → Appearance → Visual Options → Display** overrides the active theme to render cards and cover art with square, non-rounded corners. Covers album, playlist, artist and song cards, detail-page cover art, the Now Playing / Radio and fullscreen views, the cover lightbox, the queue cover, and the mini player. Off by default; buttons, inputs and dialogs keep the theme's corners.
 
 
+## Fixed
+
+### Per-track covers when playing from a playlist
+
+**By [@Psychotoxical](https://github.com/Psychotoxical), PR [#1218](https://github.com/Psychotoxical/psysonic/pull/1218)**, reported by The Cup Slammer on Discord
+
+* Playing a song from a playlist could show the song's own cover art in Now Playing instead of its album cover, while playing the same song from its album page showed the album cover. Now Playing now consistently uses the album cover, matching album-page playback. Albums with genuine per-disc artwork are unaffected.
+
+
 ## [1.49.0] - 2026-06-29
 
 ## Added
