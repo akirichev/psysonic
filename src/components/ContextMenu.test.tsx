@@ -30,11 +30,11 @@ vi.mock('@/api/subsonic', () => ({
 }));
 
 
-vi.mock('@/features/orbit', () => ({
+vi.mock('@/features/orbit/utils/orbitBulkGuard', () => ({
   orbitBulkGuard: vi.fn(async () => true),
 }));
 
-vi.mock('@/features/offline', () => ({
+vi.mock('@/features/offline/hooks/useOfflineBrowseContext', () => ({
   useOfflineBrowseContext: () => ({
     active: false,
     serverId: 'srv-1',

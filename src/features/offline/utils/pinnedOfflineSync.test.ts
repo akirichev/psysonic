@@ -29,7 +29,7 @@ vi.mock('@/utils/network/activeServerReachability', () => ({
   onActiveServerBecameReachable: () => () => {},
 }));
 
-vi.mock('@/features/playlist', () => ({
+vi.mock('@/features/playlist/api/subsonicPlaylists', () => ({
   getPlaylistForServer: (serverId: string, id: string) => getPlaylistMock(serverId, id),
 }));
 
