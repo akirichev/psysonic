@@ -10,8 +10,8 @@ import {
 import { clearPreloadingIds } from '@/features/playback/store/gaplessPreloadState';
 import { deriveNormalizationSnapshot } from '@/features/playback/store/normalizationSnapshot';
 import type { PlayerState, QueueItemRef } from '@/features/playback/store/playerStoreTypes';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
-import { seedQueueResolver } from '@/utils/library/queueTrackResolver';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
+import { seedQueueResolver } from '@/features/playback/store/queueTrackResolver';
 import { canonicalQueueServerKey } from '@/utils/server/serverIndexKey';
 import { sameQueueTrackId } from '@/features/playback/utils/playback/queueIdentity';
 import { queueUndoRestoreAudioEngine } from '@/features/playback/store/queueUndoAudioRestore';

@@ -29,7 +29,7 @@ vi.mock('@/features/playback/store/infiniteQueueState', () => ({
 }));
 vi.mock('@/features/playback/store/engineState', () => ({ setIsAudioPaused: vi.fn() }));
 vi.mock('@/features/playback/store/skipStarRating', () => ({ applySkipStarOnManualNext: vi.fn() }));
-vi.mock('@/utils/library/queueTrackView', () => ({
+vi.mock('@/features/playback/store/queueTrackView', () => ({
   resolveQueueTrack: (ref: { trackId: string }) => ({
     id: ref.trackId,
     artistId: 'a1',
@@ -41,8 +41,8 @@ vi.mock('@/features/playback/utils/playback/buildInfiniteQueueCandidates', () =>
 }));
 vi.mock('@/features/playback/utils/playback/songToTrack', () => ({ songToTrack: (s: unknown) => s }));
 vi.mock('@/features/playback/utils/playback/playbackServer', () => ({ ensureQueueServerPinned: () => null }));
-vi.mock('@/utils/library/queueTrackResolver', () => ({ seedQueueResolver: vi.fn() }));
-vi.mock('@/utils/library/queueItemRef', () => ({ toQueueItemRefs: () => [] }));
+vi.mock('@/features/playback/store/queueTrackResolver', () => ({ seedQueueResolver: vi.fn() }));
+vi.mock('@/features/playback/store/queueItemRef', () => ({ toQueueItemRefs: () => [] }));
 
 import { runNext } from '@/features/playback/store/nextAction';
 

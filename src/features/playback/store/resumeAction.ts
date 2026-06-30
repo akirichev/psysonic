@@ -27,7 +27,7 @@ import {
   recordEnginePlayUrl,
 } from '@/features/playback/store/playbackUrlRouting';
 import type { PlayerState } from '@/features/playback/store/playerStoreTypes';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import { promoteCompletedStreamToHotCache } from '@/features/playback/store/promoteStreamCache';
 import { pushQueueOnPlaybackStart, flushLocalQueueWhenTakingPlayback } from '@/features/playback/store/queueSync';
 import { markPlaybackActive } from '@/features/playback/store/queuePlaybackIdle';

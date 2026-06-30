@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { Track } from '@/features/playback/store/playerStoreTypes';
-import { getCachedTrack, _resetQueueResolverForTest } from '@/utils/library/queueTrackResolver';
+import { getCachedTrack, _resetQueueResolverForTest } from '@/features/playback/store/queueTrackResolver';
 import { seedQueue } from '@/test/helpers/factories';
 import { useQueueTrackAt, useCurrentTrack, useQueueItems } from '@/features/queue/hooks/useQueueTracks';
 

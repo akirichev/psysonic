@@ -2,8 +2,8 @@ import { getPlayQueueForServer, type PlayQueueResult } from '@/lib/api/subsonicP
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
 import { bindQueueServerId } from '@/features/playback/utils/playback/playbackServer';
 import { resolveServerIdForIndexKey } from '@/utils/server/serverLookup';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
-import { seedQueueResolver } from '@/utils/library/queueTrackResolver';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
+import { seedQueueResolver } from '@/features/playback/store/queueTrackResolver';
 import type { Track } from '@/features/playback/store/playerStoreTypes';
 import { useAuthStore } from '@/store/authStore';
 import { usePlayerStore } from '@/features/playback/store/playerStore';

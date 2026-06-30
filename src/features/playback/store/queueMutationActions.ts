@@ -4,8 +4,8 @@ import { useAuthStore } from '@/store/authStore';
 import { setIsAudioPaused } from '@/features/playback/store/engineState';
 import { prefetchLoudnessForEnqueuedTracks } from '@/features/playback/store/loudnessPrefetch';
 import type { PlayerState, QueueItemRef, Track } from '@/features/playback/store/playerStoreTypes';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
-import { seedQueueResolver } from '@/utils/library/queueTrackResolver';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
+import { seedQueueResolver } from '@/features/playback/store/queueTrackResolver';
 import { pushQueueUndoFromGetter } from '@/features/playback/store/queueUndo';
 import { syncUserQueueMutationToServer } from '@/features/playback/store/queueSync';
 import {

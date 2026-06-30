@@ -11,7 +11,7 @@ import { PlaylistArtistCell } from '@/features/playlist/components/PlaylistArtis
 import { useThemeStore } from '@/store/themeStore';
 import { usePlaylistLayoutStore } from '@/features/playlist/store/playlistLayoutStore';
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
-import { getQueueTracksView } from '@/utils/library/queueTrackView';
+import { getQueueTracksView } from '@/features/playback/store/queueTrackView';
 import { codecLabel } from '@/utils/componentHelpers/playlistDetailHelpers';
 import { formatLastSeen } from '@/utils/componentHelpers/userMgmtHelpers';
 import { formatTrackTime } from '@/lib/format/formatDuration';

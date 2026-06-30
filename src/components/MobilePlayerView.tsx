@@ -17,11 +17,11 @@ import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { useCachedUrl } from '@/ui/CachedImage';
 import { OpenArtistRefInline } from '@/features/artist';
 import { formatTrackTime } from '@/lib/format/formatDuration';
-import { resolveQueueTrack } from '../utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import {
   getQueueResolverVersion,
   subscribeQueueResolver,
-} from '../utils/library/queueTrackResolver';
+} from '@/features/playback/store/queueTrackResolver';
 import LyricsPane from './LyricsPane';
 import { usePlaybackDelayPress } from '../hooks/usePlaybackDelayPress';
 import PlaybackDelayModal from './PlaybackDelayModal';

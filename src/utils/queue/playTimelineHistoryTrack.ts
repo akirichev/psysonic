@@ -1,7 +1,7 @@
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { QueueItemRef } from '@/features/playback/store/playerStoreTypes';
-import { getQueueTracksView, resolveQueueTrack } from '../library/queueTrackView';
-import { resolveBatch } from '../library/queueTrackResolver';
+import { getQueueTracksView, resolveQueueTrack } from '@/features/playback/store/queueTrackView';
+import { resolveBatch } from '@/features/playback/store/queueTrackResolver';
 import { findQueueItemRefIndex, sameQueueItemRef } from '@/features/playback/utils/playback/queueIdentity';
 
 /**

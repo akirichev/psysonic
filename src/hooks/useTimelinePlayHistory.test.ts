@@ -17,8 +17,8 @@ vi.mock('../utils/queue/timelineBootstrapReady', () => ({
   timelineBootstrapIndexReady: vi.fn(),
 }));
 
-vi.mock('../utils/library/queueTrackResolver', async importOriginal => {
-  const actual = await importOriginal<typeof import('../utils/library/queueTrackResolver')>();
+vi.mock('@/features/playback/store/queueTrackResolver', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/features/playback/store/queueTrackResolver')>();
   return { ...actual, seedQueueResolver: vi.fn() };
 });
 

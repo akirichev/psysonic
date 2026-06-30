@@ -8,7 +8,7 @@
  * track here, off the render path.
  */
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { resolveVisibleRange } from '@/utils/library/queueTrackResolver';
+import { resolveVisibleRange } from '@/features/playback/store/queueTrackResolver';
 
 usePlayerStore.subscribe((state, prev) => {
   // Re-seed when the queue refs or the current index change — the prefetch

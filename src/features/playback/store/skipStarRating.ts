@@ -1,7 +1,7 @@
 import type { Track } from '@/features/playback/store/playerStoreTypes';
 import { useAuthStore } from '@/store/authStore';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { getCachedTrack } from '@/utils/library/queueTrackResolver';
+import { getCachedTrack } from '@/features/playback/store/queueTrackResolver';
 import { queueSongRating } from '@/features/playback/store/pendingStarSync';
 /**
  * Skip → 1★ behaviour: every user-initiated `next()` on an unrated track

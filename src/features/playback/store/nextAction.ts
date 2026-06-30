@@ -11,9 +11,9 @@ import {
 } from '@/features/playback/store/infiniteQueueState';
 import { isInOrbitSession } from '@/store/orbitRuntime';
 import type { PlayerState, QueueItemRef, Track } from '@/features/playback/store/playerStoreTypes';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
-import { seedQueueResolver } from '@/utils/library/queueTrackResolver';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
+import { seedQueueResolver } from '@/features/playback/store/queueTrackResolver';
 import {
   addRadioSessionSeen,
   getCurrentRadioArtistId,

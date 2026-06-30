@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { makeTrack } from '@/test/helpers/factories';
 import { resetAllStores } from '@/test/helpers/storeReset';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
 
 vi.mock('@/api/coverCache', async importOriginal => {
   const actual = await importOriginal<typeof import('@/api/coverCache')>();

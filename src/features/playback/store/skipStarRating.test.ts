@@ -28,7 +28,7 @@ vi.mock('@/features/playback/store/playerStore', () => ({
 }));
 
 import { applySkipStarOnManualNext } from '@/features/playback/store/skipStarRating';
-import { seedQueueResolver, _resetQueueResolverForTest } from '@/utils/library/queueTrackResolver';
+import { seedQueueResolver, _resetQueueResolverForTest } from '@/features/playback/store/queueTrackResolver';
 
 function track(id: string, overrides: Partial<Track> = {}): Track {
   return {

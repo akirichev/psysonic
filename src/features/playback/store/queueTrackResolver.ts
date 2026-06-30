@@ -3,10 +3,10 @@ import { getSongForServer } from '@/lib/api/subsonicLibrary';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { QueueItemRef, Track } from '@/features/playback/store/playerStoreTypes';
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
-import { resolveServerIdForIndexKey } from '../server/serverLookup';
-import { canonicalQueueServerKey } from '../server/serverIndexKey';
-import { trackToSong } from './advancedSearchLocal';
-import { libraryIsReady } from './libraryReady';
+import { resolveServerIdForIndexKey } from '@/utils/server/serverLookup';
+import { canonicalQueueServerKey } from '@/utils/server/serverIndexKey';
+import { trackToSong } from '@/utils/library/advancedSearchLocal';
+import { libraryIsReady } from '@/utils/library/libraryReady';
 
 /**
  * Queue track resolver (thin-state phase 2). Resolves `QueueItemRef`s to full

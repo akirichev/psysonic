@@ -16,8 +16,8 @@ import {
   getCachedTrack,
   seedQueueResolver,
   _resetQueueResolverForTest,
-} from '@/utils/library/queueTrackResolver';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
+} from '@/features/playback/store/queueTrackResolver';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
 
 const track = (id: string): Track => ({
   id, title: id, artist: '', album: 'A', albumId: 'A', duration: 1,

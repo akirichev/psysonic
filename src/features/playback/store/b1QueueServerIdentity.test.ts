@@ -16,13 +16,13 @@ import { useAuthStore } from '@/store/authStore';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { useLibraryIndexStore } from '@/store/libraryIndexStore';
 import { resetAuthStore, resetPlayerStore } from '@/test/helpers/storeReset';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
 import { bindQueueServerForPlayback } from '@/features/playback/utils/playback/playbackServer';
 import {
   _resetQueueResolverForTest,
   getCachedTrack,
   seedQueueResolver,
-} from '@/utils/library/queueTrackResolver';
+} from '@/features/playback/store/queueTrackResolver';
 import { applyQueueHistorySnapshot } from '@/features/playback/store/applyQueueHistorySnapshot';
 import {
   pushQueueUndoSnapshot,

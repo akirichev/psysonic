@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { libraryGetRecentPlaySessions, type PlaySessionRecentTrack } from '@/lib/api/library';
-import { seedQueueResolver, resolveBatch } from '../utils/library/queueTrackResolver';
+import { seedQueueResolver, resolveBatch } from '@/features/playback/store/queueTrackResolver';
 import {
   applyTimelineBootstrap,
   getTimelineSessionHistorySnapshot,

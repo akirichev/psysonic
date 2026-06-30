@@ -10,7 +10,7 @@ import {
 import { deriveNormalizationSnapshot } from '@/features/playback/store/normalizationSnapshot';
 import { invokeAudioUpdateReplayGainDeduped } from '@/features/playback/store/normalizationIpcDedupe';
 import type { PlayerState } from '@/features/playback/store/playerStoreTypes';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 
 type SetState = (
   partial: Partial<PlayerState> | ((state: PlayerState) => Partial<PlayerState>),

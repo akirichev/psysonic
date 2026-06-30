@@ -5,7 +5,7 @@
  * to restore list scroll position after an undo/redo commit.
  */
 import type { PlayerState, Track } from '@/features/playback/store/playerStoreTypes';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   QUEUE_UNDO_MAX,

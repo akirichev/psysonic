@@ -5,7 +5,7 @@ import {
   playbackReportStart,
   playbackReportStopped,
 } from '@/features/playback/store/playbackReportSession';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import { invoke } from '@tauri-apps/api/core';
 import { getMusicNetworkRuntimeOrNull } from '@/music-network';
 import { setDeferHotCachePrefetch } from '@/utils/cache/hotCacheGate';

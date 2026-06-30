@@ -58,9 +58,9 @@ import {
   recordEnginePlayUrl,
 } from '@/features/playback/store/playbackUrlRouting';
 import type { PlayerState, Track } from '@/features/playback/store/playerStoreTypes';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
-import { getQueueTracksView, resolveQueueTrack } from '@/utils/library/queueTrackView';
-import { seedQueueResolver } from '@/utils/library/queueTrackResolver';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
+import { getQueueTracksView, resolveQueueTrack } from '@/features/playback/store/queueTrackView';
+import { seedQueueResolver } from '@/features/playback/store/queueTrackResolver';
 import { promoteCompletedStreamToHotCache } from '@/features/playback/store/promoteStreamCache';
 import { pushQueueOnPlaybackStart } from '@/features/playback/store/queueSync';
 import { playListenSessionFinalize } from '@/features/playback/store/playListenSession';

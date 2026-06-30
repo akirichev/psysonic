@@ -1,5 +1,5 @@
 import type { QueueItemRef, Track } from '@/features/playback/store/playerStoreTypes';
-import { getQueueTracksView } from '@/utils/library/queueTrackView';
+import { getQueueTracksView } from '@/features/playback/store/queueTrackView';
 import { scheduleHotCachePrefetchForTrack } from '@/hotCachePrefetch';
 import { getPlaybackCacheServerKey } from '@/features/playback/utils/playback/playbackServer';
 import { useAuthStore } from '@/store/authStore';

@@ -3,7 +3,7 @@ import { listen, emitTo } from '@tauri-apps/api/event';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { useAuthStore } from '@/store/authStore';
 import { setTransitionMode, type TransitionMode } from '@/features/playback/utils/playback/playbackTransition';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import type { SubsonicOpenArtistRef } from '@/lib/api/subsonicTypes';
 import type { Track } from '@/features/playback/store/playerStoreTypes';
 

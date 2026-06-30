@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { getPlaybackProgressSnapshot } from '@/features/playback/store/playbackProgress';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { useAuthStore } from '../../store/authStore';
-import { resolveQueueTrack } from '../../utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 
 /** Half-width of the CLI snapshot queue window (thin-state — like the mini
  *  bridge, the full 50k queue must not serialize over IPC on every change). */

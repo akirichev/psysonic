@@ -6,7 +6,7 @@ import { resetAllStores } from '../test/helpers/storeReset';
 import { invokeMock, onInvoke } from '../test/mocks/tauri';
 import { coverArtRef } from '../cover/ref';
 import { coverCacheEnsure, coverCacheRestHost, librarySqlServerId } from './coverCache';
-import { toQueueItemRefs } from '../utils/library/queueItemRef';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
 
 describe('librarySqlServerId', () => {
   beforeEach(() => {

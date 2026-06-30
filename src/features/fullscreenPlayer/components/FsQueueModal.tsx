@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { Track } from '@/features/playback/store/playerStoreTypes';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import {
   getQueueResolverVersion,
   subscribeQueueResolver,
-} from '@/utils/library/queueTrackResolver';
+} from '@/features/playback/store/queueTrackResolver';
 import { formatTrackTime } from '@/lib/format/formatDuration';
 
 interface Props {

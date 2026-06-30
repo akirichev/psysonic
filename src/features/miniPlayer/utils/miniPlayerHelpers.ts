@@ -1,5 +1,5 @@
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import type { MiniSyncPayload, MiniTrackInfo } from '@/features/miniPlayer/utils/miniPlayerBridge';
 import type { Track } from '@/features/playback/store/playerStoreTypes';
 

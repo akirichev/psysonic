@@ -9,11 +9,11 @@ import type { QueueDisplayMode } from '@/store/authStoreTypes';
 import type { DurationMode } from '@/utils/componentHelpers/queuePanelHelpers';
 import { formatLongDuration } from '@/lib/format/formatDuration';
 import { formatClockTime } from '@/lib/format/formatClockTime';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import {
   getQueueResolverVersion,
   subscribeQueueResolver,
-} from '@/utils/library/queueTrackResolver';
+} from '@/features/playback/store/queueTrackResolver';
 
 interface Props {
   queue: QueueItemRef[];

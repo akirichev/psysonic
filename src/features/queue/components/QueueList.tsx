@@ -8,11 +8,11 @@ import { useLuckyMixStore } from '@/store/luckyMixStore';
 import type { QueueItemRef, PlayerState } from '@/features/playback/store/playerStoreTypes';
 import type { QueueDisplayMode } from '@/store/authStoreTypes';
 import { formatTrackTime } from '@/lib/format/formatDuration';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import {
   getQueueResolverVersion,
   subscribeQueueResolver,
-} from '@/utils/library/queueTrackResolver';
+} from '@/features/playback/store/queueTrackResolver';
 import { findQueueItemRefIndex } from '@/features/playback/utils/playback/queueIdentity';
 import type { TimelineDisplayRow } from '@/utils/queue/buildTimelineDisplayRows';
 import { findTimelineScrollLocalIndex } from '@/utils/queue/buildTimelineDisplayRows';

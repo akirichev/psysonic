@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { QueueItemRef, Track } from '@/features/playback/store/playerStoreTypes';
-import { seedQueueResolver, _resetQueueResolverForTest } from '@/utils/library/queueTrackResolver';
+import { seedQueueResolver, _resetQueueResolverForTest } from '@/features/playback/store/queueTrackResolver';
 import { resolveQueueTrack, getQueueTracksView } from './queueTrackView';
 
 const track = (id: string, over: Partial<Track> = {}): Track =>

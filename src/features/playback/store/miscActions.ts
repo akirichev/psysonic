@@ -12,9 +12,9 @@ import { reseedLoudnessForTrackId } from '@/features/playback/store/loudnessRese
 import { getPlaybackProgressSnapshot } from '@/features/playback/store/playbackProgress';
 import { shouldRebindPlaybackToHotCache } from '@/features/playback/store/playbackUrlRouting';
 import type { PlayerState } from '@/features/playback/store/playerStoreTypes';
-import { toQueueItemRefs } from '@/utils/library/queueItemRef';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
-import { seedQueueResolver } from '@/utils/library/queueTrackResolver';
+import { toQueueItemRefs } from '@/features/playback/store/queueItemRef';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
+import { seedQueueResolver } from '@/features/playback/store/queueTrackResolver';
 import { pushQueueUndoFromGetter } from '@/features/playback/store/queueUndo';
 import { syncUserQueueMutationToServer } from '@/features/playback/store/queueSync';
 import {

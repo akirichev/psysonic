@@ -40,7 +40,7 @@ vi.mock('@/features/playback/store/playerStore', () => ({
     }),
   },
 }));
-vi.mock('@/utils/library/queueTrackView', () => ({
+vi.mock('@/features/playback/store/queueTrackView', () => ({
   getQueueTracksView: vi.fn((refs: { trackId: string }[]) =>
     refs.map(r => ({
       id: r.trackId,

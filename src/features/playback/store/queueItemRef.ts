@@ -1,6 +1,6 @@
 import type { QueueItemRef, Track } from '@/features/playback/store/playerStoreTypes';
 import { stampTrackServerId } from '@/features/playback/utils/playback/trackServerScope';
-import { canonicalQueueServerKey } from '../server/serverIndexKey';
+import { canonicalQueueServerKey } from '@/utils/server/serverIndexKey';
 
 /**
  * Derive thin `QueueItemRef`s from a `Track[]` queue (thin-state). Per-item

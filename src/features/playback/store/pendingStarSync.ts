@@ -1,6 +1,6 @@
 import { setRating, star, unstar } from '@/lib/api/subsonicStarRating';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { patchCachedTrack } from '@/utils/library/queueTrackResolver';
+import { patchCachedTrack } from '@/features/playback/store/queueTrackResolver';
 
 /**
  * F4 — pending-sync for **song** star + rating (spec §6.5 / R7-18).

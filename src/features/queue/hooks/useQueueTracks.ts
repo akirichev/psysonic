@@ -1,11 +1,11 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { QueueItemRef, Track } from '@/features/playback/store/playerStoreTypes';
-import { resolveQueueTrack } from '@/utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/features/playback/store/queueTrackView';
 import {
   getQueueResolverVersion,
   subscribeQueueResolver,
-} from '@/utils/library/queueTrackResolver';
+} from '@/features/playback/store/queueTrackResolver';
 
 /**
  * Stable queue selectors (queue thin-state). The store is refs-canonical now:
