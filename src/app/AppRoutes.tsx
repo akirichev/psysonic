@@ -29,8 +29,8 @@ const PlaylistDetail = lazy(() => import('@/features/playlist/pages/PlaylistDeta
 const NowPlayingPage = lazy(() => import('@/features/nowPlaying/pages/NowPlaying'));
 const Settings = lazy(() => import('@/features/settings/pages/Settings'));
 const Statistics = lazy(() => import('@/features/stats/pages/Statistics'));
-const Help = lazy(() => import('../pages/Help'));
-const WhatsNew = lazy(() => import('../pages/WhatsNew'));
+const Help = lazy(() => import('@/features/help/pages/Help'));
+const WhatsNew = lazy(() => import('@/features/whatsNew/pages/WhatsNew'));
 const DeviceSync = lazy(() => import('@/features/deviceSync/pages/DeviceSync'));
 const OfflineLibrary = lazy(() => import('@/features/offline/pages/OfflineLibrary'));
 const LabelAlbums = lazy(() => import('@/features/album/pages/LabelAlbums'));
