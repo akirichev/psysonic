@@ -13,7 +13,7 @@ import { useArtistFanart } from '@/cover/useArtistFanart';
 import { backdropFromConfig } from '@/cover/artistBackdrop';
 import { useThemeStore } from '@/store/themeStore';
 import { useFsIdleFade } from '@/hooks/useFsIdleFade';
-import { useQueueTrackAt } from '@/hooks/useQueueTracks';
+import { useQueueTrackAt } from '@/features/queue';
 import { WaveformSeek } from '@/features/waveform';
 import { FsQueueModal } from '@/features/fullscreenPlayer/components/FsQueueModal';
 import { FsLyricsApple } from '@/features/fullscreenPlayer/components/FsLyricsApple';

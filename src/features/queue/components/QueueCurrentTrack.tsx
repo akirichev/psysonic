@@ -1,24 +1,24 @@
 import React from 'react';
 import { ChevronDown, FolderOpen, HardDrive, Music, Waves } from 'lucide-react';
 import type { TFunction } from 'i18next';
-import type { Track } from '../../store/playerStoreTypes';
-import type { LoudnessLufsPreset, NormalizationEngine } from '../../store/authStoreTypes';
-import type { PlaybackSourceKind } from '../../utils/playback/resolvePlaybackUrl';
+import type { Track } from '@/store/playerStoreTypes';
+import type { LoudnessLufsPreset, NormalizationEngine } from '@/store/authStoreTypes';
+import type { PlaybackSourceKind } from '@/utils/playback/resolvePlaybackUrl';
 import {
   formatQueueReplayGainParts,
   renderStars,
-} from '../../utils/componentHelpers/queuePanelHelpers';
-import { loudnessGainPlaceholderUntilCacheDb } from '../../utils/audio/loudnessPlaceholder';
-import { effectiveLoudnessPreAnalysisAttenuationDb } from '../../utils/audio/loudnessPreAnalysisSlider';
-import { formatQueueBpmTech, formatQueueMoodLabels } from '../../utils/library/trackEnrichment';
-import { useQueueTrackEnrichment } from '../../hooks/useQueueTrackEnrichment';
-import { QueueLufsTargetMenu } from './QueueLufsTargetMenu';
-import { PlaybackBufferingOverlay } from '../playback/PlaybackBufferingOverlay';
-import { CoverArtImage } from '../../cover/CoverArtImage';
+} from '@/utils/componentHelpers/queuePanelHelpers';
+import { loudnessGainPlaceholderUntilCacheDb } from '@/utils/audio/loudnessPlaceholder';
+import { effectiveLoudnessPreAnalysisAttenuationDb } from '@/utils/audio/loudnessPreAnalysisSlider';
+import { formatQueueBpmTech, formatQueueMoodLabels } from '@/utils/library/trackEnrichment';
+import { useQueueTrackEnrichment } from '@/features/queue/hooks/useQueueTrackEnrichment';
+import { QueueLufsTargetMenu } from '@/features/queue/components/QueueLufsTargetMenu';
+import { PlaybackBufferingOverlay } from '@/components/playback/PlaybackBufferingOverlay';
+import { CoverArtImage } from '@/cover/CoverArtImage';
 import { OpenArtistRefInline } from '@/features/artist';
-import { usePlaybackTrackCoverRef } from '../../cover/useLibraryCoverRef';
-import { usePlayerStore } from '../../store/playerStore';
-import { resolveTrackArtistRefs } from '../../utils/playback/trackArtistRefs';
+import { usePlaybackTrackCoverRef } from '@/cover/useLibraryCoverRef';
+import { usePlayerStore } from '@/store/playerStore';
+import { resolveTrackArtistRefs } from '@/utils/playback/trackArtistRefs';
 
 interface Props {
   currentTrack: Track;

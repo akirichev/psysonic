@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
-import { songToTrack } from '../utils/playback/songToTrack';
+import { songToTrack } from '@/utils/playback/songToTrack';
 import { useDragDrop, registerQueueDragHitTest } from '@/lib/dnd/DragDropContext';
-import { usePlayerStore } from '../store/playerStore';
-import type { Track } from '../store/playerStoreTypes';
+import { usePlayerStore } from '@/store/playerStore';
+import type { Track } from '@/store/playerStoreTypes';
 
 /** Drag types that may be dropped into the queue panel. */
 const QUEUE_DROP_TYPES = new Set(['song', 'album', 'queue_reorder']);

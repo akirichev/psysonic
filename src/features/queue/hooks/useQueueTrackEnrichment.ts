@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { libraryGetFacts, libraryGetTrack } from '@/lib/api/library';
-import { usePlaybackServerId } from './usePlaybackServerId';
-import { useLibraryIndexStore } from '../store/libraryIndexStore';
+import { usePlaybackServerId } from '@/hooks/usePlaybackServerId';
+import { useLibraryIndexStore } from '@/store/libraryIndexStore';
 import {
   enrichmentDisplayComplete,
   OXIMEDIA_MOOD_UI_ENABLED,
   parseTrackEnrichmentFacts,
   type ParsedTrackEnrichment,
-} from '../utils/library/trackEnrichment';
-import { libraryIsReady } from '../utils/library/libraryReady';
-import { normalizeAnalysisTrackId } from '../utils/playback/queueIdentity';
+} from '@/utils/library/trackEnrichment';
+import { libraryIsReady } from '@/utils/library/libraryReady';
+import { normalizeAnalysisTrackId } from '@/utils/playback/queueIdentity';
 
 const EMPTY: ParsedTrackEnrichment = {
   serverBpm: null,

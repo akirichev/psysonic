@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import type { LoudnessLufsPreset } from '../../store/authStoreTypes';
+import type { LoudnessLufsPreset } from '@/store/authStoreTypes';
 
 interface Props {
   menuRef: React.RefObject<HTMLDivElement | null>;

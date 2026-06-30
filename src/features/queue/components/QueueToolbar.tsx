@@ -3,12 +3,12 @@ import {
   Blend, Check, FolderOpen, Infinity as InfinityIcon, ListMusic, MoveRight, Save, Share2, Shuffle, Trash2, Waves,
 } from 'lucide-react';
 import type { TFunction } from 'i18next';
-import type { QueueItemRef } from '../../store/playerStoreTypes';
+import type { QueueItemRef } from '@/store/playerStoreTypes';
 import type {
   QueueToolbarButtonConfig,
   QueueToolbarButtonId,
-} from '../../store/queueToolbarStore';
-import { getTransitionMode, setTransitionMode } from '../../utils/playback/playbackTransition';
+} from '@/store/queueToolbarStore';
+import { getTransitionMode, setTransitionMode } from '@/utils/playback/playbackTransition';
 import { useOrbitStore } from '@/features/orbit';
 
 interface Props {

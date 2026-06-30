@@ -2,18 +2,18 @@ import { useDeferredValue, useMemo, useSyncExternalStore } from 'react';
 import { AlignCenterVertical, ChevronDown, ListMusic, ListOrdered } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { usePlayerStore } from '../../store/playerStore';
-import { useAuthStore } from '../../store/authStore';
-import type { QueueItemRef } from '../../store/playerStoreTypes';
-import type { QueueDisplayMode } from '../../store/authStoreTypes';
-import type { DurationMode } from '../../utils/componentHelpers/queuePanelHelpers';
+import { usePlayerStore } from '@/store/playerStore';
+import { useAuthStore } from '@/store/authStore';
+import type { QueueItemRef } from '@/store/playerStoreTypes';
+import type { QueueDisplayMode } from '@/store/authStoreTypes';
+import type { DurationMode } from '@/utils/componentHelpers/queuePanelHelpers';
 import { formatLongDuration } from '@/lib/format/formatDuration';
 import { formatClockTime } from '@/lib/format/formatClockTime';
-import { resolveQueueTrack } from '../../utils/library/queueTrackView';
+import { resolveQueueTrack } from '@/utils/library/queueTrackView';
 import {
   getQueueResolverVersion,
   subscribeQueueResolver,
-} from '../../utils/library/queueTrackResolver';
+} from '@/utils/library/queueTrackResolver';
 
 interface Props {
   queue: QueueItemRef[];

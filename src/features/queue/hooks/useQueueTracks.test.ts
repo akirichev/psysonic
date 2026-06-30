@@ -4,7 +4,7 @@ import { usePlayerStore } from '@/store/playerStore';
 import type { Track } from '@/store/playerStoreTypes';
 import { getCachedTrack, _resetQueueResolverForTest } from '@/utils/library/queueTrackResolver';
 import { seedQueue } from '@/test/helpers/factories';
-import { useQueueTrackAt, useCurrentTrack, useQueueItems } from './useQueueTracks';
+import { useQueueTrackAt, useCurrentTrack, useQueueItems } from '@/features/queue/hooks/useQueueTracks';
 
 const track = (id: string, over: Partial<Track> = {}): Track =>
   ({ id, title: id, artist: '', album: 'A', albumId: 'A', duration: 1, ...over });

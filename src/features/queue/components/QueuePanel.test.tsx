@@ -30,7 +30,7 @@ vi.mock('@/features/orbit/utils/orbitBulkGuard', () => ({
   orbitBulkGuard: vi.fn(async () => true),
 }));
 
-import QueuePanel from './QueuePanel';
+import QueuePanel from '@/features/queue/components/QueuePanel';
 import { fireEvent } from '@testing-library/react';
 import { renderWithProviders } from '@/test/helpers/renderWithProviders';
 import { usePlayerStore } from '@/store/playerStore';
@@ -224,7 +224,7 @@ describe('QueuePanel — DnD architecture pin (§4.4 of v2 plan)', () => {
     // `dragenter` / `dragover` props are allowed because the document
     // listens for them to render the drop indicator without acting as
     // a sink for HTML5 payloads.
-    const source = readFileSync(join(process.cwd(), 'src/components/QueuePanel.tsx'), 'utf8');
+    const source = readFileSync(join(process.cwd(), 'src/features/queue/components/QueuePanel.tsx'), 'utf8');
     expect(source).not.toMatch(/dataTransfer\.setData/);
     expect(source).not.toMatch(/dataTransfer\.getData/);
     expect(source).not.toMatch(/\bonDragStart\s*=/);
@@ -232,7 +232,7 @@ describe('QueuePanel — DnD architecture pin (§4.4 of v2 plan)', () => {
   });
 
   it('the source file does not use `application/json` MIME anywhere (WebView2 restriction)', () => {
-    const source = readFileSync(join(process.cwd(), 'src/components/QueuePanel.tsx'), 'utf8');
+    const source = readFileSync(join(process.cwd(), 'src/features/queue/components/QueuePanel.tsx'), 'utf8');
     expect(source).not.toMatch(/application\/json/);
   });
 });
