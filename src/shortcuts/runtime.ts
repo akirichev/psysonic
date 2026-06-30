@@ -1,5 +1,5 @@
 import { matchInAppBinding, type Bindings } from '../store/keybindingsStore';
-import type { KeyAction } from '../config/shortcutActions';
+import type { KeyAction } from '@/lib/shortcuts/shortcutActions';
 
 export function matchInAppShortcutAction(
   event: KeyboardEvent,

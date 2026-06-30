@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { MouseEvent, PointerEvent } from 'react';
-import { useLongPressAction } from './useLongPressAction';
+import { useLongPressAction } from '@/lib/hooks/useLongPressAction';
 
 function makePointerDown(overrides: Partial<PointerEvent> = {}): PointerEvent {
   return {

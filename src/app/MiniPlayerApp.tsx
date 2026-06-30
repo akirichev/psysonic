@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { DragDropProvider } from '../contexts/DragDropContext';
+import { DragDropProvider } from '@/lib/dnd/DragDropContext';
 import MiniPlayer from '@/features/miniPlayer';
 import GlobalConfirmModal from '../components/GlobalConfirmModal';
 import TooltipPortal from '@/ui/TooltipPortal';

@@ -21,7 +21,7 @@ import {
 import { usePlayerStore } from '../store/playerStore';
 import { useAuthStore } from '../store/authStore';
 import { playAlbum, playAlbumShuffled } from '../utils/playback/playAlbum';
-import { useLongPressAction } from '../hooks/useLongPressAction';
+import { useLongPressAction } from '@/lib/hooks/useLongPressAction';
 import { LongPressWaveOverlay } from './LongPressWaveOverlay';
 import { formatHumanHoursMinutes } from '@/lib/format/formatHumanDuration';
 import { AlbumRow } from '@/features/album';

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '../store/playerStore';
 import { useShallow } from 'zustand/react/shallow';
 import { formatPlaybackScheduleRemaining } from '../utils/format/playbackScheduleFormat';
-import { useWindowVisibility } from '../hooks/useWindowVisibility';
+import { useWindowVisibility } from '@/lib/hooks/useWindowVisibility';
 
 export interface PlaybackScheduleBadgeProps {
   /** Anchor element (usually the play/pause button wrapper) — the ring centres on it. */

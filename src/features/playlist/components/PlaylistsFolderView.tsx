@@ -2,7 +2,7 @@ import React from 'react';
 import type { SubsonicPlaylist } from '@/lib/api/subsonicTypes';
 import { EMPTY_SERVER_FOLDERS, usePlaylistFolderStore } from '@/features/playlist/store/playlistFolderStore';
 import { groupPlaylistsByFolder } from '@/features/playlist/utils/playlistFolders';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import PlaylistFolderSection from '@/features/playlist/components/PlaylistFolderSection';
 
 interface Props {

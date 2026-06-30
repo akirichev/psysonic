@@ -22,7 +22,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { join } from '@tauri-apps/api/path';
 import { showToast } from '@/utils/ui/toast';
 import { useZipDownloadStore } from '@/features/offline';
-import { useRangeSelection } from '@/hooks/useRangeSelection';
+import { useRangeSelection } from '@/lib/hooks/useRangeSelection';
 import { usePerfProbeFlags } from '@/utils/perf/perfFlags';
 import { albumGridWarmCovers, COVER_DENSE_GRID_MIN_CELL_CSS_PX } from '@/cover/layoutSizes';
 import {

@@ -10,7 +10,7 @@ import { useOfflineStore } from '@/features/offline';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
 import { useArtistOfflineState } from '@/features/artist/hooks/useArtistOfflineState';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
 import { ArtistHeroCover } from '@/cover/artistHero';
 import { useArtistBanner, useArtistFanart } from '@/cover/useArtistFanart';
 import { backdropFromConfig } from '@/cover/artistBackdrop';

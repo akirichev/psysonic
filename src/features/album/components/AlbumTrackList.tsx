@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useTracklistColumns } from '@/utils/useTracklistColumns';
 import { usePlayerStore } from '@/store/playerStore';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
 import { useSelectionStore } from '@/store/selectionStore';
 import {
   COLUMNS,

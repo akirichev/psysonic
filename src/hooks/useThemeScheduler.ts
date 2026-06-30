@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useThemeStore, getScheduledTheme } from '../store/themeStore';
-import { useSystemPrefersDark } from './useSystemPrefersDark';
+import { useSystemPrefersDark } from '@/lib/hooks/useSystemPrefersDark';
 
 /**
  * Effective theme id for `data-theme` — scheduler-aware when enabled.

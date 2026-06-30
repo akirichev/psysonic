@@ -7,7 +7,7 @@ import { CoverArtImage } from '@/cover/CoverArtImage';
 import { useAlbumCoverRef } from '@/cover/useLibraryCoverRef';
 import { useCoverLightboxSrc } from '@/cover/lightbox';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
 import { useAlbumDetailBack } from '@/features/album/hooks/useAlbumDetailBack';
 import { useThemeStore } from '@/store/themeStore';
 import StarRating from '@/components/StarRating';

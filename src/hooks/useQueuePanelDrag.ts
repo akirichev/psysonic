@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 import { songToTrack } from '../utils/playback/songToTrack';
-import { useDragDrop, registerQueueDragHitTest } from '../contexts/DragDropContext';
+import { useDragDrop, registerQueueDragHitTest } from '@/lib/dnd/DragDropContext';
 import { usePlayerStore } from '../store/playerStore';
 import type { Track } from '../store/playerStoreTypes';
 

@@ -12,7 +12,7 @@ import { useAlbumOfflineState } from '@/features/album';
 import { useAuthStore } from '@/store/authStore';
 import { useDownloadModalStore } from '@/features/offline';
 import { useZipDownloadStore } from '@/features/offline';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import { useTranslation } from 'react-i18next';
 import type { SpotifyCsvTrack } from '@/features/playlist/utils/spotifyCsvImport';
 import { runPlaylistCsvImport } from '@/features/playlist/utils/runPlaylistCsvImport';

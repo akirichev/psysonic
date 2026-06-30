@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { emit } from '@tauri-apps/api/event';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import { usePlayerStore } from '@/store/playerStore';
 
 interface Args {

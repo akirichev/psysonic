@@ -12,7 +12,7 @@ import { useOfflineStore } from '@/features/offline';
 import { useDownloadModalStore } from '@/features/offline';
 import { usePlayerStore } from '@/store/playerStore';
 import { useZipDownloadStore } from '@/features/offline';
-import { useRangeSelection } from '@/hooks/useRangeSelection';
+import { useRangeSelection } from '@/lib/hooks/useRangeSelection';
 import { useMainstageInpageHeaderTight } from '@/hooks/useMainstageInpageHeaderTight';
 import { usePerfProbeFlags } from '@/utils/perf/perfFlags';
 import { showToast } from '@/utils/ui/toast';

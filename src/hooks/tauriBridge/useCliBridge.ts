@@ -13,7 +13,7 @@ import { switchActiveServer } from '../../utils/server/switchActiveServer';
 import i18n from '@/lib/i18n';
 import { usePlayerStore } from '../../store/playerStore';
 import { useAuthStore } from '../../store/authStore';
-import { executeCliPlayerCommand } from '../../config/shortcutActions';
+import { executeCliPlayerCommand } from '@/lib/shortcuts/shortcutActions';
 
 /** The full `cli:*` listener surface forwarded from the Rust single-instance
  * handler: audio-device, instant-mix, library / server resolution, search and

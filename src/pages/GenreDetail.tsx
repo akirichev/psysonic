@@ -14,7 +14,7 @@ import { useGenreAlbumBrowse } from '@/features/album';
 import { useAlbumBrowseScrollRestore } from '@/features/album';
 import { useGenreDetailBrowse } from '../hooks/useGenreDetailBrowse';
 import { useInpageScrollViewport } from '../hooks/useInpageScrollViewport';
-import { useLongPressAction } from '../hooks/useLongPressAction';
+import { useLongPressAction } from '@/lib/hooks/useLongPressAction';
 import { useMainstageInpageHeaderTight } from '../hooks/useMainstageInpageHeaderTight';
 import { useAuthStore } from '../store/authStore';
 import { useLibraryIndexStore } from '../store/libraryIndexStore';

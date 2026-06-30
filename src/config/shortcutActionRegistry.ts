@@ -8,7 +8,7 @@ import { usePlayerStore } from '../store/playerStore';
 import { usePreviewStore } from '../store/previewStore';
 import { useLyricsStore } from '../store/lyricsStore';
 import { showToast } from '../utils/ui/toast';
-import type { ActionContext, ShortcutSlot, ShortcutActionMeta } from './shortcutTypes';
+import type { ActionContext, ShortcutSlot, ShortcutActionMeta } from '@/lib/shortcuts/shortcutTypes';
 
 let cliPremuteVolume: number | null = null;
 

@@ -10,12 +10,12 @@ import { usePlayerStore } from '@/store/playerStore';
 import { previewInputFromSong, usePreviewStore } from '@/store/previewStore';
 import { useSelectionStore } from '@/store/selectionStore';
 import { useThemeStore } from '@/store/themeStore';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import { useOrbitSongRowBehavior } from '@/features/orbit';
 import { songToTrack } from '@/utils/playback/songToTrack';
 import { appendServerQuery } from '@/utils/navigation/detailServerScope';
 import { APP_MAIN_SCROLL_VIEWPORT_ID } from '@/constants/appScroll';
-import { useElementClientHeightById } from '@/hooks/useResizeClientHeight';
+import { useElementClientHeightById } from '@/lib/hooks/useResizeClientHeight';
 import { SORTABLE_COLUMNS } from '@/features/favorites/hooks/useFavoritesSongFiltering';
 
 interface Props {

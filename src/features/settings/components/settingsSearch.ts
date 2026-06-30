@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { GLOBAL_SHORTCUT_ACTIONS, IN_APP_SHORTCUT_ACTIONS } from '@/config/shortcutActions';
+import { GLOBAL_SHORTCUT_ACTIONS, IN_APP_SHORTCUT_ACTIONS } from '@/lib/shortcuts/shortcutActions';
 import { SETTINGS_INDEX, matchScore, type Tab } from '@/features/settings/components/settingsTabs';
 
 export type SettingsSearchHit = {

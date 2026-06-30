@@ -8,7 +8,7 @@ import {
   displayPlaylistName, isSmartPlaylistName, type PendingSmartPlaylist,
 } from '@/features/playlist/utils/playlistsSmart';
 import { formatHumanHoursMinutes } from '@/lib/format/formatHumanDuration';
-import { useDragSource } from '@/contexts/DragDropContext';
+import { useDragSource } from '@/lib/dnd/DragDropContext';
 import { PlaylistCardMainCover, PlaylistSmartCoverCell } from '@/features/playlist/components/PlaylistCoverImages';
 
 interface Props {

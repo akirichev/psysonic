@@ -4,7 +4,7 @@ import PlaylistRow, { type PlaylistRowCallbacks } from '@/features/playlist/comp
 import { TracklistColumnPicker } from '@/components/albumTrackList/TracklistColumnPicker';
 import { useTranslation } from 'react-i18next';
 import { APP_MAIN_SCROLL_VIEWPORT_ID } from '@/constants/appScroll';
-import { useElementClientHeightById } from '@/hooks/useResizeClientHeight';
+import { useElementClientHeightById } from '@/lib/hooks/useResizeClientHeight';
 import { useNavigate } from 'react-router-dom';
 import {
   ListPlus, Search, Trash2, X,
@@ -15,7 +15,7 @@ import type { Track } from '@/store/playerStoreTypes';
 import { usePlayerStore } from '@/store/playerStore';
 import { previewInputFromSong, usePreviewStore } from '@/store/previewStore';
 import { useThemeStore } from '@/store/themeStore';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import { useOrbitSongRowBehavior } from '@/features/orbit';
 import { songToTrack } from '@/utils/playback/songToTrack';
 import type { PlaylistSortKey, PlaylistSortDir } from '@/features/playlist/utils/playlistDisplayedSongs';

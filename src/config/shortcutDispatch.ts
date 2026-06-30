@@ -3,7 +3,7 @@ import i18n from '@/lib/i18n';
 import { usePlayerStore } from '../store/playerStore';
 import { showToast } from '../utils/ui/toast';
 import { playByOpaqueId } from '../utils/playback/playByOpaqueId';
-import type { ActionContext, CliContext } from './shortcutTypes';
+import type { ActionContext, CliContext } from '@/lib/shortcuts/shortcutTypes';
 import {
   SHORTCUT_ACTION_REGISTRY,
   type ShortcutAction,

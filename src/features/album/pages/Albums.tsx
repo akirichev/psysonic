@@ -26,7 +26,7 @@ import { Download, HardDriveDownload, Disc3, ListPlus } from 'lucide-react';
 import SelectionToggleButton from '@/components/SelectionToggleButton';
 import FilterQuickClear from '@/components/FilterQuickClear';
 import { usePerfProbeFlags } from '@/utils/perf/perfFlags';
-import { useRangeSelection } from '@/hooks/useRangeSelection';
+import { useRangeSelection } from '@/lib/hooks/useRangeSelection';
 import { useMainstageInpageHeaderTight } from '@/hooks/useMainstageInpageHeaderTight';
 import { useInpageScrollViewport } from '@/hooks/useInpageScrollViewport';
 import InpageScrollSentinel from '@/components/InpageScrollSentinel';

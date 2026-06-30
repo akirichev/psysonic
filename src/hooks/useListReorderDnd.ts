@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useDragDrop } from '../contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import type { ListReorderDropTarget } from '../utils/componentHelpers/listReorder';
 
 interface Options {

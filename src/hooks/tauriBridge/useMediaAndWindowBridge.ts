@@ -16,7 +16,7 @@ import {
   executeRuntimeAction,
   isGlobalShortcutActionId,
   isShortcutAction,
-} from '../../config/shortcutActions';
+} from '@/lib/shortcuts/shortcutActions';
 
 /** Media keys, tray actions, global / cross-window shortcut events, relative &
  * absolute seek + volume, and the window-close / force-quit exit flow. */

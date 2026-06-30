@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
-import { useDragSource } from '@/contexts/DragDropContext';
+import { useDragSource } from '@/lib/dnd/DragDropContext';
 
 /**
  * Drag handle shared by the reorder customizers. Emits an id-based payload

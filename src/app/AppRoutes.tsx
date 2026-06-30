@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import MobilePlayerView from '../components/MobilePlayerView';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
 import { useSidebarStore } from '@/features/sidebar';
 import { useAuthStore } from '../store/authStore';
 import { useLuckyMixAvailable } from '../hooks/useLuckyMixAvailable';

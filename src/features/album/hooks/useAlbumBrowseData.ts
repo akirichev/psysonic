@@ -38,7 +38,7 @@ import {
 } from '@/utils/library/albumBrowseCatalogChunk';
 import { useOfflineBrowseContext } from '@/features/offline';
 import { useClientSliceInfiniteScroll } from '@/hooks/useClientSliceInfiniteScroll';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { useInpageScrollSentinel } from '@/hooks/useInpageScrollSentinel';
 
 const PAGE_SIZE = 30;

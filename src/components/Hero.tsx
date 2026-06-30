@@ -13,14 +13,14 @@ import { useHeroBackdrop } from '../cover/useHeroBackdrop';
 import { useCachedUrl } from '@/ui/CachedImage';
 import { usePlayerStore } from '../store/playerStore';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '../hooks/useIsMobile';
-import { useWindowVisibility } from '../hooks/useWindowVisibility';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
+import { useWindowVisibility } from '@/lib/hooks/useWindowVisibility';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
 import { filterAlbumsByMixRatings, getMixMinRatingsConfigFromAuth } from '../utils/mix/mixRatingFilter';
 import { usePerfProbeFlags } from '../utils/perf/perfFlags';
 import { playAlbum, playAlbumShuffled } from '../utils/playback/playAlbum';
-import { useLongPressAction } from '../hooks/useLongPressAction';
+import { useLongPressAction } from '@/lib/hooks/useLongPressAction';
 import { LongPressWaveOverlay } from './LongPressWaveOverlay';
 import { albumArtistDisplayName, deriveAlbumArtistRefs } from '@/features/album';
 

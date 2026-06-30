@@ -1,4 +1,4 @@
-import type { ShortcutSlot } from './shortcutTypes';
+import type { ShortcutSlot } from '@/lib/shortcuts/shortcutTypes';
 import {
   SHORTCUT_ACTION_REGISTRY,
   type ShortcutAction,

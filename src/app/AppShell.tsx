@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import Sidebar from '@/features/sidebar';
 import PlayerBar from '../components/PlayerBar';
 import BottomNav from '../components/BottomNav';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
 import { LiveSearch } from '@/features/search';
 import DevNetworkModeToggle from '../components/DevNetworkModeToggle';
 import { NowPlayingDropdown } from '@/features/nowPlaying';

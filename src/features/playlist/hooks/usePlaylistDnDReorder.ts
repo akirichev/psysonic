@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import { runPlaylistReorderDrop } from '@/features/playlist/utils/runPlaylistReorderDrop';
 
 export interface PlaylistDnDReorderDeps {

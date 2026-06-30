@@ -8,7 +8,7 @@ import { usePlayerStore } from '@/store/playerStore';
 import { usePlaylistStore } from '@/features/playlist/store/playlistStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
-import { useRangeSelection } from '@/hooks/useRangeSelection';
+import { useRangeSelection } from '@/lib/hooks/useRangeSelection';
 
 import {
   defaultSmartFilters,

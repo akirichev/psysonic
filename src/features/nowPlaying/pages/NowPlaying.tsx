@@ -13,7 +13,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useLyricsStore } from '@/store/lyricsStore';
 import { songToTrack } from '@/utils/playback/songToTrack';
 import { useRadioMetadata } from '@/features/radio';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import OverlayScrollArea from '@/ui/OverlayScrollArea';
 import {
   useNpLayoutStore, NP_CARD_IDS,

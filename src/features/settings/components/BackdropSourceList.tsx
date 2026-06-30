@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
-import { useDragDrop, useDragSource } from '@/contexts/DragDropContext';
+import { useDragDrop, useDragSource } from '@/lib/dnd/DragDropContext';
 import type { BackdropSource, BackdropSourcePref } from '@/cover/artistBackdrop';
 import type { BackdropSurface } from '@/store/themeStore';
 import { moveSourceTo, dropSourceBefore } from '@/features/settings/components/backdropReorder';

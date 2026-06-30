@@ -4,7 +4,7 @@ import { ChevronRight, Folder, Pencil, Trash2 } from 'lucide-react';
 import type { SubsonicPlaylist } from '@/lib/api/subsonicTypes';
 import { usePlaylistFolderStore } from '@/features/playlist/store/playlistFolderStore';
 import type { PlaylistFolder } from '@/features/playlist/utils/playlistFolders';
-import { useDragDrop } from '@/contexts/DragDropContext';
+import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import { VirtualCardGrid } from '@/components/VirtualCardGrid';
 
 interface Props {

@@ -5,7 +5,7 @@ import { emit } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { usePlayerStore } from '@/store/playerStore';
-import { registerQueueDragHitTest } from '@/contexts/DragDropContext';
+import { registerQueueDragHitTest } from '@/lib/dnd/DragDropContext';
 import MiniContextMenu from '@/features/miniPlayer/components/MiniContextMenu';
 import type { MiniSyncPayload, MiniControlAction, MiniTrackInfo } from '@/features/miniPlayer/utils/miniPlayerBridge';
 import {

@@ -10,7 +10,7 @@ import { usePlayerStore } from '../store/playerStore';
 import { AlbumCoverArtImage } from '../cover/AlbumCoverArtImage';
 import { ArtistCoverArtImage } from '../cover/ArtistCoverArtImage';
 import { playAlbum, playAlbumShuffled } from '../utils/playback/playAlbum';
-import { useLongPressAction } from '../hooks/useLongPressAction';
+import { useLongPressAction } from '@/lib/hooks/useLongPressAction';
 import { LongPressWaveOverlay } from '../components/LongPressWaveOverlay';
 import { useTranslation } from 'react-i18next';
 import { albumArtistDisplayName } from '@/features/album';

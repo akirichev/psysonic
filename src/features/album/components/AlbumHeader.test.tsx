@@ -16,7 +16,7 @@ vi.mock('react-router-dom', async importActual => {
 vi.mock('@/cover/useLibraryCoverRef', () => ({ useAlbumCoverRef: () => undefined }));
 vi.mock('@/cover/lightbox', () => ({ useCoverLightboxSrc: () => ({ open: vi.fn(), lightbox: null }) }));
 vi.mock('@/features/album/hooks/useAlbumDetailBack', () => ({ useAlbumDetailBack: () => vi.fn() }));
-vi.mock('@/hooks/useIsMobile', () => ({ useIsMobile: () => false }));
+vi.mock('@/lib/hooks/useIsMobile', () => ({ useIsMobile: () => false }));
 vi.mock('@/store/themeStore', () => ({ useThemeStore: () => false }));
 vi.mock('@/components/StarRating', () => ({ default: () => null }));
 vi.mock('@/features/artist', () => ({ OpenArtistRefInline: () => null }));
