@@ -3,7 +3,7 @@ import { filterAlbumsToActiveLibrary } from '@/lib/api/subsonicLibrary';
 import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 import type { SubsonicAlbum } from '@/lib/api/subsonicTypes';
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 import React, { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

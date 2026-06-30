@@ -4,7 +4,7 @@ import { getAlbumList } from '@/lib/api/subsonicLibrary';
 import { resolveAlbum } from '@/features/offline';
 import type { SubsonicAlbum } from '@/lib/api/subsonicTypes';
 import { dedupeById } from '@/lib/util/dedupeById';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 import React, { useEffect, useLayoutEffect, useState, useCallback, useRef } from 'react';
 import { RefreshCw, Download, HardDriveDownload } from 'lucide-react';
 import SelectionToggleButton from '@/components/SelectionToggleButton';

@@ -5,7 +5,7 @@
  * refactor (2026-05-12).
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 
 describe('shuffleArray', () => {
   afterEach(() => {

@@ -5,7 +5,7 @@ import { orbitSnapshot } from '@/store/orbitRuntime';
 import { fadeOut } from '@/features/playback/utils/playback/fadeOut';
 import { shouldAutodjInterruptBlend } from '@/features/playback/utils/playback/autodjManualBlend';
 import type { Track } from '@/features/playback/store/playerStoreTypes';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 
 export async function fetchAlbumTracks(albumId: string, serverId?: string): Promise<Track[]> {
   const albumData = await resolveAlbumForActiveServer(albumId, serverId);

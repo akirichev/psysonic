@@ -6,7 +6,7 @@ import {
   getMixMinRatingsConfigFromAuth,
   passesMixMinRatings,
 } from '@/utils/mix/mixRatingFilter';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
 /**
  * Infinite queue source strategy (Instant Mix-like):

@@ -19,7 +19,7 @@ import { resolveAlbumForActiveServer } from '@/store/mediaResolver';
 import { useOrbitStore } from '@/features/orbit';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { playAlbum, playAlbumShuffled } from '@/features/playback/utils/playback/playAlbum';
-import * as shuffleModule from '@/features/playback/utils/playback/shuffleArray';
+import * as shuffleModule from '@/lib/util/shuffleArray';
 
 const albumPayload = {
   album: {

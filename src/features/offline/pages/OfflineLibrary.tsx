@@ -33,7 +33,7 @@ import {
   type OfflineLibraryCard,
 } from '@/features/offline/utils/offlineLibraryHelpers';
 import { showToast } from '@/utils/ui/toast';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 import { getMediaDir } from '@/utils/media/mediaDir';
 import { canonicalQueueServerKey, resolveIndexKey } from '@/utils/server/serverIndexKey';
 import { reconcileAllLibraryTiersFromDisk } from '@/features/offline/utils/libraryTierReconcile';

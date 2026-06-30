@@ -1,5 +1,5 @@
 import type { Track } from '@/features/playback/store/playerStoreTypes';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 
 /**
  * Shared "play / shuffle / enqueue a fetched track list" core for detail pages whose

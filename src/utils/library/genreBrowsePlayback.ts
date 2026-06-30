@@ -7,7 +7,7 @@ import type { SubsonicGenre } from '@/lib/api/subsonicTypes';
 import { libraryScopeForServer } from '@/lib/api/subsonicClient';
 import type { Track } from '@/features/playback/store/playerStoreTypes';
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 import { trackToSong } from './advancedSearchLocal';
 import { type AlbumBrowseSort } from './albumBrowseSort';
 import {

@@ -35,7 +35,7 @@ import { useOfflineBrowseReloadToken } from '@/features/offline';
 import {
   fetchAlbumBrowseCatalogChunk,
   mergeAlbumCatalogChunk,
-} from '@/utils/library/albumBrowseCatalogChunk';
+} from '@/features/album/utils/albumBrowseCatalogChunk';
 import { useOfflineBrowseContext } from '@/features/offline';
 import { useClientSliceInfiniteScroll } from '@/hooks/useClientSliceInfiniteScroll';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';

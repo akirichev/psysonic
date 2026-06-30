@@ -1,6 +1,6 @@
 import { resolveAlbum, resolveArtist, resolveMediaServerId } from '@/store/mediaResolver';
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 /**
  * All tracks from the artist’s albums, shuffled — same idea as Artist page “shuffle play”.

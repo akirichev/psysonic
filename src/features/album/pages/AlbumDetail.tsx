@@ -5,7 +5,7 @@ import { getAlbumForServer } from '@/lib/api/subsonicLibrary';
 import { getArtistInfo } from '@/lib/api/subsonicArtists';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
 import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
-import { shuffleArray } from '@/features/playback/utils/playback/shuffleArray';
+import { shuffleArray } from '@/lib/util/shuffleArray';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
