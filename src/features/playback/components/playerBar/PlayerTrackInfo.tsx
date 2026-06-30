@@ -6,22 +6,22 @@ import type { Track } from '@/lib/media/trackTypes';
 import type { PlayerState } from '@/features/playback/store/playerStoreTypes';
 import type { RadioMetadata } from '@/features/radio';
 import type { PreviewingTrack } from '@/features/playback/store/previewStore';
-import { CoverArtImage } from '../../cover/CoverArtImage';
-import { albumCoverRef } from '../../cover/ref';
-import { useAlbumCoverRef } from '../../cover/useLibraryCoverRef';
-import { usePlaybackTrackCoverRef } from '../../cover/useLibraryCoverRef';
+import { CoverArtImage } from '@/cover/CoverArtImage';
+import { albumCoverRef } from '@/cover/ref';
+import { useAlbumCoverRef } from '@/cover/useLibraryCoverRef';
+import { usePlaybackTrackCoverRef } from '@/cover/useLibraryCoverRef';
 import MarqueeText from '@/ui/MarqueeText';
 import { OpenArtistRefInline } from '@/features/artist';
 import StarRating from '@/ui/StarRating';
-import { PlaybackBufferingOverlay } from '../playback/PlaybackBufferingOverlay';
+import { PlaybackBufferingOverlay } from '@/features/playback/components/PlaybackBufferingOverlay';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { useEnrichmentPrimaryLabel } from '../../hooks/useEnrichmentPrimaryLabel';
-import { useEnrichmentPrimaryIcon } from '../../hooks/useEnrichmentPrimaryIcon';
-import { renderPresetIcon } from '../settings/musicNetwork/presetIcon';
+import { useEnrichmentPrimaryLabel } from '@/hooks/useEnrichmentPrimaryLabel';
+import { useEnrichmentPrimaryIcon } from '@/hooks/useEnrichmentPrimaryIcon';
+import { renderPresetIcon } from '@/components/settings/musicNetwork/presetIcon';
 import {
   usePlayerBarLayoutStore,
   type PlayerBarLayoutItemId,
-} from '../../store/playerBarLayoutStore';
+} from '@/store/playerBarLayoutStore';
 import { useOfflineBrowseContext } from '@/features/offline';
 import { offlineActionPolicy } from '@/features/offline';
 

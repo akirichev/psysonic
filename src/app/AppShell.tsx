@@ -6,7 +6,7 @@ import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { PanelRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '@/features/sidebar';
-import PlayerBar from '../components/PlayerBar';
+import PlayerBar from '@/features/playback/components/PlayerBar';
 import BottomNav from '../components/BottomNav';
 import { useIsMobile } from '@/lib/hooks/useIsMobile';
 import { LiveSearch } from '@/features/search';

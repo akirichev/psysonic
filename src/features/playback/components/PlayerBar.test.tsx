@@ -37,7 +37,7 @@ vi.mock('@/lib/api/subsonic', () => ({
 }));
 
 
-import PlayerBar from './PlayerBar';
+import PlayerBar from '@/features/playback/components/PlayerBar';
 import { renderWithProviders } from '@/test/helpers/renderWithProviders';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { useAuthStore } from '@/store/authStore';

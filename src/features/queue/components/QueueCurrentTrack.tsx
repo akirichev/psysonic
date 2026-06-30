@@ -13,7 +13,7 @@ import { effectiveLoudnessPreAnalysisAttenuationDb } from '@/utils/audio/loudnes
 import { formatQueueBpmTech, formatQueueMoodLabels } from '@/lib/library/trackEnrichment';
 import { useQueueTrackEnrichment } from '@/features/queue/hooks/useQueueTrackEnrichment';
 import { QueueLufsTargetMenu } from '@/features/queue/components/QueueLufsTargetMenu';
-import { PlaybackBufferingOverlay } from '@/components/playback/PlaybackBufferingOverlay';
+import { PlaybackBufferingOverlay } from '@/features/playback/components/PlaybackBufferingOverlay';
 import { CoverArtImage } from '@/cover/CoverArtImage';
 import { OpenArtistRefInline } from '@/features/artist';
 import { usePlaybackTrackCoverRef } from '@/cover/useLibraryCoverRef';

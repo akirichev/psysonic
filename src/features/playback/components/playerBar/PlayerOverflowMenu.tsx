@@ -3,12 +3,12 @@ import { createPortal } from 'react-dom';
 import { PictureInPicture2, SlidersVertical } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import type { TFunction } from 'i18next';
-import { PlayerVolume } from './PlayerVolume';
-import { PlayerPlaybackRateMenuSection } from './PlayerPlaybackRate';
+import { PlayerVolume } from '@/features/playback/components/playerBar/PlayerVolume';
+import { PlayerPlaybackRateMenuSection } from '@/features/playback/components/playerBar/PlayerPlaybackRate';
 import {
   usePlayerBarLayoutStore,
   type PlayerBarLayoutItemId,
-} from '../../store/playerBarLayoutStore';
+} from '@/store/playerBarLayoutStore';
 
 interface Props {
   utilityMenuRef: React.RefObject<HTMLDivElement | null>;

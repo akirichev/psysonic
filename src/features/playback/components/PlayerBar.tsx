@@ -1,6 +1,6 @@
 import { queueSongStar } from '@/features/playback/store/pendingStarSync';
-import { coverArtIdFromRadio } from '../cover/ids';
-import { resolvePlaybackTrackCoverArtId } from '../cover/resolveCoverArtId';
+import { coverArtIdFromRadio } from '@/cover/ids';
+import { resolvePlaybackTrackCoverArtId } from '@/cover/resolveCoverArtId';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -10,32 +10,32 @@ import {
 import { invoke } from '@tauri-apps/api/core';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { useShallow } from 'zustand/react/shallow';
-import { useAuthStore } from '../store/authStore';
-import { useThemeStore } from '../store/themeStore';
+import { useAuthStore } from '@/store/authStore';
+import { useThemeStore } from '@/store/themeStore';
 import { Equalizer } from '@/features/equalizer';
 import { useTranslation } from 'react-i18next';
-import { usePlaybackLibraryNavigate } from '../hooks/usePlaybackLibraryNavigate';
+import { usePlaybackLibraryNavigate } from '@/hooks/usePlaybackLibraryNavigate';
 import { useRadioMetadata } from '@/features/radio';
 import { useRadioMprisSync } from '@/features/radio';
-import { usePlaybackDelayPress } from '../hooks/usePlaybackDelayPress';
-import PlaybackDelayModal from './PlaybackDelayModal';
-import { usePlaybackScheduleRemaining } from '../utils/format/playbackScheduleFormat';
+import { usePlaybackDelayPress } from '@/hooks/usePlaybackDelayPress';
+import PlaybackDelayModal from '@/components/PlaybackDelayModal';
+import { usePlaybackScheduleRemaining } from '@/utils/format/playbackScheduleFormat';
 import { usePreviewStore } from '@/features/playback/store/previewStore';
-import { usePerfProbeFlags } from '../utils/perf/perfFlags';
+import { usePerfProbeFlags } from '@/utils/perf/perfFlags';
 import { coerceOpenArtistRefs } from '@/lib/api/openArtistRefs';
 import { resolveTrackArtistRefs } from '@/features/playback/utils/playback/trackArtistRefs';
-import { PlayerTrackInfo } from './playerBar/PlayerTrackInfo';
-import { PlayerTransportControls } from './playerBar/PlayerTransportControls';
-import { PlayerSeekbarSection } from './playerBar/PlayerSeekbarSection';
-import { PlayerPlaybackRate } from './playerBar/PlayerPlaybackRate';
-import { PlayerVolume } from './playerBar/PlayerVolume';
-import { PlayerOverflowMenu } from './playerBar/PlayerOverflowMenu';
-import { useFloatingPlayerBar } from '../hooks/useFloatingPlayerBar';
-import { useUtilityOverflowMenu } from '../hooks/useUtilityOverflowMenu';
+import { PlayerTrackInfo } from '@/features/playback/components/playerBar/PlayerTrackInfo';
+import { PlayerTransportControls } from '@/features/playback/components/playerBar/PlayerTransportControls';
+import { PlayerSeekbarSection } from '@/features/playback/components/playerBar/PlayerSeekbarSection';
+import { PlayerPlaybackRate } from '@/features/playback/components/playerBar/PlayerPlaybackRate';
+import { PlayerVolume } from '@/features/playback/components/playerBar/PlayerVolume';
+import { PlayerOverflowMenu } from '@/features/playback/components/playerBar/PlayerOverflowMenu';
+import { useFloatingPlayerBar } from '@/hooks/useFloatingPlayerBar';
+import { useUtilityOverflowMenu } from '@/hooks/useUtilityOverflowMenu';
 import {
   usePlayerBarLayoutStore,
   type PlayerBarLayoutItemId,
-} from '../store/playerBarLayoutStore';
+} from '@/store/playerBarLayoutStore';
 
 export default function PlayerBar() {
   const { t } = useTranslation();

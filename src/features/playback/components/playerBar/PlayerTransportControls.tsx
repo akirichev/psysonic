@@ -5,9 +5,9 @@ import type { TFunction } from 'i18next';
 import type { PlayerState } from '@/features/playback/store/playerStoreTypes';
 import { useAutodjTransitionUi } from '@/features/playback/store/autodjTransitionUi';
 import { usePreviewStore } from '@/features/playback/store/previewStore';
-import PlaybackScheduleBadge from '../PlaybackScheduleBadge';
-import { usePlaybackDelayPress } from '../../hooks/usePlaybackDelayPress';
-import { usePlaybackScheduleRemaining } from '../../utils/format/playbackScheduleFormat';
+import PlaybackScheduleBadge from '@/components/PlaybackScheduleBadge';
+import { usePlaybackDelayPress } from '@/hooks/usePlaybackDelayPress';
+import { usePlaybackScheduleRemaining } from '@/utils/format/playbackScheduleFormat';
 
 type RepeatMode = PlayerState['repeatMode'];
 type PlayPauseBind = ReturnType<typeof usePlaybackDelayPress>['playPauseBind'];
