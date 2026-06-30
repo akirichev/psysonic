@@ -3,11 +3,13 @@ import { useAuthStore } from '@/store/authStore';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { Track } from '@/lib/media/trackTypes';
 import {
+  isMultiServerQueue,
+  stampTrackServerId,
+} from '@/lib/media/trackServerScope';
+import {
   activeServerQueueTrackIds,
   filterQueueRefsForActiveServer,
-  isMultiServerQueue,
   queueItemRefAt,
-  stampTrackServerId,
 } from '@/features/playback/utils/playback/trackServerScope';
 
 const baseTrack = (): Track => ({

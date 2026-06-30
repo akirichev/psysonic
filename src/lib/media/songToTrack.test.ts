@@ -7,7 +7,7 @@
  */
 import type { Track } from '@/lib/media/trackTypes';
 import { describe, expect, it } from 'vitest';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { makeSubsonicSong } from '@/test/helpers/factories';
 
 describe('songToTrack', () => {

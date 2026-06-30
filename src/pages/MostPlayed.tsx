@@ -1,7 +1,7 @@
 import { getAlbumList } from '@/lib/api/subsonicLibrary';
 import { resolveAlbum } from '@/features/offline';
 import type { SubsonicAlbum } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpDown, ArrowDown, ArrowUp, TrendingUp, UsersRound, Play, ListPlus } from 'lucide-react';

@@ -1,5 +1,5 @@
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { fadeOut } from '@/features/playback/utils/playback/fadeOut';
 import { shouldAutodjInterruptBlend } from '@/features/playback/utils/playback/autodjManualBlend';

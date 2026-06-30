@@ -1,6 +1,6 @@
 import { search } from '@/lib/api/subsonicSearch';
 import type { SearchResults, SubsonicArtist } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { useLiveSearchScopeStore } from '@/store/liveSearchScopeStore';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';

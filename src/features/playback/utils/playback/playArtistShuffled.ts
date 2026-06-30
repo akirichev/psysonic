@@ -1,5 +1,5 @@
 import { resolveAlbum, resolveArtist, resolveMediaServerId } from '@/store/mediaResolver';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { shuffleArray } from '@/lib/util/shuffleArray';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 /**

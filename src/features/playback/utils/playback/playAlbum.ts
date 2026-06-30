@@ -1,6 +1,6 @@
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { resolveAlbumForActiveServer } from '@/store/mediaResolver';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { orbitSnapshot } from '@/store/orbitRuntime';
 import { fadeOut } from '@/features/playback/utils/playback/fadeOut';
 import { shouldAutodjInterruptBlend } from '@/features/playback/utils/playback/autodjManualBlend';

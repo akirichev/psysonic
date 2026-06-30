@@ -1,7 +1,7 @@
 import { getSong } from '@/lib/api/subsonicLibrary';
 import { resolveAlbum, resolveArtist } from '@/features/offline';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import type { Location, NavigateFunction } from 'react-router-dom';
 import type { TFunction } from 'i18next';
 import { useAuthStore } from '../../store/authStore';

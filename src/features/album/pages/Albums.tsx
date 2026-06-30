@@ -1,6 +1,6 @@
 import { buildDownloadUrl } from '@/lib/api/subsonicStreamUrl';
 import { resolveAlbum } from '@/features/offline';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import AlbumCard from '@/features/album/components/AlbumCard';
 import { albumGridWarmCovers, coverDisplayCssPxForAlbumGrid } from '@/cover/layoutSizes';

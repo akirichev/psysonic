@@ -1,7 +1,7 @@
 import { getRandomAlbums } from '@/lib/api/subsonicLibrary';
 import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 import type { SubsonicAlbum } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigateToAlbum } from '@/features/album';
 import { Play, ListPlus, ChevronLeft, ChevronRight } from 'lucide-react';

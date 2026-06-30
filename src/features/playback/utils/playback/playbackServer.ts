@@ -18,11 +18,13 @@ import {
 } from '@/utils/server/serverIndexKey';
 import {
   activeServerProfileId,
-  filterQueueRefsForServerProfile,
   isMultiServerQueue,
   profileIdFromQueueRef,
-  queueItemRefAt,
   stampTrackServerIds,
+} from '@/lib/media/trackServerScope';
+import {
+  filterQueueRefsForServerProfile,
+  queueItemRefAt,
 } from '@/features/playback/utils/playback/trackServerScope';
 
 function playbackServerFromRef(ref: QueueItemRef): ServerProfile | undefined {

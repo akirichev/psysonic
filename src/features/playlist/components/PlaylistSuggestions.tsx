@@ -10,7 +10,7 @@ import StarRating from '@/components/StarRating';
 import { PlaylistArtistCell } from '@/features/playlist/components/PlaylistArtistCell';
 import { useThemeStore } from '@/store/themeStore';
 import { usePlaylistLayoutStore } from '@/features/playlist/store/playlistLayoutStore';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { getQueueTracksView } from '@/features/playback/store/queueTrackView';
 import { codecLabel } from '@/utils/componentHelpers/playlistDetailHelpers';
 import { formatLastSeen } from '@/utils/componentHelpers/userMgmtHelpers';

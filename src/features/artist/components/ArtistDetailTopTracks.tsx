@@ -5,7 +5,7 @@ import type { SubsonicAlbum, SubsonicSong } from '@/lib/api/subsonicTypes';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { previewInputFromSong, usePreviewStore } from '@/features/playback/store/previewStore';
 import { useOrbitSongRowBehavior } from '@/features/orbit';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { formatTrackTime } from '@/lib/format/formatDuration';
 import ArtistTopTrackCover from '@/features/artist/components/ArtistTopTrackCover';
 import { topSongAlbumForCover } from '@/features/artist/components/topSongAlbumForCover';

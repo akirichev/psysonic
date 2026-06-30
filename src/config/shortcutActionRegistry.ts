@@ -1,6 +1,6 @@
 import { queueSongStar } from '@/features/playback/store/pendingStarSync';
 import { getSong } from '@/lib/api/subsonicLibrary';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import i18n from '@/lib/i18n';

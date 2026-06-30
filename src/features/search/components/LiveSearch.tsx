@@ -1,6 +1,6 @@
 import { subscribeLibrarySyncIdle, subscribeLibrarySyncProgress } from '@/lib/api/library';
 import type { SearchResults, SubsonicArtist } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import {
   LIVE_SEARCH_DEBOUNCE_NETWORK_MS,
   LIVE_SEARCH_DEBOUNCE_RACE_MS,

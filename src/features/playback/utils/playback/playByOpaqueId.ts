@@ -1,6 +1,6 @@
 import { getSong } from '@/lib/api/subsonicLibrary';
 import { resolveAlbumForActiveServer } from '@/store/mediaResolver';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { playAlbum } from '@/features/playback/utils/playback/playAlbum';
 import { playArtistShuffled } from '@/features/playback/utils/playback/playArtistShuffled';
 import { usePlayerStore } from '@/features/playback/store/playerStore';

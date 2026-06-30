@@ -2,7 +2,7 @@ import { libraryGetTracksBatch, type TrackRefDto } from '@/lib/api/library';
 import { getSongForServer } from '@/lib/api/subsonicLibrary';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import type { QueueItemRef, Track } from '@/lib/media/trackTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { resolveServerIdForIndexKey } from '@/utils/server/serverLookup';
 import { canonicalQueueServerKey } from '@/utils/server/serverIndexKey';
 import { trackToSong } from '@/lib/library/advancedSearchLocal';

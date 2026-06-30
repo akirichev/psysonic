@@ -12,7 +12,7 @@ import { useSelectionStore } from '@/store/selectionStore';
 import { useThemeStore } from '@/store/themeStore';
 import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import { useOrbitSongRowBehavior } from '@/features/orbit';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { appendServerQuery } from '@/utils/navigation/detailServerScope';
 import { APP_MAIN_SCROLL_VIEWPORT_ID } from '@/constants/appScroll';
 import { useElementClientHeightById } from '@/lib/hooks/useResizeClientHeight';

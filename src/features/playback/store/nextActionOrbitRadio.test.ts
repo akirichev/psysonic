@@ -39,7 +39,7 @@ vi.mock('@/features/playback/store/queueTrackView', () => ({
 vi.mock('@/features/playback/utils/playback/buildInfiniteQueueCandidates', () => ({
   buildInfiniteQueueCandidates: vi.fn(() => Promise.resolve([])),
 }));
-vi.mock('@/features/playback/utils/playback/songToTrack', () => ({ songToTrack: (s: unknown) => s }));
+vi.mock('@/lib/media/songToTrack', () => ({ songToTrack: (s: unknown) => s }));
 vi.mock('@/features/playback/utils/playback/playbackServer', () => ({ ensureQueueServerPinned: () => null }));
 vi.mock('@/features/playback/store/queueTrackResolver', () => ({ seedQueueResolver: vi.fn() }));
 vi.mock('@/features/playback/store/queueItemRef', () => ({ toQueueItemRefs: () => [] }));

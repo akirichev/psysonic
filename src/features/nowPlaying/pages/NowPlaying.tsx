@@ -11,7 +11,7 @@ import { Music, EyeOff, LayoutGrid, RotateCcw, Eye } from 'lucide-react';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { useAuthStore } from '@/store/authStore';
 import { useLyricsStore } from '@/store/lyricsStore';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { useRadioMetadata } from '@/features/radio';
 import { useDragDrop } from '@/lib/dnd/DragDropContext';
 import OverlayScrollArea from '@/ui/OverlayScrollArea';

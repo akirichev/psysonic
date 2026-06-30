@@ -12,7 +12,7 @@ import { useDownloadModalStore } from '@/features/offline';
 import type { EntityShareKind } from '../share/shareLink';
 import { copyEntityShareLink } from '../share/copyEntityShareLink';
 import { sanitizeFilename, shuffleArray } from './contextMenuHelpers';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { showToast } from '../ui/toast';
 
 export async function copyShareLink(

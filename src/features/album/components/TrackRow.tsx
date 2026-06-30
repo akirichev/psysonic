@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ColDef } from '@/utils/useTracklistColumns';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
 import type { Track } from '@/lib/media/trackTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { useSelectionStore } from '@/store/selectionStore';
 import { useThemeStore } from '@/store/themeStore';
 import { previewInputFromSong, usePreviewStore } from '@/features/playback/store/previewStore';

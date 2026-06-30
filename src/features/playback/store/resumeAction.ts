@@ -9,7 +9,7 @@ import {
 import { resolvePlaybackUrl } from '@/features/playback/utils/playback/resolvePlaybackUrl';
 import { resolveReplayGainDb } from '@/features/playback/utils/audio/resolveReplayGainDb';
 import { audioPlayHiResBlendArgs } from '@/utils/audio/hiResCrossfadeResample';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { useAuthStore } from '@/store/authStore';
 import {
   bumpPlayGeneration,

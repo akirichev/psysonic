@@ -1,5 +1,5 @@
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import React, { memo, useMemo } from 'react';
 import { Play, ListPlus, Star, Disc3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

@@ -1,5 +1,5 @@
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import React, { memo } from 'react';
 import { useNavigateToAlbum } from '@/features/album';
 import { useNavigateToArtist } from '@/features/artist';

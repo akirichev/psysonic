@@ -8,7 +8,7 @@ import { getMusicNetworkRuntime, useEnrichmentPrimary } from '../../music-networ
 import type { Track } from '@/lib/media/trackTypes';
 import { useAuthStore } from '../../store/authStore';
 import { usePlaylistStore } from '@/features/playlist';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { showToast } from '../../utils/ui/toast';
 import { suggestOrbitTrack, hostEnqueueToOrbit, evaluateOrbitSuggestGate, OrbitSuggestBlockedError } from '@/features/orbit';
 import { renderPresetIcon } from '../settings/musicNetwork/presetIcon';

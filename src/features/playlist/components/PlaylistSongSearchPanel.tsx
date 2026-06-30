@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, ListPlus, X } from 'lucide-react';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { formatTrackTime } from '@/lib/format/formatDuration';
 import { AlbumCoverArtImage } from '@/cover/AlbumCoverArtImage';
 import { COVER_DENSE_SEARCH_CSS_PX } from '@/cover/layoutSizes';

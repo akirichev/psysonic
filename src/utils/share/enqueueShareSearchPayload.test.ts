@@ -49,7 +49,7 @@ vi.mock('@/features/playback/store/playerStore', () => ({
   },
 }));
 
-vi.mock('@/features/playback/utils/playback/songToTrack', () => ({
+vi.mock('@/lib/media/songToTrack', () => ({
   songToTrack: mocks.songToTrack,
 }));
 

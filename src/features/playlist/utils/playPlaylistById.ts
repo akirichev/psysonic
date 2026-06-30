@@ -1,5 +1,5 @@
 import { getPlaylist } from '@/lib/api/subsonicPlaylists';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { playPlaylistAll } from '@/features/playlist/utils/playlistBulkPlayActions';
 

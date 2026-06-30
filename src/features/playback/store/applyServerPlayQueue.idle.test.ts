@@ -11,7 +11,7 @@ vi.mock('@/utils/server/serverLookup', () => ({
   resolveServerIdForIndexKey: (id: string) => id,
 }));
 
-vi.mock('@/features/playback/utils/playback/songToTrack', () => ({
+vi.mock('@/lib/media/songToTrack', () => ({
   songToTrack: (s: { id: string }) => ({
     id: s.id,
     title: s.id,

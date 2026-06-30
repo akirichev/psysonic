@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 import { star, unstar } from '@/lib/api/subsonicStarRating';
 import type { SubsonicAlbum } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import StarRating from '../StarRating';
 import { AlbumToPlaylistSubmenu } from './AlbumArtistToPlaylistSubmenu';
 import { MultiAlbumToPlaylistSubmenu } from './MultiAlbumToPlaylistSubmenu';

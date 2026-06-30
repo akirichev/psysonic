@@ -1,29 +1,13 @@
-import type { QueueItemRef, Track } from '@/lib/media/trackTypes';
-import { useAuthStore } from '@/store/authStore';
+import type { QueueItemRef } from '@/lib/media/trackTypes';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { canonicalQueueServerKey } from '@/utils/server/serverIndexKey';
 import { resolveServerIdForIndexKey } from '@/utils/server/serverLookup';
-
-/** Active saved-server profile id (auth UUID), when logged in. */
-export function activeServerProfileId(): string | undefined {
-  return useAuthStore.getState().activeServerId ?? undefined;
-}
+import { activeServerProfileId, profileIdFromQueueRef } from '@/lib/media/trackServerScope';
 
 /**
- * Ensure every track carries an owning server before it enters the queue.
- * Explicit `track.serverId` wins; otherwise `fallbackServerId`, then active server.
+ * Store-reading queue-scope helpers. These read the live player store (current
+ * queue + pinned server), so they stay in the playback feature; the pure stamp
+ * / classify helpers they build on live in `@/lib/media/trackServerScope`.
  */
-export function stampTrackServerId(track: Track, fallbackServerId?: string): Track {
-  const serverId = track.serverId ?? fallbackServerId ?? activeServerProfileId();
-  if (!serverId || track.serverId === serverId) {
-    return serverId && !track.serverId ? { ...track, serverId } : track;
-  }
-  return { ...track, serverId };
-}
-
-export function stampTrackServerIds(tracks: Track[], fallbackServerId?: string): Track[] {
-  return tracks.map(t => stampTrackServerId(t, fallbackServerId));
-}
 
 /** Canonical queue ref at `index`, or the currently playing slot. */
 export function queueItemRefAt(index?: number): QueueItemRef | null {
@@ -32,22 +16,6 @@ export function queueItemRefAt(index?: number): QueueItemRef | null {
   const idx = index ?? queueIndex;
   if (idx < 0 || idx >= queueItems.length) return null;
   return queueItems[idx] ?? null;
-}
-
-/** True when queue refs resolve to more than one server bucket. */
-export function isMultiServerQueue(refs: QueueItemRef[]): boolean {
-  const keys = new Set<string>();
-  for (const ref of refs) {
-    if (!ref.serverId) continue;
-    keys.add(canonicalQueueServerKey(ref.serverId) || ref.serverId);
-    if (keys.size > 1) return true;
-  }
-  return false;
-}
-
-export function profileIdFromQueueRef(ref: QueueItemRef | null | undefined): string {
-  if (!ref?.serverId) return '';
-  return resolveServerIdForIndexKey(ref.serverId) || ref.serverId;
 }
 
 function refsForServerProfile(refs: QueueItemRef[], profileId: string): QueueItemRef[] {

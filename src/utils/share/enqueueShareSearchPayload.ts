@@ -10,7 +10,7 @@ import type { SubsonicAlbum, SubsonicArtist, SubsonicSong } from '@/lib/api/subs
 import { useAuthStore } from '../../store/authStore';
 import type { ServerProfile } from '../../store/authStoreTypes';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import type { Track } from '@/lib/media/trackTypes';
 import { orbitBulkGuard } from '@/features/orbit';
 import { findServerIdForShareUrl } from './shareLink';

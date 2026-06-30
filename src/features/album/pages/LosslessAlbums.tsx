@@ -1,7 +1,7 @@
 import { buildDownloadUrl } from '@/lib/api/subsonicStreamUrl';
 import { resolveAlbum } from '@/features/offline';
 import type { SubsonicAlbum } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AlbumCard from '@/features/album/components/AlbumCard';
 import { LOSSLESS_MODE_QUERY } from '@/lib/library/losslessMode';

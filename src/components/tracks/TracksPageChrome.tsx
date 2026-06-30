@@ -1,7 +1,7 @@
 import { AlbumCoverArtImage } from '../../cover/AlbumCoverArtImage';
 import { getRandomSongs } from '@/lib/api/subsonicLibrary';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Play, ListPlus, RefreshCw, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

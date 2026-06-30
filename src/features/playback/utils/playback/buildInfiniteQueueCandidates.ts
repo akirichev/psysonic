@@ -7,7 +7,7 @@ import {
   passesMixMinRatings,
 } from '@/utils/mix/mixRatingFilter';
 import { shuffleArray } from '@/lib/util/shuffleArray';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 /**
  * Infinite queue source strategy (Instant Mix-like):
  * 1) Prefer artist-driven candidates (Top + Similar) around the current track.

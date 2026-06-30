@@ -2,7 +2,7 @@ import { fetchSimilarTracksRouted } from '@/lib/api/subsonicArtists';
 import { filterSongsToActiveLibrary, getRandomSongs } from '@/lib/api/subsonicLibrary';
 import type { SubsonicAlbum, SubsonicSong } from '@/lib/api/subsonicTypes';
 import type { QueueItemRef } from '@/lib/media/trackTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { invoke } from '@tauri-apps/api/core';
 import i18n from '@/lib/i18n';
 import { useAuthStore } from '../../store/authStore';

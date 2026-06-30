@@ -4,7 +4,7 @@ import { queueSongStar, queueSongRating } from '@/features/playback/store/pendin
 import { getAlbumForServer } from '@/lib/api/subsonicLibrary';
 import { getArtistInfo } from '@/lib/api/subsonicArtists';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { shuffleArray } from '@/lib/util/shuffleArray';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
 import type { Track } from '@/lib/media/trackTypes';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { getDisplayedSongs, type PlaylistSortDir, type PlaylistSortKey } from '@/features/playlist/utils/playlistDisplayedSongs';
 
 export interface PlaylistDerivedOptions {

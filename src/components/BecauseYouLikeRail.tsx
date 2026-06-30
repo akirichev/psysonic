@@ -2,7 +2,7 @@ import { getArtist, getArtistInfo } from '@/lib/api/subsonicArtists';
 import { filterAlbumsToActiveLibrary } from '@/lib/api/subsonicLibrary';
 import { resolveAlbum, resolveMediaServerId } from '@/features/offline';
 import type { SubsonicAlbum } from '@/lib/api/subsonicTypes';
-import { songToTrack } from '@/features/playback/utils/playback/songToTrack';
+import { songToTrack } from '@/lib/media/songToTrack';
 import { shuffleArray } from '@/lib/util/shuffleArray';
 import React, { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

@@ -26,7 +26,7 @@ import {
   playbackProfileIdForTrack,
   shouldBindQueueServerForPlay,
 } from '@/features/playback/utils/playback/playbackServer';
-import { stampTrackServerId, stampTrackServerIds } from '@/features/playback/utils/playback/trackServerScope';
+import { stampTrackServerId, stampTrackServerIds } from '@/lib/media/trackServerScope';
 import {
   findLocalPlaybackUrl,
   hasLocalPersistentPlaybackBytes,
