@@ -38,7 +38,7 @@ import BlockingMigrationGate from './BlockingMigrationGate';
 import RequireAuth from './RequireAuth';
 import { useMigrationStore } from '../store/migrationStore';
 
-const Login = lazy(() => import('../pages/Login'));
+const Login = lazy(() => import('@/features/auth/pages/Login'));
 
 /**
  * Main webview tree. Hosts the router, the application shell (sidebar /

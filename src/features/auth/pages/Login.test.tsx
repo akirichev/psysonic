@@ -33,7 +33,7 @@ afterEach(() => {
 
 describe('Login — v2 magic string paste persistence', () => {
   it('persists alternateUrl + shareUsesLocalUrl from a pasted v2 invite', async () => {
-    const Login = (await import('./Login')).default;
+    const Login = (await import('@/features/auth/pages/Login')).default;
     renderWithProviders(<Login />);
     const user = userEvent.setup();
 
@@ -70,7 +70,7 @@ describe('Login — v2 magic string paste persistence', () => {
   });
 
   it('persists a v1 invite as a single-address profile (no alternateUrl)', async () => {
-    const Login = (await import('./Login')).default;
+    const Login = (await import('@/features/auth/pages/Login')).default;
     renderWithProviders(<Login />);
     const user = userEvent.setup();
 
@@ -100,7 +100,7 @@ describe('Login — v2 magic string paste persistence', () => {
   });
 
   it('persists custom HTTP headers and probes with gate profile on first connect', async () => {
-    const Login = (await import('./Login')).default;
+    const Login = (await import('@/features/auth/pages/Login')).default;
     renderWithProviders(<Login />);
     const user = userEvent.setup();
 
