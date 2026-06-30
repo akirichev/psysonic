@@ -178,7 +178,7 @@ export default function SongContextItems(props: ContextMenuItemsProps) {
               </div>
               {offlinePolicy.canEditPlaylist && playlistId && playlistSongIndex !== undefined && (
                 <div className="context-menu-item" style={{ color: 'var(--danger)' }} onClick={() => handleAction(async () => {
-                  const { updatePlaylist } = await import('@/features/playlist');
+                  const { updatePlaylist } = await import('@/lib/api/subsonicPlaylists');
                   const { showToast } = await import('../../utils/ui/toast');
                   const touchPlaylist = usePlaylistStore.getState().touchPlaylist;
                   try {

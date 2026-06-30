@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { filterSongsToActiveLibrary } from '@/lib/api/subsonicLibrary';
-import { getPlaylist } from '@/features/playlist/api/subsonicPlaylists';
+import { getPlaylist } from '@/lib/api/subsonicPlaylists';
 import type { SubsonicPlaylist } from '@/lib/api/subsonicTypes';
 import { useOfflineBrowseContext } from '@/features/offline';
 

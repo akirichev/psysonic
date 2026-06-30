@@ -1,4 +1,4 @@
-import { getSimilarSongs2, getTopSongs } from '@/features/artist';
+import { getSimilarSongs2, getTopSongs } from '@/lib/api/subsonicArtists';
 import { getRandomSongs } from '@/lib/api/subsonicLibrary';
 import type { Track } from '../../store/playerStoreTypes';
 import {

@@ -28,7 +28,7 @@ vi.mock('@/lib/api/subsonicLibrary', () => ({
   getAlbumForServer: vi.fn(async () => ({ songs: [] })),
 }));
 
-vi.mock('@/features/artist', () => ({
+vi.mock('@/lib/api/subsonicArtists', () => ({
   getArtistForServer: vi.fn(async () => ({ albums: [] })),
 }));
 

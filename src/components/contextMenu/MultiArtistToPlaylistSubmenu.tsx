@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ListMusic, Plus } from 'lucide-react';
 import { resolveAlbum, resolveArtist, resolveMediaServerId, resolvePlaylist } from '@/features/offline';
-import { getPlaylists } from '@/features/playlist';
+import { getPlaylists } from '@/lib/api/subsonicPlaylists';
 import type { SubsonicPlaylist } from '@/lib/api/subsonicTypes';
 import { usePlaylistStore } from '@/features/playlist';
 import { showToast } from '../../utils/ui/toast';
@@ -53,7 +53,7 @@ export function MultiArtistToPlaylistSubmenu({ artistIds, onDone, triggerId: _tr
   }, [artistIds]);
 
   const handleAddWithToast = async (pl: SubsonicPlaylist, songIds: string[]) => {
-    const { updatePlaylist } = await import('@/features/playlist');
+    const { updatePlaylist } = await import('@/lib/api/subsonicPlaylists');
     const touchPlaylist = usePlaylistStore.getState().touchPlaylist;
 
     try {
@@ -139,7 +139,7 @@ export function MultiArtistToPlaylistSubmenu({ artistIds, onDone, triggerId: _tr
     const handleCreate = async () => {
       const name = newName.trim() || t('playlists.unnamed');
       try {
-        const { createPlaylist } = await import('@/features/playlist');
+        const { createPlaylist } = await import('@/lib/api/subsonicPlaylists');
         const pl = await createPlaylist(name, songIds);
         if (pl?.id) {
           usePlaylistStore.getState().touchPlaylist(pl.id);

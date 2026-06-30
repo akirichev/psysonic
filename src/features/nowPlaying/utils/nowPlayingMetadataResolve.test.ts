@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { onInvoke } from '@/test/mocks/tauri';
 import { useLibraryIndexStore } from '@/store/libraryIndexStore';
 import type { LibraryAdvancedSearchResponse } from '@/lib/api/library';
-import * as subsonicArtists from '@/features/artist';
+import * as subsonicArtists from '@/lib/api/subsonicArtists';
 import * as subsonicLibrary from '@/lib/api/subsonicLibrary';
 
 // Network reachability is decided by the guard; mock it so we can test both arms.

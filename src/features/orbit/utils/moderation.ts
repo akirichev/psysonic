@@ -1,4 +1,4 @@
-import { deletePlaylist, getPlaylists } from '@/features/playlist';
+import { deletePlaylist, getPlaylists } from '@/lib/api/subsonicPlaylists';
 import { useOrbitStore } from '@/features/orbit/store/orbitStore';
 import { orbitOutboxPlaylistName, type OrbitState } from '@/features/orbit/api/orbit';
 import { writeOrbitState } from '@/features/orbit/utils/remote';

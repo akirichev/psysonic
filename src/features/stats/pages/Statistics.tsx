@@ -1,4 +1,4 @@
-import { fetchStatisticsFormatSample, fetchStatisticsLibraryAggregates, fetchStatisticsOverview } from '@/features/stats/api/subsonicStatistics';
+import { fetchStatisticsFormatSample, fetchStatisticsLibraryAggregates, fetchStatisticsOverview } from '@/lib/api/subsonicStatistics';
 import { getAlbumList } from '@/lib/api/subsonicLibrary';
 import type { SubsonicAlbum, SubsonicGenre } from '@/lib/api/subsonicTypes';
 import React, { useEffect, useState } from 'react';

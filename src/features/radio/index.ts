@@ -8,7 +8,6 @@
  * playback/audio core — the player core drives them, so they are not part of
  * this UI feature.
  */
-export { getInternetRadioStations } from './api/subsonicRadio';
 export { useRadioMetadata } from './hooks/useRadioMetadata';
 export type { RadioMetadata } from './hooks/useRadioMetadata';
 export { useRadioMprisSync } from './hooks/useRadioMprisSync';

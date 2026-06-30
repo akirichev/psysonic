@@ -1,4 +1,4 @@
-import { getInternetRadioStations, createInternetRadioStation, updateInternetRadioStation, deleteInternetRadioStation, uploadRadioCoverArt, deleteRadioCoverArt } from '@/features/radio/api/subsonicRadio';
+import { getInternetRadioStations, createInternetRadioStation, updateInternetRadioStation, deleteInternetRadioStation, uploadRadioCoverArt, deleteRadioCoverArt } from '@/lib/api/subsonicRadio';
 import { type InternetRadioStation } from '@/lib/api/subsonicTypes';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Plus, Search } from 'lucide-react';

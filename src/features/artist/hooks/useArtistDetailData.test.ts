@@ -15,10 +15,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SubsonicArtistInfo } from '@/lib/api/subsonicTypes';
 
-vi.mock('@/features/artist/api/subsonicArtists');
+vi.mock('@/lib/api/subsonicArtists');
 vi.mock('@/lib/api/subsonicSearch');
 
-import { getArtist, getArtistInfo, getTopSongs } from '@/features/artist/api/subsonicArtists';
+import { getArtist, getArtistInfo, getTopSongs } from '@/lib/api/subsonicArtists';
 import { search } from '@/lib/api/subsonicSearch';
 import { useArtistDetailData } from '@/features/artist/hooks/useArtistDetailData';
 

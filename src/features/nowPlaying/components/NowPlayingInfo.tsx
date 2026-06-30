@@ -1,5 +1,5 @@
 import { getSongForServer } from '@/lib/api/subsonicLibrary';
-import { getArtistInfoForServer } from '@/features/artist';
+import { getArtistInfoForServer } from '@/lib/api/subsonicArtists';
 import type { SubsonicArtistInfo, SubsonicSong } from '@/lib/api/subsonicTypes';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';

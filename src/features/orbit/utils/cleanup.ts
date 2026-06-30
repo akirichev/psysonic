@@ -1,4 +1,4 @@
-import { deletePlaylist, getPlaylists } from '@/features/playlist';
+import { deletePlaylist, getPlaylists } from '@/lib/api/subsonicPlaylists';
 import { useAuthStore } from '@/store/authStore';
 import { useOrbitStore } from '@/features/orbit/store/orbitStore';
 import { ORBIT_PLAYLIST_PREFIX, parseOrbitState } from '@/features/orbit/api/orbit';

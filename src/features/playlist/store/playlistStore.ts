@@ -1,8 +1,8 @@
-import { getPlaylists } from '@/features/playlist/api/subsonicPlaylists';
+import { getPlaylists } from '@/lib/api/subsonicPlaylists';
 import type { SubsonicPlaylist } from '@/lib/api/subsonicTypes';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { createPlaylist as apiCreatePlaylist } from '@/features/playlist/api/subsonicPlaylists';
+import { createPlaylist as apiCreatePlaylist } from '@/lib/api/subsonicPlaylists';
 import { useAuthStore } from '@/store/authStore';
 import { isOfflineBrowseActive } from '@/features/offline';
 import { fetchOfflineBrowsablePlaylists } from '@/features/offline';

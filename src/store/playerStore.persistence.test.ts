@@ -43,11 +43,11 @@ vi.mock('@/lib/api/subsonicLibrary', () => ({
   getSong: vi.fn(async () => null),
   getRandomSongs: vi.fn(async () => []),
 }));
-vi.mock('@/features/artist', () => ({
+vi.mock('@/lib/api/subsonicArtists', () => ({
   getSimilarSongs2: vi.fn(async () => []),
   getTopSongs: vi.fn(async () => []),
 }));
-vi.mock('@/features/album', () => ({
+vi.mock('@/lib/api/subsonicAlbumInfo', () => ({
   getAlbumInfo2: vi.fn(async () => null),
 }));
 vi.mock('@/lib/api/subsonicScrobble', () => ({

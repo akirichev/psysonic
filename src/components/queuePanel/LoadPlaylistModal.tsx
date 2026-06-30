@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Play, X, Trash2, ListPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { getPlaylists, deletePlaylist } from '@/features/playlist';
+import { getPlaylists, deletePlaylist } from '@/lib/api/subsonicPlaylists';
 import type { SubsonicPlaylist } from '@/lib/api/subsonicTypes';
 
 interface Props {

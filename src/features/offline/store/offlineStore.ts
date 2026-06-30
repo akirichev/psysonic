@@ -1,7 +1,7 @@
 import { libraryUpsertSongsFromApi } from '@/lib/api/library';
 import { buildStreamUrl } from '@/lib/api/subsonicStreamUrl';
 import { getAlbum } from '@/lib/api/subsonicLibrary';
-import { getArtist } from '@/features/artist';
+import { getArtist } from '@/lib/api/subsonicArtists';
 import type { SubsonicSong } from '@/lib/api/subsonicTypes';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';

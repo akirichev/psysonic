@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/features/artist', () => ({ getArtist: vi.fn() }));
+vi.mock('@/lib/api/subsonicArtists', () => ({ getArtist: vi.fn() }));
 vi.mock('@/lib/api/subsonicLibrary', () => ({ getAlbum: vi.fn() }));
 vi.mock('@/utils/network/subsonicNetworkGuard', () => ({
   shouldAttemptSubsonicForActiveServer: vi.fn(() => true),
 }));
 
-import { getArtist } from '@/features/artist';
+import { getArtist } from '@/lib/api/subsonicArtists';
 import { invalidateEntityUserRatingCaches, prefetchArtistUserRatings } from '@/lib/api/subsonicRatings';
 
 beforeEach(() => {

@@ -1,4 +1,4 @@
-import { fetchSimilarTracksRouted } from '@/features/artist';
+import { fetchSimilarTracksRouted } from '@/lib/api/subsonicArtists';
 import { filterSongsToActiveLibrary, getRandomSongs } from '@/lib/api/subsonicLibrary';
 import type { SubsonicAlbum, SubsonicSong } from '@/lib/api/subsonicTypes';
 import type { QueueItemRef } from '../../store/playerStoreTypes';

@@ -27,11 +27,11 @@ vi.mock('@/utils/network/subsonicNetworkGuard', () => ({
 
 import axios from 'axios';
 import { pingWithCredentials, pingWithCredentialsForProfile, ping } from '@/lib/api/subsonic';
-import { getAlbumInfo2 } from '@/features/album';
+import { getAlbumInfo2 } from '@/lib/api/subsonicAlbumInfo';
 import { getStarred } from '@/lib/api/subsonicStarRating';
 import { search } from '@/lib/api/subsonicSearch';
 import { getAlbum, getMusicDirectory, getMusicFolders, getMusicIndexes, getRandomSongs, getSong } from '@/lib/api/subsonicLibrary';
-import { getArtists, getTopSongs } from '@/features/artist';
+import { getArtists, getTopSongs } from '@/lib/api/subsonicArtists';
 import { useAuthStore } from '@/store/authStore';
 import { resetAuthStore } from '@/test/helpers/storeReset';
 

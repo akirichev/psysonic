@@ -1,4 +1,4 @@
-import { getTopSongs } from '@/features/artist';
+import { getTopSongs } from '@/lib/api/subsonicArtists';
 import { filterSongsToActiveLibrary, getAlbumList, getRandomSongs } from '@/lib/api/subsonicLibrary';
 import { resolveAlbumForActiveServer } from '@/features/offline';
 import type { SubsonicAlbum, SubsonicSong } from '@/lib/api/subsonicTypes';

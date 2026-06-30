@@ -1,4 +1,4 @@
-import { getPlaylist, getPlaylists, updatePlaylistMeta } from '@/features/playlist';
+import { getPlaylist, getPlaylists, updatePlaylistMeta } from '@/lib/api/subsonicPlaylists';
 import {
   orbitSessionPlaylistName,
   parseOrbitState,

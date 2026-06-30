@@ -10,7 +10,6 @@
  * `playlistDetailHelpers` (shared with offline + favorites; keeping it here
  * would create a playlist⟷offline barrel cycle → lib/shared in M4).
  */
-export * from './api/subsonicPlaylists';
 export * from './hooks/usePlaylistBulkPlayCallbacks';
 export * from './hooks/usePlaylistCovers';
 export * from './hooks/usePlaylistDerived';

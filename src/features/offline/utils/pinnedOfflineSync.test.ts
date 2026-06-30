@@ -29,7 +29,7 @@ vi.mock('@/utils/network/activeServerReachability', () => ({
   onActiveServerBecameReachable: () => () => {},
 }));
 
-vi.mock('@/features/playlist/api/subsonicPlaylists', () => ({
+vi.mock('@/lib/api/subsonicPlaylists', () => ({
   getPlaylistForServer: (serverId: string, id: string) => getPlaylistMock(serverId, id),
 }));
 
@@ -38,7 +38,7 @@ vi.mock('@/lib/api/subsonicLibrary', () => ({
   filterSongsToServerLibrary: (songs: SubsonicSong[]) => filterSongsMock(songs),
 }));
 
-vi.mock('@/features/artist', () => ({
+vi.mock('@/lib/api/subsonicArtists', () => ({
   getArtistForServer: (serverId: string, artistId: string) => getArtistForServerMock(serverId, artistId),
 }));
 

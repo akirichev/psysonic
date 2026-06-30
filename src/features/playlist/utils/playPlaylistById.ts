@@ -1,4 +1,4 @@
-import { getPlaylist } from '@/features/playlist/api/subsonicPlaylists';
+import { getPlaylist } from '@/lib/api/subsonicPlaylists';
 import { songToTrack } from '@/utils/playback/songToTrack';
 import { usePlayerStore } from '@/store/playerStore';
 import { playPlaylistAll } from '@/features/playlist/utils/playlistBulkPlayActions';

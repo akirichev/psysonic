@@ -1,4 +1,4 @@
-import { getArtists } from '@/features/artist/api/subsonicArtists';
+import { getArtists } from '@/lib/api/subsonicArtists';
 import type { SubsonicArtist } from '@/lib/api/subsonicTypes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { dedupeById } from '@/utils/dedupeById';

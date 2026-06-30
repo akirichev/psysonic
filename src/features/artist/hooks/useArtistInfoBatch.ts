@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getArtistInfoForServer } from '@/features/artist/api/subsonicArtists';
+import { getArtistInfoForServer } from '@/lib/api/subsonicArtists';
 import type { SubsonicArtistInfo, SubsonicOpenArtistRef } from '@/lib/api/subsonicTypes';
 import { makeCache } from '@/utils/cache/nowPlayingCache';
 

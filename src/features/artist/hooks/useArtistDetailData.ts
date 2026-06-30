@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { search } from '@/lib/api/subsonicSearch';
-import { getArtist, getArtistForServer, getArtistInfo, getTopSongs } from '@/features/artist/api/subsonicArtists';
+import { getArtist, getArtistForServer, getArtistInfo, getTopSongs } from '@/lib/api/subsonicArtists';
 import type {
   SubsonicAlbum, SubsonicArtist, SubsonicArtistInfo, SubsonicSong,
 } from '@/lib/api/subsonicTypes';

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getPlaylists } from '@/features/playlist';
-import { getArtists, getArtist } from '@/features/artist';
+import { getPlaylists } from '@/lib/api/subsonicPlaylists';
+import { getArtists, getArtist } from '@/lib/api/subsonicArtists';
 import { getAlbumList } from '@/lib/api/subsonicLibrary';
 import { search as searchSubsonic } from '@/lib/api/subsonicSearch';
 import type {

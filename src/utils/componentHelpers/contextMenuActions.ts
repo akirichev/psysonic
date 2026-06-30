@@ -1,6 +1,6 @@
 import { join } from '@tauri-apps/api/path';
 import { invoke } from '@tauri-apps/api/core';
-import { getSimilarSongs2, fetchSimilarTracksRouted, getTopSongs } from '@/features/artist';
+import { getSimilarSongs2, fetchSimilarTracksRouted, getTopSongs } from '@/lib/api/subsonicArtists';
 import { filterSongsForLuckyMixRatings, getMixMinRatingsConfigFromAuth } from '../mix/mixRatingFilter';
 import { buildDownloadUrl } from '@/lib/api/subsonicStreamUrl';
 import { useAuthStore } from '../../store/authStore';

@@ -1,4 +1,4 @@
-import { createPlaylist, deletePlaylist, getPlaylist, getPlaylists, updatePlaylist } from '@/features/playlist';
+import { createPlaylist, deletePlaylist, getPlaylist, getPlaylists, updatePlaylist } from '@/lib/api/subsonicPlaylists';
 import { getSong } from '@/lib/api/subsonicLibrary';
 import { songToTrack } from '@/utils/playback/songToTrack';
 import { useAuthStore } from '@/store/authStore';

@@ -11,7 +11,6 @@
  * `*ContextItems`/`*ToPlaylistSubmenu` items (the cross-cutting context-menu
  * subsystem, shared with album), and `PlaylistArtistCell` (playlist).
  */
-export * from './api/subsonicArtists';
 export * from './hooks/useArtistDetailData';
 export * from './hooks/useArtistInfoBatch';
 export * from './hooks/useArtistOfflineState';

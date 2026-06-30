@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { getSimilarSongs2, getTopSongs } from '@/features/artist/api/subsonicArtists';
+import { getSimilarSongs2, getTopSongs } from '@/lib/api/subsonicArtists';
 import type { SubsonicAlbum, SubsonicArtist, SubsonicSong } from '@/lib/api/subsonicTypes';
 import type { Track } from '@/store/playerStoreTypes';
 import { songToTrack } from '@/utils/playback/songToTrack';

@@ -11,7 +11,6 @@
  * sync, core), the album context-menu items (context-menu subsystem), the
  * shared `TracklistColumnPicker` (also used by favorites), and `cover/*`.
  */
-export * from './api/subsonicAlbumInfo';
 export * from './hooks/useAlbumBrowseData';
 export * from './hooks/useAlbumBrowseFilters';
 export * from './hooks/useAlbumBrowseScrollReset';

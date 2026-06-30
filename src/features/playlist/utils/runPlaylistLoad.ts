@@ -1,5 +1,5 @@
 import type React from 'react';
-import { getPlaylist } from '@/features/playlist/api/subsonicPlaylists';
+import { getPlaylist } from '@/lib/api/subsonicPlaylists';
 import { filterSongsToActiveLibrary } from '@/lib/api/subsonicLibrary';
 import type { SubsonicPlaylist, SubsonicSong } from '@/lib/api/subsonicTypes';
 import { useAuthStore } from '@/store/authStore';

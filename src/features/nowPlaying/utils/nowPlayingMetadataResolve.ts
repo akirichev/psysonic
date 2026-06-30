@@ -17,7 +17,7 @@
  * is intentionally absent here.
  */
 import { libraryGetTrack, libraryGetTracksByAlbum } from '@/lib/api/library';
-import { getArtistForServer, getTopSongsForServer } from '@/features/artist';
+import { getArtistForServer, getTopSongsForServer } from '@/lib/api/subsonicArtists';
 import { getAlbumForServer, getSongForServer } from '@/lib/api/subsonicLibrary';
 import type { SubsonicAlbum, SubsonicSong } from '@/lib/api/subsonicTypes';
 import { shouldAttemptSubsonicForServer } from '@/utils/network/subsonicNetworkGuard';

@@ -14,7 +14,7 @@ vi.mock('@/lib/api/subsonicLibrary', () => ({
 }));
 
 import { api } from '@/lib/api/subsonicClient';
-import { fetchSimilarTracksRouted } from '@/features/artist/api/subsonicArtists';
+import { fetchSimilarTracksRouted } from '@/lib/api/subsonicArtists';
 import { useAuthStore } from '@/store/authStore';
 
 const SID = 'srv-router';

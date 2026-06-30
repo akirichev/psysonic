@@ -19,7 +19,7 @@ const { authState, orbitState } = vi.hoisted(() => ({
   orbitState: { sessionId: null as string | null },
 }));
 
-vi.mock('@/features/playlist', () => ({ getPlaylists, deletePlaylist }));
+vi.mock('@/lib/api/subsonicPlaylists', () => ({ getPlaylists, deletePlaylist }));
 vi.mock('@/store/authStore', () => ({
   useAuthStore: {
     getState: () => ({
