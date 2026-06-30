@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/authStore';
 import { cancelledDownloads, useOfflineJobStore } from '@/features/offline/store/offlineJobStore';
 import { useFavoritesOfflineSyncStore } from '@/features/offline/store/favoritesOfflineSyncStore';
 import { useLocalPlaybackStore } from '@/store/localPlaybackStore';
-import { getMediaDir } from '@/utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 import { resolveIndexKey, serverIndexKeyForProfile } from '@/utils/server/serverIndexKey';
 import { FAVORITES_OFFLINE_JOB_ID } from '@/features/offline/utils/favoritesOfflineConstants';
 import { isActiveServerReachable } from '@/utils/network/activeServerReachability';

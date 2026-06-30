@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/store/authStore';
 import type { LocalPlaybackEntry, PinSource } from '@/store/localPlaybackStore';
 import { useLocalPlaybackStore } from '@/store/localPlaybackStore';
-import { getMediaDir } from '@/utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 import { resolveIndexKey, serverIndexKeyForProfile } from '@/utils/server/serverIndexKey';
 import {
   entryBelongsToServer,

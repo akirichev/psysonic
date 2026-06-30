@@ -34,7 +34,7 @@ import {
 } from '@/features/offline/utils/offlineLibraryHelpers';
 import { showToast } from '@/utils/ui/toast';
 import { shuffleArray } from '@/lib/util/shuffleArray';
-import { getMediaDir } from '@/utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 import { canonicalQueueServerKey, resolveIndexKey } from '@/utils/server/serverIndexKey';
 import { reconcileAllLibraryTiersFromDisk } from '@/features/offline/utils/libraryTierReconcile';
 import {

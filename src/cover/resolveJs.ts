@@ -8,7 +8,7 @@ import {
   scheduleSiblingVersusNetworkRace,
 } from '../utils/imageCache/coverSiblings';
 import { blobCache } from '../utils/imageCache/blobCache';
-import { downscaleCoverBlob } from '../utils/cover/coverBlobDownscale';
+import { downscaleCoverBlob } from '@/cover/coverBlobDownscale';
 import { rememberBlob } from '../utils/imageCache/blobCache';
 import { putBlob } from '../utils/imageCache/idbStore';
 import { buildCoverArtFetchUrl } from './fetchUrl';

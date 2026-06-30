@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/authStore';
 import { showToast } from '@/utils/ui/toast';
 import { useOfflineJobStore, cancelledDownloads } from '@/features/offline/store/offlineJobStore';
 import { useLocalPlaybackStore, type PinSource } from '@/store/localPlaybackStore';
-import { getMediaDir } from '@/utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 import { findLocalPlaybackEntry } from '@/store/localPlaybackResolve';
 import {
   isOfflinePinComplete,

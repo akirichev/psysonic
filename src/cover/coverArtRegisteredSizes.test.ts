@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'vitest';
-import { COVER_ART_REGISTERED_SIZES } from './coverArtRegisteredSizes';
+import { COVER_ART_REGISTERED_SIZES } from '@/cover/coverArtRegisteredSizes';
 
 const registry = new Set<number>(COVER_ART_REGISTERED_SIZES);
 

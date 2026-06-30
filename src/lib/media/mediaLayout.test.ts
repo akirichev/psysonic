@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { layoutFingerprintFromLibraryTrack, sanitizeAndTruncateSegment } from './mediaLayout';
+import { layoutFingerprintFromLibraryTrack, sanitizeAndTruncateSegment } from '@/lib/media/mediaLayout';
 
 // Keep in sync with `short_hash` in `src-tauri/crates/psysonic-core/src/media_layout.rs`.
 function shortHash(s: string): string {

@@ -5,7 +5,7 @@ import { useOfflineStore, type OfflineAlbumMeta } from '@/features/offline/store
 import { useLocalPlaybackStore, type LocalPlaybackEntry, type PinSource } from '@/store/localPlaybackStore';
 import { localPlaybackEntryKey } from '@/store/localPlaybackKeys';
 import { importLegacyLocalPlayback } from '@/store/localPlaybackMigration';
-import { getMediaDir } from '@/utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 import { resolveServerIdForIndexKey } from '@/utils/server/serverLookup';
 import { resolveIndexKey } from '@/utils/server/serverIndexKey';
 

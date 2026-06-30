@@ -4,7 +4,7 @@ import type { HotCacheEntry } from '@/features/playback/store/hotCacheStoreTypes
 import { useLocalPlaybackStore, type LocalPlaybackEntry } from '@/store/localPlaybackStore';
 import { entryBelongsToServer } from '@/store/localPlaybackResolve';
 import { invoke } from '@tauri-apps/api/core';
-import { getMediaDir } from '@/utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 
 export type { HotCacheEntry } from '@/features/playback/store/hotCacheStoreTypes';
 /** @deprecated Use {@link LOCAL_PLAYBACK_PROTECT_AFTER_CURRENT}. */

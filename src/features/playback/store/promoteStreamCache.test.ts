@@ -14,7 +14,7 @@ vi.mock('@/features/playback/store/hotCacheStore', () => ({
   },
 }));
 
-vi.mock('@/utils/media/mediaDir', () => ({
+vi.mock('@/lib/media/mediaDir', () => ({
   getMediaDir: () => '/media',
 }));
 

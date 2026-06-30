@@ -6,7 +6,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from './store/authStore';
 import { selectHotCacheEntries, useHotCacheStore } from '@/features/playback/store/hotCacheStore';
 import { useLocalPlaybackStore } from './store/localPlaybackStore';
-import { getMediaDir } from './utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 import { librarySqlServerId } from './api/coverCache';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import {

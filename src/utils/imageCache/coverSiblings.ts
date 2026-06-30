@@ -2,7 +2,7 @@ import { COVER_ART_TIERS } from '../../cover/tiers';
 
 /** Tier ladder for sibling probe (exclude on-demand 2000). */
 const COVER_SIBLING_TIERS = COVER_ART_TIERS.filter(t => t !== 2000);
-import { downscaleCoverBlob } from '../cover/coverBlobDownscale';
+import { downscaleCoverBlob } from '@/cover/coverBlobDownscale';
 import { blobCache, rememberBlob } from './blobCache';
 import { purgeUrlEntry } from './urlPool';
 import { mapBlobsFromIDB, putBlob } from './idbStore';

@@ -10,7 +10,7 @@ import { useLocalPlaybackStore } from '@/store/localPlaybackStore';
 import { useOfflineStore } from '@/features/offline/store/offlineStore';
 import { usePlaylistStore } from '@/features/playlist';
 import { isSmartPlaylistName } from '@/utils/componentHelpers/playlistDetailHelpers';
-import { getMediaDir } from '@/utils/media/mediaDir';
+import { getMediaDir } from '@/lib/media/mediaDir';
 import {
   isActiveServerReachable,
   onActiveServerBecameReachable,
