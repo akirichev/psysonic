@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useThemeStore, getScheduledTheme } from '../store/themeStore';
+import { useThemeStore, getScheduledTheme } from '@/store/themeStore';
 import { useSystemPrefersDark } from '@/lib/hooks/useSystemPrefersDark';
 
 /**

@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { libraryGenreTagsInspect, libraryGenreTagsRun } from '@/lib/api/library';
-import { migrationInspect, migrationRun, type ServerIndexMapping } from '../api/migration';
-import { useAuthStore } from '../store/authStore';
-import { useMigrationStore } from '../store/migrationStore';
-import { serverIndexKeyFromUrl } from '../utils/server/serverIndexKey';
-import { rewriteFrontendStoreKeys } from '../utils/server/rewriteFrontendStoreKeys';
+import { migrationInspect, migrationRun, type ServerIndexMapping } from '@/api/migration';
+import { useAuthStore } from '@/store/authStore';
+import { useMigrationStore } from '@/store/migrationStore';
+import { serverIndexKeyFromUrl } from '@/utils/server/serverIndexKey';
+import { rewriteFrontendStoreKeys } from '@/utils/server/rewriteFrontendStoreKeys';
 
 const MIGRATION_DONE_FLAG = 'psysonic-server-key-migration-v1';
 let migrationInFlight: Promise<void> | null = null;

@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useAuthStore } from '../store/authStore';
-import { useMigrationStore } from '../store/migrationStore';
+import { useAuthStore } from '@/store/authStore';
+import { useMigrationStore } from '@/store/migrationStore';
 
 const migrationInspectMock = vi.fn();
 const migrationRunMock = vi.fn();
@@ -13,7 +13,7 @@ vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(async () => () => {}),
 }));
 
-vi.mock('../api/migration', () => ({
+vi.mock('@/api/migration', () => ({
   migrationInspect: (mappings: unknown) => migrationInspectMock(mappings),
   migrationRun: (mappings: unknown) => migrationRunMock(mappings),
 }));
@@ -23,11 +23,11 @@ vi.mock('@/lib/api/library', () => ({
   libraryGenreTagsRun: () => libraryGenreTagsRunMock(),
 }));
 
-vi.mock('../utils/server/rewriteFrontendStoreKeys', () => ({
+vi.mock('@/utils/server/rewriteFrontendStoreKeys', () => ({
   rewriteFrontendStoreKeys: (servers: unknown) => rewriteFrontendStoreKeysMock(servers),
 }));
 
-import { useMigrationOrchestrator } from './useMigrationOrchestrator';
+import { useMigrationOrchestrator } from '@/app/hooks/useMigrationOrchestrator';
 
 const DONE_FLAG = 'psysonic-server-key-migration-v1';
 const REAL_MIGRATION_TEST_OVERRIDE = '__PSYSONIC_REAL_MIGRATION_TEST__';

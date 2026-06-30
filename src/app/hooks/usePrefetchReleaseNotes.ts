@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { version as appVersion } from '../../package.json';
-import { isWorkspaceReleaseNotesMode } from '../utils/releaseNotes/releaseNotesChannel';
-import { resolveReleaseNotes } from '../utils/releaseNotes/releaseNotesResolve';
+import { version as appVersion } from '@/../package.json';
+import { isWorkspaceReleaseNotesMode } from '@/utils/releaseNotes/releaseNotesChannel';
+import { resolveReleaseNotes } from '@/utils/releaseNotes/releaseNotesResolve';
 
 /**
  * Warm the release-notes cache after an update (RC/stable only).

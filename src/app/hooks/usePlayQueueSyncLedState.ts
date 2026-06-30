@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ConnectionStatus } from '../hooks/useConnectionStatus';
+import type { ConnectionStatus } from '@/hooks/useConnectionStatus';
 import { pullPlayQueueFromActiveServer } from '@/features/playback/store/applyServerPlayQueue';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import { useOrbitStore } from '@/features/orbit';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import { getPlaybackServerId, queueIsMultiServer } from '@/features/playback/utils/playback/playbackServer';
@@ -11,7 +11,7 @@ import {
   subscribeIdleQueuePullSuspended,
 } from '@/features/playback/store/queuePlaybackIdle';
 import { clearQueueHandoffPending, isQueueHandoffPending } from '@/features/playback/store/queueSyncUiState';
-import { showToast } from '../utils/ui/toast';
+import { showToast } from '@/utils/ui/toast';
 
 export function usePlayQueueSyncLedState(status: ConnectionStatus) {
   const { t } = useTranslation();

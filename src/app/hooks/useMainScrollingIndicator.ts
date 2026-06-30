@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   APP_MAIN_SCROLL_VIEWPORT_ID,
   mainRouteInpageScrollViewportId,
-} from '../constants/appScroll';
+} from '@/constants/appScroll';
 
 const SCROLL_IDLE_MS = 180;
 

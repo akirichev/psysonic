@@ -29,7 +29,7 @@ import { useCoverArtPrefetch } from '../cover/useCoverArtPrefetch';
 import { useLibraryCoverBackfill } from '@/cover/useLibraryCoverBackfill';
 import { useCoverRevalidateScheduler } from '../cover/useCoverRevalidateScheduler';
 import { runCoverIdbUpgradeMigration } from '../utils/migrations/coverIdbUpgradeMigration';
-import { useMigrationOrchestrator } from '../hooks/useMigrationOrchestrator';
+import { useMigrationOrchestrator } from '@/app/hooks/useMigrationOrchestrator';
 import { IS_WINDOWS } from '@/lib/util/platform';
 import TauriEventBridge from './TauriEventBridge';
 import AppShell from './AppShell';

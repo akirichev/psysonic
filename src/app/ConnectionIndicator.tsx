@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, RefreshCw } from 'lucide-react';
 import type { ConnectionStatus } from '@/hooks/useConnectionStatus';
-import { usePlayQueueSyncLedState } from '@/hooks/usePlayQueueSyncLedState';
+import { usePlayQueueSyncLedState } from '@/app/hooks/usePlayQueueSyncLedState';
 import type { ServerProfile } from '@/store/authStoreTypes';
 import { useAuthStore } from '@/store/authStore';
 import { switchActiveServer } from '@/utils/server/switchActiveServer';

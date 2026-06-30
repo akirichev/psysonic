@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { applyServerPlayQueue } from '@/features/playback/store/applyServerPlayQueue';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import { useOrbitStore } from '@/features/orbit';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
 import {
@@ -11,8 +11,8 @@ import {
   markPlaybackIdle,
 } from '@/features/playback/store/queuePlaybackIdle';
 import { hasPendingQueueSync } from '@/features/playback/store/queueSync';
-import type { ConnectionStatus } from './useConnectionStatus';
-import { canAutoIdlePlayQueuePull } from './usePlayQueueSyncLedState';
+import type { ConnectionStatus } from '@/hooks/useConnectionStatus';
+import { canAutoIdlePlayQueuePull } from '@/app/hooks/usePlayQueueSyncLedState';
 
 const IDLE_THRESHOLD_MS = 30_000;
 const POLL_INTERVAL_MS = 10_000;

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { getMusicFolders } from '@/lib/api/subsonicLibrary';
 import { probeEntityRatingSupport } from '@/lib/api/subsonicStarRating';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import { cleanupOrphanedOrbitPlaylists } from '@/features/orbit';
 
 /**
