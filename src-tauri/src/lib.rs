@@ -86,6 +86,15 @@ fn set_app_user_model_id() {
 /// crate-by-crate (see the specta-contract plan).
 fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
+        // Map Rust `i64`/`u64`/`usize`/… to TS `number` globally. This is
+        // behaviour-preserving, NOT a change: Tauri already serialises these as
+        // JSON numbers and the hand-written FE DTOs already type them `number`
+        // (with the same >2^53 truncation JSON.parse does today). The flag only
+        // makes the generated types match that reality — it avoids ~200 per-field
+        // `#[specta(type = Number)]` casts across the DTOs. `enable_lossless_bigints`
+        // (→ TS `bigint`) is the real behaviour change and stays rejected. Every
+        // IPC integer here (timestamps-ms, counts, byte sizes) is well within 2^53.
+        .dangerously_cast_bigints_to_number()
         .commands(tauri_specta::collect_commands![
             crate::lib_commands::app_api::core::greet,
             psysonic_library::browse_support::library_get_catalog_year_bounds,
