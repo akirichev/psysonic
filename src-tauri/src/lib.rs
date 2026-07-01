@@ -243,7 +243,7 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             cover_cache::library_cover_backfill_run_full_pass,
             cover_cache::cover_revalidate_enqueue,
             cover_cache::cover_revalidate_tick,
-            // top crate shell commands (set_tray_menu_labels >10 args, server_http_context_sync/_all need core-Wire type, backup_*_full/cli_publish_* are Value — all excluded)
+            // top crate shell commands (set_tray_menu_labels >10 args, backup_*_full/cli_publish_* are Value — all excluded)
             crate::lib_commands::app_api::core::exit_app,
             crate::lib_commands::app_api::core::set_logging_mode,
             crate::lib_commands::app_api::core::get_logging_mode,
@@ -262,6 +262,8 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             crate::lib_commands::app_api::migration::migration_run,
             crate::lib_commands::app_api::network::resolve_host_addresses,
             crate::lib_commands::app_api::network::server_http_context_clear,
+            crate::lib_commands::app_api::network::server_http_context_sync,
+            crate::lib_commands::app_api::network::server_http_context_sync_all,
             crate::lib_commands::app_api::backup::backup_export_library_db,
             crate::lib_commands::app_api::backup::backup_import_library_db,
             crate::lib_commands::app_api::integration::register_global_shortcut,

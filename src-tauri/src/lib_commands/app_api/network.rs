@@ -65,6 +65,7 @@ pub(crate) async fn resolve_host_addresses(hostname: String) -> Result<Vec<Strin
 }
 
 #[tauri::command]
+#[specta::specta]
 pub(crate) fn server_http_context_sync(
     registry: State<'_, Arc<ServerHttpRegistry>>,
     wire: ServerHttpContextSyncWire,
@@ -74,6 +75,7 @@ pub(crate) fn server_http_context_sync(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub(crate) fn server_http_context_sync_all(
     registry: State<'_, Arc<ServerHttpRegistry>>,
     entries: Vec<ServerHttpContextSyncWire>,

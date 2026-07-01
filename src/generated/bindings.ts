@@ -494,6 +494,8 @@ export const commands = {
 	 */
 	resolveHostAddresses: (hostname: string) => typedError<string[], string>(__TAURI_INVOKE("resolve_host_addresses", { hostname })),
 	serverHttpContextClear: (serverId: string, appServerId: string) => typedError<null, string>(__TAURI_INVOKE("server_http_context_clear", { serverId, appServerId })),
+	serverHttpContextSync: (wire: ServerHttpContextSyncWire) => typedError<null, string>(__TAURI_INVOKE("server_http_context_sync", { wire })),
+	serverHttpContextSyncAll: (entries: ServerHttpContextSyncWire[]) => typedError<null, string>(__TAURI_INVOKE("server_http_context_sync_all", { entries })),
 	backupExportLibraryDb: (destinationPath: string) => typedError<null, string>(__TAURI_INVOKE("backup_export_library_db", { destinationPath })),
 	backupImportLibraryDb: (sourcePath: string) => typedError<null, string>(__TAURI_INVOKE("backup_import_library_db", { sourcePath })),
 	registerGlobalShortcut: (shortcut: string, action: string) => typedError<null, string>(__TAURI_INVOKE("register_global_shortcut", { shortcut, action })),
@@ -863,6 +865,15 @@ export type CoverPipelineQueueStatsDto = {
 	uiEnsuredTotal: number,
 };
 
+export type CustomHeaderEntryWire = {
+	name: string,
+	value: string,
+};
+
+export type CustomHeadersApplyTo = "local" | "public" | "both";
+
+export type EndpointKind = "local" | "public";
+
 /**
  *  Input to `library_put_fact`. Shape matches `TrackFactDto` minus the
  *  indices.
@@ -1168,6 +1179,19 @@ export type RenameResult = {
 	newPath: string,
 	ok: boolean,
 	error: string | null,
+};
+
+export type ServerHttpContextSyncWire = {
+	serverId: string,
+	appServerId: string,
+	endpoints: ServerHttpEndpointWire[],
+	customHeaders?: CustomHeaderEntryWire[],
+	customHeadersApplyTo?: CustomHeadersApplyTo | null,
+};
+
+export type ServerHttpEndpointWire = {
+	url: string,
+	kind: EndpointKind,
 };
 
 export type ServerIndexMapping = {
