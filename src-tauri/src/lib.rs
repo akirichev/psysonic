@@ -964,8 +964,9 @@ mod specta_export {
     // that isn't regenerated diverges here → `cargo test` fails → CI catches the
     // stale bindings. Crucially the test exports to a temp file, never the tracked
     // one, so it neither dirties the working tree nor races other export tests.
-    // Regenerate the committed file with a debug launch (`npm run tauri:dev`, which
-    // runs `export_specta_bindings()`), then commit the result.
+    // Regenerate the committed file headlessly with the `#[ignore]`d
+    // `regenerate_committed_bindings` below (or a `npm run tauri:dev` debug
+    // launch, which runs `export_specta_bindings()`), then commit the result.
     #[test]
     fn committed_bindings_are_fresh() {
         let committed_path = "../src/generated/bindings.ts";
@@ -985,8 +986,28 @@ mod specta_export {
 
         assert_eq!(
             committed, generated,
-            "src/generated/bindings.ts is stale — regenerate it via a debug launch \
-             (`npm run tauri:dev`) and commit the result"
+            "src/generated/bindings.ts is stale — regenerate it with \
+             `cargo test -p psysonic regenerate_committed_bindings -- --ignored` \
+             and commit the result"
         );
+    }
+
+    // Headless regeneration of the committed bindings. `#[ignore]`d so it never
+    // runs in CI / default `cargo test` (which keeps the tracked file untouched
+    // and lets `committed_bindings_are_fresh` be the gate); run it explicitly to
+    // rewrite the file after annotating commands:
+    //   cargo test -p psysonic regenerate_committed_bindings -- --ignored
+    #[test]
+    #[ignore = "writes the tracked src/generated/bindings.ts; run explicitly to regenerate"]
+    fn regenerate_committed_bindings() {
+        // Export to a sibling temp file then atomically rename over the tracked
+        // one, so a concurrent reader (e.g. `committed_bindings_are_fresh` under
+        // `--include-ignored`) never observes a half-written/truncated file.
+        let target = "../src/generated/bindings.ts";
+        let tmp = "../src/generated/bindings.ts.regen.tmp";
+        super::specta_builder()
+            .export(super::bindings_exporter(), tmp)
+            .expect("failed to export typescript bindings");
+        std::fs::rename(tmp, target).expect("failed to move regenerated bindings into place");
     }
 }
