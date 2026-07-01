@@ -600,6 +600,66 @@ export const commands = {
 	setTrayTooltip: (tooltip: string, playbackState: string | null) => typedError<null, string>(__TAURI_INVOKE("set_tray_tooltip", { tooltip, playbackState })),
 	importThemeZip: (path: string) => typedError<ImportedThemeFiles, string>(__TAURI_INVOKE("import_theme_zip", { path })),
 	libraryAnalysisBackfillConfigure: (enabled: boolean, serverIndexKey: string, libraryServerId: string, serverUrl: string, username: string, password: string, workers: number) => typedError<null, string>(__TAURI_INVOKE("library_analysis_backfill_configure", { enabled, serverIndexKey, libraryServerId, serverUrl, username, password, workers })),
+	/**
+	 *  Fetch upcoming Bandsintown events for an artist by name.
+	 *  Returns an empty list on any failure (404, network, parse) — the UI
+	 *  just hides the section in that case.
+	 */
+	fetchBandsintownEvents: (artistName: string) => typedError<BandsintownEvent[], string>(__TAURI_INVOKE("fetch_bandsintown_events", { artistName })),
+	uploadPlaylistCover: (serverUrl: string, playlistId: string, username: string, password: string, fileBytes: number[], mimeType: string) => typedError<null, string>(__TAURI_INVOKE("upload_playlist_cover", { serverUrl, playlistId, username, password, fileBytes, mimeType })),
+	uploadRadioCover: (serverUrl: string, radioId: string, username: string, password: string, fileBytes: number[], mimeType: string) => typedError<null, string>(__TAURI_INVOKE("upload_radio_cover", { serverUrl, radioId, username, password, fileBytes, mimeType })),
+	uploadArtistImage: (serverUrl: string, artistId: string, username: string, password: string, fileBytes: number[], mimeType: string) => typedError<null, string>(__TAURI_INVOKE("upload_artist_image", { serverUrl, artistId, username, password, fileBytes, mimeType })),
+	deleteRadioCover: (serverUrl: string, radioId: string, username: string, password: string) => typedError<null, string>(__TAURI_INVOKE("delete_radio_cover", { serverUrl, radioId, username, password })),
+	/**  DELETE `/api/playlist/{id}` — delete playlist. */
+	ndDeletePlaylist: (serverUrl: string, token: string, id: string) => typedError<null, string>(__TAURI_INVOKE("nd_delete_playlist", { serverUrl, token, id })),
+	/**
+	 *  PUT `/api/user/{id}/library` — assign libraries to a non-admin user.
+	 *  Admin users auto-receive all libraries; calling this for an admin returns HTTP 400.
+	 */
+	ndSetUserLibraries: (serverUrl: string, token: string, id: string, libraryIds: number[]) => typedError<null, string>(__TAURI_INVOKE("nd_set_user_libraries", { serverUrl, token, id, libraryIds })),
+	/**
+	 *  GET `/api/song/{id}` and return the absolute filesystem `path` field.
+	 * 
+	 *  Subsonic `getSong.view` returns at most a relative path (`Artist/Album/track.flac`),
+	 *  or nothing at all on Navidrome. The Navidrome native API exposes the absolute
+	 *  path the server stores the file at — same source Feishin and the Navidrome web
+	 *  client use for their "show file location" feature. Logs in fresh (no token
+	 *  cache yet); the call is occasional (Song Info modal open) so the extra
+	 *  roundtrip is acceptable.
+	 * 
+	 *  Returns `Ok(None)` when the response has no `path` field — Navidrome can omit
+	 *  it for non-admin users on some configurations.
+	 */
+	ndGetSongPath: (serverUrl: string, username: string, password: string, id: string) => typedError<string | null, string>(__TAURI_INVOKE("nd_get_song_path", { serverUrl, username, password, id })),
+	/**  Log in to Navidrome's native REST API. Returns a Bearer token and whether the user is admin. */
+	navidromeLogin: (serverUrl: string, username: string, password: string) => typedError<NdLoginResult, string>(__TAURI_INVOKE("navidrome_login", { serverUrl, username, password })),
+	/**  DELETE `/api/user/{id}`. */
+	ndDeleteUser: (serverUrl: string, token: string, id: string) => typedError<null, string>(__TAURI_INVOKE("nd_delete_user", { serverUrl, token, id })),
+	/**
+	 *  Fetch arbitrary URL bytes (e.g. radio station favicon) through Rust to bypass CORS.
+	 *  Returns (bytes, content_type).
+	 */
+	fetchUrlBytes: (url: string) => typedError<[number[], string], string>(__TAURI_INVOKE("fetch_url_bytes", { url })),
+	/**
+	 *  Fetch ICY in-stream metadata from a radio stream URL.
+	 * 
+	 *  Sends a GET request with `Icy-MetaData: 1` and reads just enough bytes
+	 *  (up to `icy-metaint` audio bytes plus the following metadata block) to
+	 *  extract the `StreamTitle`.  The connection is dropped as soon as the
+	 *  first metadata chunk has been parsed, so bandwidth usage is minimal.
+	 * 
+	 *  If `url` is a PLS or M3U playlist file it is resolved to the first direct
+	 *  stream URL before the ICY request is made.
+	 */
+	fetchIcyMetadata: (url: string) => typedError<IcyMetadata, string>(__TAURI_INVOKE("fetch_icy_metadata", { url })),
+	/**
+	 *  Resolve a PLS or M3U playlist URL to its first direct stream URL.
+	 *  Returns the original URL unchanged if it is not a recognised playlist format
+	 *  or if the playlist cannot be fetched/parsed.
+	 */
+	resolveStreamUrl: (url: string) => __TAURI_INVOKE<string>("resolve_stream_url", { url }),
+	/**  Clear the Discord Rich Presence activity (e.g. playback stopped). */
+	discordClearPresence: () => typedError<null, string>(__TAURI_INVOKE("discord_clear_presence")),
 };
 
 /* Types */
@@ -675,6 +735,17 @@ export type ArtifactInputDto = {
 	notFound?: boolean,
 	contentHash?: string | null,
 	expiresAt?: number | null,
+};
+
+export type BandsintownEvent = {
+	datetime: string,
+	venue_name: string,
+	venue_city: string,
+	venue_region: string,
+	venue_country: string,
+	url: string,
+	on_sale_datetime: string,
+	lineup: string[],
 };
 
 /**  Min/max `year` from indexed tracks for a server (Albums year filter UI). */
@@ -827,6 +898,20 @@ export type HotCacheDownloadResult = {
 	size: number,
 };
 
+/**  ICY metadata response returned to the frontend. */
+export type IcyMetadata = {
+	/**  The `StreamTitle` from the inline ICY metadata block in the stream (e.g. `"Artist - Title"`). */
+	stream_title: string | null,
+	/**  Value of the `icy-name` response header. */
+	icy_name: string | null,
+	/**  Value of the `icy-genre` response header. */
+	icy_genre: string | null,
+	/**  Value of the `icy-url` response header. */
+	icy_url: string | null,
+	/**  Value of the `icy-description` response header. */
+	icy_description: string | null,
+};
+
 export type ImportedThemeFiles = {
 	manifest: string,
 	css: string,
@@ -942,6 +1027,13 @@ export type MigrationScopeInspect = {
 	totalLegacyRows: number,
 	skippedUnknownServerRows: number,
 	tables: { [key in string]: number },
+};
+
+/**  Payload returned by Navidrome's `/auth/login`. */
+export type NdLoginResult = {
+	token: string,
+	userId: string,
+	isAdmin: boolean,
 };
 
 /**

@@ -284,6 +284,24 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             crate::lib_commands::sync::tray::set_tray_tooltip,
             crate::theme_import::import_theme_zip,
             crate::library_analysis_backfill::library_analysis_backfill_configure,
+            // psysonic-integration — typeable subset. Excluded (stay on generate_handler!):
+            // the nd_list_*/nd_create_*/nd_update_* + scrobbler (audioscrobbler/listenbrainz/
+            // maloja) + radio-browser + fetch_json_url raw-JSON commands (serde_json::Value /
+            // passthrough), and discord_update_presence (>10 args) — noted at their defs.
+            psysonic_integration::bandsintown::fetch_bandsintown_events,
+            psysonic_integration::navidrome::covers::upload_playlist_cover,
+            psysonic_integration::navidrome::covers::upload_radio_cover,
+            psysonic_integration::navidrome::covers::upload_artist_image,
+            psysonic_integration::navidrome::covers::delete_radio_cover,
+            psysonic_integration::navidrome::playlists::nd_delete_playlist,
+            psysonic_integration::navidrome::queries::nd_set_user_libraries,
+            psysonic_integration::navidrome::queries::nd_get_song_path,
+            psysonic_integration::navidrome::users::navidrome_login,
+            psysonic_integration::navidrome::users::nd_delete_user,
+            psysonic_integration::remote::fetch_url_bytes,
+            psysonic_integration::remote::fetch_icy_metadata,
+            psysonic_integration::remote::resolve_stream_url,
+            psysonic_integration::discord::discord_clear_presence,
         ])
 }
 
