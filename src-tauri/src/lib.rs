@@ -3,9 +3,9 @@
 
 pub mod cli;
 mod cover_cache;
-mod library_analysis_backfill;
+pub(crate) mod library_analysis_backfill;
 mod lib_commands;
-mod theme_import;
+pub(crate) mod theme_import;
 pub mod theme_animation;
 
 pub use psysonic_integration::discord;
@@ -209,6 +209,47 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             cover_cache::library_cover_backfill_run_full_pass,
             cover_cache::cover_revalidate_enqueue,
             cover_cache::cover_revalidate_tick,
+            // top crate shell commands (set_tray_menu_labels >10 args, server_http_context_sync/_all need core-Wire type, backup_*_full/cli_publish_* are Value — all excluded)
+            crate::lib_commands::app_api::core::exit_app,
+            crate::lib_commands::app_api::core::set_logging_mode,
+            crate::lib_commands::app_api::core::get_logging_mode,
+            crate::lib_commands::app_api::core::tail_runtime_logs,
+            crate::lib_commands::app_api::core::export_runtime_logs,
+            crate::lib_commands::app_api::core::frontend_debug_log,
+            crate::lib_commands::app_api::core::set_subsonic_wire_user_agent,
+            crate::lib_commands::app_api::perf::performance_cpu_snapshot,
+            crate::lib_commands::app_api::platform::set_window_decorations,
+            crate::lib_commands::app_api::platform::set_linux_webkit_smooth_scrolling,
+            crate::lib_commands::app_api::platform::linux_wayland_gpu_font_tuning_active,
+            crate::lib_commands::app_api::platform::linux_wayland_text_render_settings_available,
+            crate::lib_commands::app_api::platform::set_linux_wayland_text_render_profile,
+            crate::lib_commands::app_api::platform::theme_animation_risk,
+            crate::lib_commands::app_api::migration::migration_inspect,
+            crate::lib_commands::app_api::migration::migration_run,
+            crate::lib_commands::app_api::network::resolve_host_addresses,
+            crate::lib_commands::app_api::network::server_http_context_clear,
+            crate::lib_commands::app_api::backup::backup_export_library_db,
+            crate::lib_commands::app_api::backup::backup_import_library_db,
+            crate::lib_commands::app_api::integration::register_global_shortcut,
+            crate::lib_commands::app_api::integration::unregister_global_shortcut,
+            crate::lib_commands::app_api::integration::mpris_set_metadata,
+            crate::lib_commands::app_api::integration::mpris_set_playback,
+            crate::lib_commands::app_api::integration::check_dir_accessible,
+            crate::lib_commands::ui::mini::open_mini_player,
+            crate::lib_commands::ui::mini::preload_mini_player,
+            crate::lib_commands::ui::mini::close_mini_player,
+            crate::lib_commands::ui::mini::set_mini_player_always_on_top,
+            crate::lib_commands::ui::mini::resize_mini_player,
+            crate::lib_commands::ui::mini::show_main_window,
+            crate::lib_commands::ui::mini::pause_rendering,
+            crate::lib_commands::ui::mini::resume_rendering,
+            crate::lib_commands::sync::tray::no_compositing_mode,
+            crate::lib_commands::sync::tray::linux_xdg_session_type,
+            crate::lib_commands::sync::tray::is_tiling_wm_cmd,
+            crate::lib_commands::sync::tray::toggle_tray_icon,
+            crate::lib_commands::sync::tray::set_tray_tooltip,
+            crate::theme_import::import_theme_zip,
+            crate::library_analysis_backfill::library_analysis_backfill_configure,
         ])
 }
 

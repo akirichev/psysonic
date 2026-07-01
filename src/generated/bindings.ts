@@ -381,6 +381,164 @@ export const commands = {
 	libraryCoverBackfillRunFullPass: (force: boolean | null) => typedError<CoverBackfillRunDto, string>(__TAURI_INVOKE("library_cover_backfill_run_full_pass", { force })),
 	coverRevalidateEnqueue: () => typedError<null, string>(__TAURI_INVOKE("cover_revalidate_enqueue")),
 	coverRevalidateTick: (cycleDays: number | null) => typedError<number, string>(__TAURI_INVOKE("cover_revalidate_tick", { cycleDays })),
+	exitApp: () => __TAURI_INVOKE<void>("exit_app"),
+	setLoggingMode: (mode: string) => typedError<null, string>(__TAURI_INVOKE("set_logging_mode", { mode })),
+	getLoggingMode: () => __TAURI_INVOKE<string>("get_logging_mode"),
+	/**
+	 *  Incremental tail of the in-memory runtime log buffer for the PsyLab Logs tab.
+	 *  `after_seq` is the highest seq the UI already has (omit for
+	 *  the initial fetch of the most recent `max` lines).
+	 */
+	tailRuntimeLogs: (afterSeq: number | null, max: number | null) => __TAURI_INVOKE<LogTailDto>("tail_runtime_logs", { afterSeq, max }),
+	exportRuntimeLogs: (path: string) => typedError<number, string>(__TAURI_INVOKE("export_runtime_logs", { path })),
+	frontendDebugLog: (scope: string, message: string) => typedError<null, string>(__TAURI_INVOKE("frontend_debug_log", { scope, message })),
+	setSubsonicWireUserAgent: (userAgent: string, windowLabel: string) => typedError<null, string>(__TAURI_INVOKE("set_subsonic_wire_user_agent", { userAgent, windowLabel })),
+	performanceCpuSnapshot: (includeThreadGroups: boolean | null) => typedError<PerformanceCpuSnapshot, string>(__TAURI_INVOKE("performance_cpu_snapshot", { includeThreadGroups })),
+	setWindowDecorations: (enabled: boolean) => __TAURI_INVOKE<void>("set_window_decorations", { enabled }),
+	/**  Called from the frontend settings toggle (Linux); no-op on other platforms. */
+	setLinuxWebkitSmoothScrolling: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_linux_webkit_smooth_scrolling", { enabled })),
+	/**
+	 *  True when [`linux_webkit_apply_wayland_gpu_font_tuning`] would change WebKit settings
+	 *  (Wayland + GPU compositing, user has not set `PSYSONIC_SKIP_WAYLAND_FONT_TUNING`).
+	 */
+	linuxWaylandGpuFontTuningActive: () => __TAURI_INVOKE<boolean>("linux_wayland_gpu_font_tuning_active"),
+	linuxWaylandTextRenderSettingsAvailable: () => __TAURI_INVOKE<boolean>("linux_wayland_text_render_settings_available"),
+	/**
+	 *  Persist the Wayland text profile for the next app start and for new mini-player webviews.
+	 *  Does **not** touch WebKit on existing windows (avoids WebKitGTK hangs when toggling policy live).
+	 */
+	setLinuxWaylandTextRenderProfile: (profile: string) => typedError<null, string>(__TAURI_INVOKE("set_linux_wayland_text_render_profile", { profile })),
+	/**
+	 *  Toggle native window decorations at runtime (Linux custom title bar opt-out).
+	 *  Tauri command: true when theme animations may be costly on this setup —
+	 *  Linux with the Nvidia WebKit quirk active (recorded once at startup) or
+	 *  compositing forced off. The frontend warns on animated themes when true.
+	 *  Always false off Linux.
+	 */
+	themeAnimationRisk: () => __TAURI_INVOKE<boolean>("theme_animation_risk"),
+	migrationInspect: (mappings: ServerIndexMapping[]) => typedError<MigrationInspectReport, string>(__TAURI_INVOKE("migration_inspect", { mappings })),
+	migrationRun: (mappings: ServerIndexMapping[]) => typedError<MigrationRunResult, string>(__TAURI_INVOKE("migration_run", { mappings })),
+	/**
+	 *  Resolve a hostname to a deduped list of IP address strings (IPv4 + IPv6).
+	 * 
+	 *  Strips a `host:port` suffix before lookup — the form only knows the host.
+	 *  Used by the add/edit-server form to hint whether the entered address
+	 *  classifies as LAN or public (a hostname that resolves to a private range
+	 *  IP suggests the user might want to add a public second address, and
+	 *  vice versa). **Never used for connect** — connect always goes through the
+	 *  existing `pingWithCredentials` path, which carries credentials.
+	 * 
+	 *  Returns an empty vec on lookup failure (the UI then shows no hint, by
+	 *  design: a transient DNS hiccup shouldn't block save).
+	 */
+	resolveHostAddresses: (hostname: string) => typedError<string[], string>(__TAURI_INVOKE("resolve_host_addresses", { hostname })),
+	serverHttpContextClear: (serverId: string, appServerId: string) => typedError<null, string>(__TAURI_INVOKE("server_http_context_clear", { serverId, appServerId })),
+	backupExportLibraryDb: (destinationPath: string) => typedError<null, string>(__TAURI_INVOKE("backup_export_library_db", { destinationPath })),
+	backupImportLibraryDb: (sourcePath: string) => typedError<null, string>(__TAURI_INVOKE("backup_import_library_db", { sourcePath })),
+	registerGlobalShortcut: (shortcut: string, action: string) => typedError<null, string>(__TAURI_INVOKE("register_global_shortcut", { shortcut, action })),
+	unregisterGlobalShortcut: (shortcut: string) => typedError<null, string>(__TAURI_INVOKE("unregister_global_shortcut", { shortcut })),
+	mprisSetMetadata: (title: string | null, artist: string | null, album: string | null, coverUrl: string | null, durationSecs: number | null) => typedError<null, string>(__TAURI_INVOKE("mpris_set_metadata", { title, artist, album, coverUrl, durationSecs })),
+	mprisSetPlayback: (playing: boolean, positionSecs: number | null) => typedError<null, string>(__TAURI_INVOKE("mpris_set_playback", { playing, positionSecs })),
+	/**  Returns true if `path` is an accessible directory (used for pre-flight checks in the frontend). */
+	checkDirAccessible: (path: string) => __TAURI_INVOKE<boolean>("check_dir_accessible", { path }),
+	/**
+	 *  Open (or toggle) the mini player window. On platforms where the window
+	 *  was pre-created at startup (Windows), this is a pure show/hide. On
+	 *  other platforms the window is created lazily on first call.
+	 *  Opening the mini player minimizes the main window; hiding the mini
+	 *  player restores the main window.
+	 */
+	openMiniPlayer: () => typedError<null, string>(__TAURI_INVOKE("open_mini_player")),
+	/**
+	 *  Pre-build the mini player window hidden, so the first `open_mini_player`
+	 *  call becomes a pure show/hide and the user sees content instantly. On
+	 *  Windows this already happens unconditionally in `.setup()` as a hang
+	 *  workaround; this command is used by Linux/macOS when the user opts into
+	 *  the `preloadMiniPlayer` setting. Idempotent — no-op if the window exists.
+	 */
+	preloadMiniPlayer: () => typedError<null, string>(__TAURI_INVOKE("preload_mini_player")),
+	/**
+	 *  Hide the mini player window if it exists and restore the main window.
+	 *  Does not destroy the mini window so its state is preserved for next open.
+	 */
+	closeMiniPlayer: () => typedError<null, string>(__TAURI_INVOKE("close_mini_player")),
+	/**
+	 *  Toggle always-on-top on the mini player window.
+	 * 
+	 *  Some window managers (KWin, certain Mutter releases, GNOME-on-Wayland)
+	 *  silently ignore `set_always_on_top(true)` when the internal flag is
+	 *  already `true` — which happens whenever the window was hidden and
+	 *  re-shown, or focus was lost and the WM dropped the constraint. We
+	 *  always force a `false → true` cycle so the WM re-evaluates the layer.
+	 */
+	setMiniPlayerAlwaysOnTop: (onTop: boolean) => typedError<null, string>(__TAURI_INVOKE("set_mini_player_always_on_top", { onTop })),
+	/**
+	 *  Resize the mini player window (logical pixels). Used when toggling the
+	 *  queue panel to expand/collapse without a capability dance. Optional
+	 *  `minWidth` / `minHeight` adjust the window's resize floor so the user
+	 *  can't shrink past the layout's minimum (e.g. 2 visible queue rows when
+	 *  the queue panel is open).
+	 */
+	resizeMiniPlayer: (width: number | null, height: number | null, minWidth: number | null, minHeight: number | null) => typedError<null, string>(__TAURI_INVOKE("resize_mini_player", { width, height, minWidth, minHeight })),
+	/**
+	 *  Unminimize + show + focus the main window. Called from the mini player's
+	 *  "expand" button. Can't rely on a JS event bridge here because the main
+	 *  window's JS is paused while minimized on WebKitGTK. Also hides the mini
+	 *  window so the two don't sit on screen at the same time.
+	 */
+	showMainWindow: () => typedError<null, string>(__TAURI_INVOKE("show_main_window")),
+	/**  Inject the pause script into this webview (CSS @keyframes pause + `__psyHidden`). */
+	pauseRendering: () => typedError<null, string>(__TAURI_INVOKE("pause_rendering")),
+	/**
+	 *  Resume rendering work in the current webview. Called when the window
+	 *  becomes visible again.
+	 */
+	resumeRendering: () => typedError<null, string>(__TAURI_INVOKE("resume_rendering")),
+	/**
+	 *  Tauri command: returns true when WEBKIT_DISABLE_COMPOSITING_MODE=1 is set.
+	 *  The frontend uses this to apply a CSS class that swaps out GPU-only effects
+	 *  (backdrop-filter, CSS filter, mask-image) for software-friendly equivalents.
+	 */
+	noCompositingMode: () => __TAURI_INVOKE<boolean>("no_compositing_mode"),
+	/**
+	 *  Tauri command: `XDG_SESSION_TYPE` from the host environment (e.g. `wayland`, `x11`).
+	 *  Used for Linux-only UI tweaks such as font rasterisation hints; empty string when unset.
+	 */
+	linuxXdgSessionType: () => __TAURI_INVOKE<string>("linux_xdg_session_type"),
+	/**
+	 *  Tauri command: lets the frontend know whether we're running under a tiling
+	 *  WM so it can decide whether to render the custom TitleBar component.
+	 */
+	isTilingWmCmd: () => __TAURI_INVOKE<boolean>("is_tiling_wm_cmd"),
+	/**
+	 *  Show (`true`) or fully remove (`false`) the system-tray icon.
+	 * 
+	 *  The command is strictly idempotent:
+	 *  - `show=true`  when the icon is already present → no-op (prevents duplicate icons).
+	 *  - `show=false` when the icon is already absent  → no-op.
+	 * 
+	 *  For removal, `set_visible(false)` is called explicitly before the handle is
+	 *  dropped because some platforms (Windows notification area, certain Linux DEs)
+	 *  process the OS removal asynchronously — hiding first prevents a brief "ghost"
+	 *  icon from appearing alongside a freshly created one.
+	 */
+	toggleTrayIcon: (show: boolean) => typedError<null, string>(__TAURI_INVOKE("toggle_tray_icon", { show })),
+	/**
+	 *  Updates the system-tray icon tooltip with the currently playing track.
+	 * 
+	 *  `tooltip` should be a compact "Artist – Title" form (no app suffix needed —
+	 *  the tray icon itself identifies the app). An empty string resets to the
+	 *  default `"Psysonic"` tooltip.
+	 * 
+	 *  The text is truncated to 127 chars defensively to stay under the historical
+	 *  Windows `NOTIFYICONDATA.szTip` limit (128 bytes including the null terminator).
+	 *  On Linux the visibility depends on the desktop environment / panel —
+	 *  StatusNotifierItem-aware panels (KDE, Cinnamon, GNOME with AppIndicator
+	 *  extension) show it; pure-GNOME without the extension does not.
+	 */
+	setTrayTooltip: (tooltip: string, playbackState: string | null) => typedError<null, string>(__TAURI_INVOKE("set_tray_tooltip", { tooltip, playbackState })),
+	importThemeZip: (path: string) => typedError<ImportedThemeFiles, string>(__TAURI_INVOKE("import_theme_zip", { path })),
+	libraryAnalysisBackfillConfigure: (enabled: boolean, serverIndexKey: string, libraryServerId: string, serverUrl: string, username: string, password: string, workers: number) => typedError<null, string>(__TAURI_INVOKE("library_analysis_backfill_configure", { enabled, serverIndexKey, libraryServerId, serverUrl, username, password, workers })),
 };
 
 /* Types */
@@ -560,6 +718,11 @@ export type HotCacheDownloadResult = {
 	size: number,
 };
 
+export type ImportedThemeFiles = {
+	manifest: string,
+	css: string,
+};
+
 export type LegacyOfflineMigrationResult = {
 	trackId: string,
 	serverIndexKey: string,
@@ -605,12 +768,75 @@ export type LocalTrackDownloadResult = {
 	layoutFingerprint: string,
 };
 
+export type LogLineDto = {
+	seq: number,
+	text: string,
+};
+
+export type LogTailDto = {
+	lines: LogLineDto[],
+	lastSeq: number,
+	dropped: boolean,
+};
+
 export type LoudnessCachePayload = {
 	integratedLufs: number | null,
 	truePeak: number | null,
 	recommendedGainDb: number | null,
 	targetLufs: number | null,
 	updatedAt: number,
+};
+
+export type MigrationInspectReport = {
+	needsMigration: boolean,
+	hasSkippedUnknownServerRows: boolean,
+	canRun: boolean,
+	warnings: string[],
+	unmappedEmptyBucket: boolean,
+	library: MigrationScopeInspect,
+	analysis: MigrationScopeInspect,
+	mappings: ServerIndexMapping[],
+};
+
+export type MigrationRunResult = {
+	library: MigrationRunScope,
+	analysis: MigrationRunScope,
+	hasSkippedUnknownServerRows: boolean,
+	switched: boolean,
+	backupRemoved: boolean,
+};
+
+export type MigrationRunScope = {
+	importedRows: number,
+	sourceRows: number,
+	skippedUnknownServerRows: number,
+};
+
+export type MigrationScopeInspect = {
+	totalLegacyRows: number,
+	skippedUnknownServerRows: number,
+	tables: { [key in string]: number },
+};
+
+export type PerfProcessMemory = {
+	label: string,
+	rss_kb: number,
+};
+
+export type PerfThreadCpuGroup = {
+	label: string,
+	thread_count: number,
+	jiffies: number,
+};
+
+export type PerformanceCpuSnapshot = {
+	supported: boolean,
+	total_jiffies: number,
+	app_jiffies: number,
+	webkit_jiffies: number,
+	logical_cpus: number,
+	memory: PerfProcessMemory[],
+	thread_cpu_groups: PerfThreadCpuGroup[],
 };
 
 /**  Information about a single mounted removable drive. */
@@ -629,6 +855,11 @@ export type RenameResult = {
 	newPath: string,
 	ok: boolean,
 	error: string | null,
+};
+
+export type ServerIndexMapping = {
+	legacyId: string,
+	indexKey: string,
 };
 
 /**  Summary returned by `sync_batch_to_device` after all tracks are processed. */

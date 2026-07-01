@@ -21,6 +21,7 @@ use tokio::net::lookup_host;
 /// Returns an empty vec on lookup failure (the UI then shows no hint, by
 /// design: a transient DNS hiccup shouldn't block save).
 #[tauri::command]
+#[specta::specta]
 pub(crate) async fn resolve_host_addresses(hostname: String) -> Result<Vec<String>, String> {
     let trimmed = hostname.trim();
     if trimmed.is_empty() {
@@ -82,6 +83,7 @@ pub(crate) fn server_http_context_sync_all(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub(crate) fn server_http_context_clear(
     registry: State<'_, Arc<ServerHttpRegistry>>,
     server_id: String,
