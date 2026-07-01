@@ -313,6 +313,74 @@ export const commands = {
 	 *  Returns `None` if no match or no lyrics are found.
 	 */
 	fetchNeteaseLyrics: (artist: string, title: string) => typedError<string | null, string>(__TAURI_INVOKE("fetch_netease_lyrics", { artist, title })),
+	/**  Best-effort disk hit without network (exact tier, then largest tier on disk ≤ wanted). */
+	coverCachePeekBatch: (items: CoverCachePeekItem[]) => typedError<{ [key in string]: string }, string>(__TAURI_INVOKE("cover_cache_peek_batch", { items })),
+	coverCacheEnsure: (args: CoverCacheEnsureArgs) => typedError<CoverCacheEnsureResult, string>(__TAURI_INVOKE("cover_cache_ensure", { args })),
+	coverCacheEnsureBatch: (items: CoverCacheEnsureArgs[]) => typedError<null, string>(__TAURI_INVOKE("cover_cache_ensure_batch", { items })),
+	coverCacheStats: () => typedError<CoverCacheStatsDto, string>(__TAURI_INVOKE("cover_cache_stats")),
+	coverCacheEvictTick: () => typedError<number, string>(__TAURI_INVOKE("cover_cache_evict_tick")),
+	coverCacheConfigure: (maxMb: number, highWatermarkPct: number, resumeWatermarkPct: number) => typedError<null, string>(__TAURI_INVOKE("cover_cache_configure", { maxMb, highWatermarkPct, resumeWatermarkPct })),
+	coverCacheClear: () => typedError<null, string>(__TAURI_INVOKE("cover_cache_clear")),
+	coverCacheClearServer: (serverIndexKey: string) => typedError<null, string>(__TAURI_INVOKE("cover_cache_clear_server", { serverIndexKey })),
+	/**
+	 *  Opt-out purge (§9, §12, Appendix B.4): drop every external artwork artifact
+	 *  for a server — `{tier}-{provider}.webp`, `.miss-{provider}`, and the
+	 *  `artist_artwork_lookup` rows — while leaving the canonical Navidrome covers
+	 *  intact. Fired when the user turns the External Artwork toggle off. Unlike
+	 *  `cover_cache_clear_server`, Navidrome tiers survive.
+	 */
+	coverCachePurgeExternal: (serverIndexKey: string) => typedError<null, string>(__TAURI_INVOKE("cover_cache_purge_external", { serverIndexKey })),
+	/**
+	 *  Rename a server's cover-cache bucket on disk after the user edits the
+	 *  primary URL (and the derived index key changes). Used by the URL-change
+	 *  remigration pipeline (dual-server-address spec §8.3) so cached covers
+	 *  stay reachable under the new key.
+	 * 
+	 *  Sanitization: rejects path-separator characters and `..` components — keys
+	 *  flow from `serverIndexKeyFromUrl(url)` which strips schemes and trailing
+	 *  slashes, but defense in depth at the FS boundary is cheap.
+	 * 
+	 *  Behaviour:
+	 *  - `old_key == new_key` → no-op success.
+	 *  - Old bucket missing → no-op success (nothing to migrate).
+	 *  - New bucket missing → simple `rename` (fastest path).
+	 *  - Both exist → recursive merge, **prefer existing** in destination (the
+	 *    newer bucket wins on collision; the surviving file count goes up, never
+	 *    loses data).
+	 * 
+	 *  Always emits `cover:bucket-renamed` with `{oldKey, newKey}` on success so
+	 *  the frontend in-memory disk-src cache can invalidate stale entries.
+	 */
+	coverCacheRenameServerBucket: (oldKey: string, newKey: string) => typedError<null, string>(__TAURI_INVOKE("cover_cache_rename_server_bucket", { oldKey, newKey })),
+	coverCacheStatsServer: (serverIndexKey: string) => typedError<CoverCacheStatsDto, string>(__TAURI_INVOKE("cover_cache_stats_server", { serverIndexKey })),
+	coverCacheGetPipelineQueueStats: () => typedError<CoverPipelineQueueStatsDto, string>(__TAURI_INVOKE("cover_cache_get_pipeline_queue_stats")),
+	libraryCoverBackfillBatch: (serverIndexKey: string, libraryServerId: string, cursor: string | null, limit: number | null) => typedError<LibraryCoverBackfillBatchDto, string>(__TAURI_INVOKE("library_cover_backfill_batch", { serverIndexKey, libraryServerId, cursor, limit })),
+	libraryCoverProgress: (serverIndexKey: string, libraryServerId: string) => typedError<LibraryCoverProgressDto, string>(__TAURI_INVOKE("library_cover_progress", { serverIndexKey, libraryServerId })),
+	libraryCoverCatalogSize: (libraryServerId: string) => typedError<number, string>(__TAURI_INVOKE("library_cover_catalog_size", { libraryServerId })),
+	libraryCoverClearFetchFailures: (serverIndexKey: string) => typedError<number, string>(__TAURI_INVOKE("library_cover_clear_fetch_failures", { serverIndexKey })),
+	libraryCoverBackfillConfigure: (enabled: boolean, serverIndexKey: string, libraryServerId: string, restBaseUrl: string, username: string, password: string) => typedError<null, string>(__TAURI_INVOKE("library_cover_backfill_configure", { enabled, serverIndexKey, libraryServerId, restBaseUrl, username, password })),
+	/**
+	 *  Push the current reachable connect URL without rebuilding the backfill
+	 *  session. The worklist holds URL-agnostic items and each fetch reads this
+	 *  value live, so a LAN→public flip is honoured by the in-flight pass too.
+	 *  When the URL actually changes, the stale `.fetch-failed` backoff (covers that
+	 *  timed out against the old address) is cleared and a pass is kicked so they
+	 *  retry on the now-reachable endpoint.
+	 */
+	libraryCoverBackfillSetBaseUrl: (restBaseUrl: string) => typedError<null, string>(__TAURI_INVOKE("library_cover_backfill_set_base_url", { restBaseUrl })),
+	libraryCoverBackfillPulse: () => typedError<CoverBackfillPulseDto, string>(__TAURI_INVOKE("library_cover_backfill_pulse")),
+	libraryCoverBackfillResetCursor: () => typedError<null, string>(__TAURI_INVOKE("library_cover_backfill_reset_cursor")),
+	/**  Pause library backfill while the user navigates / visible covers load (Rust pass yields). */
+	libraryCoverBackfillSetUiPriority: (hold: boolean) => typedError<null, string>(__TAURI_INVOKE("library_cover_backfill_set_ui_priority", { hold })),
+	/**
+	 *  Perf-probe tuning knob: set how many threads cover backfill uses (download
+	 *  + encode pools move together). Not exposed in app Settings by design.
+	 *  Returns the clamped value actually applied.
+	 */
+	libraryCoverBackfillSetParallel: (threads: number) => typedError<number, string>(__TAURI_INVOKE("library_cover_backfill_set_parallel", { threads })),
+	libraryCoverBackfillRunFullPass: (force: boolean | null) => typedError<CoverBackfillRunDto, string>(__TAURI_INVOKE("library_cover_backfill_run_full_pass", { force })),
+	coverRevalidateEnqueue: () => typedError<null, string>(__TAURI_INVOKE("cover_revalidate_enqueue")),
+	coverRevalidateTick: (cycleDays: number | null) => typedError<number, string>(__TAURI_INVOKE("cover_revalidate_tick", { cycleDays })),
 };
 
 /* Types */
@@ -377,6 +445,109 @@ export type CatalogYearBoundsDto = {
 	maxYear: number | null,
 };
 
+export type CoverBackfillItem = {
+	cacheKind: string,
+	cacheEntityId: string,
+	fetchCoverArtId: string,
+};
+
+export type CoverBackfillPulseDto = {
+	scheduled: number,
+	exhausted: boolean,
+	pending: number,
+	done: number,
+	total: number,
+	status: string,
+};
+
+export type CoverBackfillRunDto = {
+	started: boolean,
+};
+
+export type CoverCacheEnsureArgs = {
+	serverIndexKey: string,
+	/**  `album` or `artist` — with `cache_entity_id` selects the SHA-256 cache directory. */
+	cacheKind: string,
+	cacheEntityId: string,
+	/**  Navidrome / Subsonic `getCoverArt` id (`al-*`, `ar-*`, …). */
+	coverArtId: string,
+	tier: number,
+	restBaseUrl: string,
+	username: string,
+	password: string,
+	/**  Library backfill: all derived tiers, no `cover:tier-ready` floods to the webview. */
+	libraryBulk?: boolean,
+	/**
+	 *  Library server id (DB key) — set by backfill so a failed fetch can be logged
+	 *  with the album/artist name. On-demand UI ensures leave it `None`.
+	 */
+	libraryServerId?: string | null,
+	/**
+	 *  External artwork (§16): when true, an artist `fanart`/`banner` ensure may
+	 *  fetch from fanart.tv into `{tier}-{provider}.webp`. Gated by the master
+	 *  toggle (off by default); the project key is embedded (`FANART_PROJECT_KEY`).
+	 */
+	externalArtworkEnabled?: boolean,
+	/**
+	 *  Surface intent for external artwork — `fanart` for the 16:9 artist
+	 *  background. `None` on plain cover ensures.
+	 */
+	surfaceKind?: string | null,
+	/**
+	 *  Artist display name — context for the §19 name→MusicBrainz fallback when
+	 *  the artist carries no tag MBID. `None` skips that fallback.
+	 */
+	artistName?: string | null,
+	/**
+	 *  Album title currently in context (fullscreen playback) — disambiguates
+	 *  the name→MusicBrainz query (§19).
+	 */
+	albumTitle?: string | null,
+	/**
+	 *  Optional BYOK personal fanart.tv key from settings — sent in addition to
+	 *  the project key (§22). Falls back to the `PSYSONIC_FANART_CLIENT_KEY` env.
+	 */
+	externalArtworkByok?: string | null,
+};
+
+export type CoverCacheEnsureResult = {
+	hit: boolean,
+	path: string,
+	tier: number,
+};
+
+export type CoverCachePeekItem = {
+	serverIndexKey: string,
+	cacheKind: string,
+	cacheEntityId: string,
+	tier: number,
+	/**  Frontend `coverStorageKey` — echoed in the batch result map. */
+	storageKey: string,
+};
+
+export type CoverCacheStatsDto = {
+	bytes: number,
+	count: number,
+	pressure: string,
+	autoDownloadEnabled: boolean,
+	entryCount: number,
+};
+
+/**  Live cover HTTP / WebP-encode slots — mirrors analysis pipeline probe shape. */
+export type CoverPipelineQueueStatsDto = {
+	httpMax: number,
+	httpActive: number,
+	cpuUiMax: number,
+	cpuUiActive: number,
+	cpuBackfillMax: number,
+	cpuBackfillActive: number,
+	libraryBackfillHttpMax: number,
+	libraryBackfillHttpActive: number,
+	libraryBackfillPassRunning: boolean,
+	/**  Cumulative covers produced by on-demand (UI) ensures since process start. */
+	uiEnsuredTotal: number,
+};
+
 /**  Per-genre album/track totals from the local track catalog (Genres cloud + browse). */
 export type GenreAlbumCountDto = {
 	value: string,
@@ -397,6 +568,20 @@ export type LegacyOfflineMigrationResult = {
 	layoutFingerprint: string,
 	relocated: boolean,
 	skippedReason: string | null,
+};
+
+export type LibraryCoverBackfillBatchDto = {
+	items: CoverBackfillItem[],
+	/**  Entity ids only — compatibility shim for older callers. */
+	coverIds: string[],
+	nextCursor: string | null,
+	exhausted: boolean,
+};
+
+export type LibraryCoverProgressDto = {
+	totalDistinct: number,
+	pending: number,
+	done: number,
 };
 
 export type LibraryTierDiskHit = {
