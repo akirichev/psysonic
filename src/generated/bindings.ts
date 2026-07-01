@@ -9,6 +9,91 @@ export const commands = {
 	libraryGetCatalogYearBounds: (serverId: string) => typedError<CatalogYearBoundsDto, string>(__TAURI_INVOKE("library_get_catalog_year_bounds", { serverId })),
 	/**  Distinct album counts per track genre — same grouping as genre album browse. */
 	libraryGetGenreAlbumCounts: (serverId: string, libraryScope: string | null) => typedError<GenreAlbumCountDto[], string>(__TAURI_INVOKE("library_get_genre_album_counts", { serverId, libraryScope })),
+	audioPause: () => __TAURI_INVOKE<void>("audio_pause"),
+	/**
+	 *  Resume playback.
+	 * 
+	 *  **Warm resume** (`is_hard_paused = false`): download task is still running,
+	 *  buffer has buffered audio.  `sink.play()` suffices.
+	 * 
+	 *  **Cold resume** (`is_hard_paused = true`): TCP was dropped.  A fresh 4 MB
+	 *  ring buffer is created, its consumer is sent to `AudioStreamReader` (which
+	 *  swaps it in on the next `read()`), and a new download task is spawned.
+	 */
+	audioResume: () => typedError<null, string>(__TAURI_INVOKE("audio_resume")),
+	audioStop: () => __TAURI_INVOKE<void>("audio_stop"),
+	audioSeek: (seconds: number | null) => typedError<null, string>(__TAURI_INVOKE("audio_seek", { seconds })),
+	audioSetVolume: (volume: number | null) => __TAURI_INVOKE<void>("audio_set_volume", { volume }),
+	audioUpdateReplayGain: (volume: number | null, replayGainDb: number | null, replayGainPeak: number | null, loudnessGainDb: number | null, preGainDb: number | null, fallbackDb: number | null) => __TAURI_INVOKE<void>("audio_update_replay_gain", { volume, replayGainDb, replayGainPeak, loudnessGainDb, preGainDb, fallbackDb }),
+	audioSetEq: (gains: [(number | null), (number | null), (number | null), (number | null), (number | null), (number | null), (number | null), (number | null), (number | null), (number | null)], enabled: boolean, preGain: number | null) => __TAURI_INVOKE<void>("audio_set_eq", { gains, enabled, preGain }),
+	audioSetPlaybackRate: (enabled: boolean, strategy: string, speed: number | null, pitchSemitones: number | null) => __TAURI_INVOKE<void>("audio_set_playback_rate", { enabled, strategy, speed, pitchSemitones }),
+	audioSetCrossfade: (enabled: boolean, secs: number | null) => __TAURI_INVOKE<void>("audio_set_crossfade", { enabled, secs }),
+	audioSetGapless: (enabled: boolean) => __TAURI_INVOKE<void>("audio_set_gapless", { enabled }),
+	/**
+	 *  Duck the current sink over `fade_secs` without exhausting its source (which
+	 *  would spuriously emit `audio:ended` before the interrupt handoff).
+	 */
+	audioBeginOutgoingFade: (fadeSecs: number | null) => __TAURI_INVOKE<void>("audio_begin_outgoing_fade", { fadeSecs }),
+	/**
+	 *  AutoDJ: when `true`, the progress task stops firing its autonomous
+	 *  crossfade `audio:ended` timer so the JS A-tail logic drives every advance
+	 *  (only when the next track is actually playable). When `false`, the engine's
+	 *  normal early crossfade trigger is restored (plain crossfade / loud→loud).
+	 */
+	audioSetAutodjSuppress: (enabled: boolean) => __TAURI_INVOKE<void>("audio_set_autodj_suppress", { enabled }),
+	audioSetNormalization: (engine: string, targetLufs: number | null, preAnalysisAttenuationDb: number | null) => __TAURI_INVOKE<void>("audio_set_normalization", { engine, targetLufs, preAnalysisAttenuationDb }),
+	/**  Proxy: fetches https://autoeq.app/entries via Rust to bypass WebView CORS restrictions. */
+	autoeqEntries: () => typedError<string, string>(__TAURI_INVOKE("autoeq_entries")),
+	/**  Fetches the AutoEQ FixedBandEQ profile for a specific headphone from GitHub raw content. */
+	autoeqFetchProfile: (name: string, source: string, rig: string | null, form: string) => typedError<string, string>(__TAURI_INVOKE("autoeq_fetch_profile", { name, source, rig, form })),
+	audioPreload: (url: string, durationHint: number | null, analysisTrackId: string | null, serverId: string | null, eager: boolean | null) => typedError<null, string>(__TAURI_INVOKE("audio_preload", { url, durationHint, analysisTrackId, serverId, eager })),
+	/**
+	 *  Play a live internet radio stream.
+	 * 
+	 *  Sends `Icy-MetaData: 1` to request inline ICY metadata.
+	 *  Emits `audio:playing` with `duration = 0.0` (sentinel for live stream)
+	 *  and `radio:metadata` whenever the StreamTitle changes.
+	 */
+	audioPlayRadio: (url: string, volume: number | null) => typedError<null, string>(__TAURI_INVOKE("audio_play_radio", { url, volume })),
+	audioPreviewPlay: (id: string, url: string, startSec: number | null, durationSec: number | null, volume: number | null, formatSuffix: string | null) => typedError<null, string>(__TAURI_INVOKE("audio_preview_play", { id, url, startSec, durationSec, volume, formatSuffix })),
+	audioPreviewStop: () => __TAURI_INVOKE<void>("audio_preview_stop"),
+	/**
+	 *  Like `audio_preview_stop` but leaves the main sink paused even if it had
+	 *  been paused by `preview_pause_main`. Used by the player-bar Stop button so
+	 *  "stop everything" actually goes silent — without this the engine would
+	 *  auto-resume main playback the moment the preview ends and the user perceives
+	 *  the click as having no effect.
+	 */
+	audioPreviewStopSilent: () => __TAURI_INVOKE<void>("audio_preview_stop_silent"),
+	/**
+	 *  Update the preview sink volume while a preview is in flight. Mirrors
+	 *  `audio_set_volume` for the main sink. The frontend already folds in any
+	 *  LUFS pre-analysis attenuation before calling, just like it does at preview
+	 *  start, so the engine just clamps and applies the master headroom. No-op
+	 *  when no preview is active.
+	 */
+	audioPreviewSetVolume: (volume: number | null) => __TAURI_INVOKE<void>("audio_preview_set_volume", { volume }),
+	/**
+	 *  Returns the names of all available audio output devices on the current host.
+	 *  On Linux, ALSA probes unavailable backends (JACK, OSS, dmix) and prints errors to
+	 *  stderr. We suppress fd 2 for the duration of enumeration to keep the terminal clean.
+	 * 
+	 *  The user-pinned device name is appended when cpal omits it (e.g. HDMI busy while
+	 *  streaming) so the Settings dropdown still matches `audioOutputDevice`.
+	 */
+	audioListDevices: () => __TAURI_INVOKE<string[]>("audio_list_devices"),
+	/**
+	 *  When the saved `selected_device` no longer literally matches any listed
+	 *  physical sink (e.g. suffix drift), rewrite `selected_device` to the listed form.
+	 */
+	audioCanonicalizeSelectedDevice: () => __TAURI_INVOKE<string | null>("audio_canonicalize_selected_device"),
+	/**  Device id string for the host default output (matches an entry from `audio_list_devices` when present). */
+	audioDefaultOutputDeviceName: () => __TAURI_INVOKE<string | null>("audio_default_output_device_name"),
+	/**
+	 *  Switch the audio output device. `device_name = null` → follow system default.
+	 *  Reopens the stream immediately; frontend must restart playback via audio:device-changed.
+	 */
+	audioSetDevice: (deviceName: string | null) => typedError<null, string>(__TAURI_INVOKE("audio_set_device", { deviceName })),
 };
 
 /* Types */

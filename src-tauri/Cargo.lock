@@ -4212,6 +4212,7 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
+ "specta",
  "symphonia",
  "symphonia-adapter-libopus",
  "tauri",

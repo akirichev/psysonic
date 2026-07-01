@@ -99,6 +99,33 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             crate::lib_commands::app_api::core::greet,
             psysonic_library::browse_support::library_get_catalog_year_bounds,
             psysonic_library::browse_support::library_get_genre_album_counts,
+            // psysonic-audio (audio_play + audio_chain_preload excluded: >10 args
+            // exceed specta's SpectaFn limit — see the note at their definitions)
+            audio::transport_commands::audio_pause,
+            audio::transport_commands::audio_resume,
+            audio::transport_commands::audio_stop,
+            audio::transport_commands::audio_seek,
+            audio::mix_commands::audio_set_volume,
+            audio::mix_commands::audio_update_replay_gain,
+            audio::mix_commands::audio_set_eq,
+            audio::mix_commands::audio_set_playback_rate,
+            audio::mix_commands::audio_set_crossfade,
+            audio::mix_commands::audio_set_gapless,
+            audio::mix_commands::audio_begin_outgoing_fade,
+            audio::mix_commands::audio_set_autodj_suppress,
+            audio::mix_commands::audio_set_normalization,
+            audio::autoeq_commands::autoeq_entries,
+            audio::autoeq_commands::autoeq_fetch_profile,
+            audio::preload_commands::audio_preload,
+            audio::radio_commands::audio_play_radio,
+            audio::preview::audio_preview_play,
+            audio::preview::audio_preview_stop,
+            audio::preview::audio_preview_stop_silent,
+            audio::preview::audio_preview_set_volume,
+            audio::device_commands::audio_list_devices,
+            audio::device_commands::audio_canonicalize_selected_device,
+            audio::device_commands::audio_default_output_device_name,
+            audio::device_commands::audio_set_device,
         ])
 }
 
