@@ -600,6 +600,13 @@ export const commands = {
 	 *  extension) show it; pure-GNOME without the extension does not.
 	 */
 	setTrayTooltip: (tooltip: string, playbackState: string | null) => typedError<null, string>(__TAURI_INVOKE("set_tray_tooltip", { tooltip, playbackState })),
+	/**
+	 *  Pushes localized labels into the tray menu. Called from the frontend on
+	 *  startup and whenever the i18n language changes. Updates are applied
+	 *  immediately to live menu items via `set_text` (no tray rebuild required)
+	 *  and cached so the labels survive a tray hide/show cycle.
+	 */
+	setTrayMenuLabels: (playPause: string, next: string, previous: string, showHide: string, quit: string, nothingPlaying: string) => typedError<null, string>(__TAURI_INVOKE("set_tray_menu_labels", { playPause, next, previous, showHide, quit, nothingPlaying })),
 	importThemeZip: (path: string) => typedError<ImportedThemeFiles, string>(__TAURI_INVOKE("import_theme_zip", { path })),
 	libraryAnalysisBackfillConfigure: (enabled: boolean, serverIndexKey: string, libraryServerId: string, serverUrl: string, username: string, password: string, workers: number) => typedError<null, string>(__TAURI_INVOKE("library_analysis_backfill_configure", { enabled, serverIndexKey, libraryServerId, serverUrl, username, password, workers })),
 	/**

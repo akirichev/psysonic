@@ -284,6 +284,7 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             crate::lib_commands::sync::tray::is_tiling_wm_cmd,
             crate::lib_commands::sync::tray::toggle_tray_icon,
             crate::lib_commands::sync::tray::set_tray_tooltip,
+            crate::lib_commands::sync::tray::set_tray_menu_labels,
             crate::theme_import::import_theme_zip,
             crate::library_analysis_backfill::library_analysis_backfill_configure,
             // psysonic-integration — typeable subset. Excluded (stay on generate_handler!):

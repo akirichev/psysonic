@@ -324,6 +324,7 @@ pub(crate) fn set_tray_tooltip(
 /// immediately to live menu items via `set_text` (no tray rebuild required)
 /// and cached so the labels survive a tray hide/show cycle.
 #[tauri::command]
+#[specta::specta]
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn set_tray_menu_labels(
     app: tauri::AppHandle,
