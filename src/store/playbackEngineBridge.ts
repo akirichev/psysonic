@@ -26,6 +26,11 @@ export function registerPlaybackEngineBridge(impl: PlaybackEngineBridge): void {
   bridge = impl;
 }
 
+/** True once the engine installs its operations. For the boot-registration smoke guard. */
+export function isPlaybackEngineBridgeRegistered(): boolean {
+  return bridge !== null;
+}
+
 export function getQueueServerId(): string | null {
   return bridge ? bridge.getQueueServerId() : null;
 }

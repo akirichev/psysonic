@@ -31,6 +31,11 @@ export function registerOrbitRuntime(rt: OrbitRuntime): void {
   runtime = rt;
 }
 
+/** True once the orbit feature installs its runtime. For the boot-registration smoke guard. */
+export function isOrbitRuntimeRegistered(): boolean {
+  return runtime !== null;
+}
+
 export function orbitSnapshot(): OrbitSnapshot {
   return runtime?.getSnapshot() ?? NEUTRAL;
 }

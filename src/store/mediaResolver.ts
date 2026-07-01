@@ -32,6 +32,11 @@ export function registerMediaResolver(resolver: MediaResolver): void {
   registered = resolver;
 }
 
+/** True once a resolver is installed. For the boot-registration smoke guard. */
+export function isMediaResolverRegistered(): boolean {
+  return registered !== null;
+}
+
 async function netAlbum(serverId: string, albumId: string): Promise<ResolvedAlbum | null> {
   try {
     const data = await getAlbumForServer(serverId, albumId);
