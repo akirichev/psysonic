@@ -136,6 +136,183 @@ export const commands = {
 	 *  Keeps currently-running jobs untouched; only queued (not-yet-started) jobs are removed.
 	 */
 	analysisPrunePendingToTrackIds: (trackIds: string[], serverId: string) => typedError<AnalysisPrunePendingResult, string>(__TAURI_INVOKE("analysis_prune_pending_to_track_ids", { trackIds, serverId })),
+	/**
+	 *  Downloads a single track to the app's offline cache directory.
+	 *  Returns the absolute file path so TypeScript can store it and later
+	 *  construct a `psysonic-local://<path>` URL for the audio engine.
+	 */
+	downloadTrackOffline: (trackId: string, serverId: string, url: string, suffix: string, customDir: string | null, downloadId: string | null) => typedError<string, string>(__TAURI_INVOKE("download_track_offline", { trackId, serverId, url, suffix, customDir, downloadId })),
+	/**
+	 *  Marks the given offline-download ids as cancelled. In-flight
+	 *  `download_track_offline` calls abort their HTTP stream at the next chunk
+	 *  boundary; ones still parked on the download semaphore bail as soon as they
+	 *  acquire a slot. Mirrors `cancel_device_sync` for the device-sync side.
+	 */
+	cancelOfflineDownloads: (downloadIds: string[]) => __TAURI_INVOKE<void>("cancel_offline_downloads", { downloadIds }),
+	/**
+	 *  Drops a finished download's cancellation flag so the registry does not grow
+	 *  across a long session. The frontend calls this once an album/playlist
+	 *  download settles (completed or cancelled).
+	 */
+	clearOfflineCancel: (downloadId: string) => __TAURI_INVOKE<void>("clear_offline_cancel", { downloadId }),
+	/**
+	 *  Removes a cached track from the offline cache. Accepts the full local path
+	 *  (stored in OfflineTrackMeta) so it works regardless of which directory was used.
+	 *  After deleting the file, empty parent directories up to (but not including)
+	 *  `base_dir` are pruned using `remove_dir` (never `remove_dir_all`).
+	 */
+	deleteOfflineTrack: (localPath: string, baseDir: string | null) => typedError<null, string>(__TAURI_INVOKE("delete_offline_track", { localPath, baseDir })),
+	/**  Returns the total size in bytes of all files in the offline cache directory (and optional custom dir). */
+	getOfflineCacheSize: (customDir: string | null) => __TAURI_INVOKE<number>("get_offline_cache_size", { customDir }),
+	/**
+	 *  Resolve the canonical `library/` path for a track and report on-disk presence only
+	 *  (no download, no analysis seed).
+	 */
+	probeLibraryTrackLocal: (trackId: string, serverIndexKey: string, libraryServerId: string, suffix: string, mediaDir: string | null) => typedError<LibraryTrackProbeResult, string>(__TAURI_INVOKE("probe_library_track_local", { trackId, serverIndexKey, libraryServerId, suffix, mediaDir })),
+	/**
+	 *  Scan library-tier bytes on disk and match them to known candidates only
+	 *  (`track_offline.local_path` + canonical paths for `candidate_track_ids`).
+	 */
+	discoverLibraryTierOnDisk: (serverIndexKey: string, libraryServerId: string, candidateTrackIds: string[], mediaDir: string | null) => typedError<LibraryTierDiskHit[], string>(__TAURI_INVOKE("discover_library_tier_on_disk", { serverIndexKey, libraryServerId, candidateTrackIds, mediaDir })),
+	/**  Remove library-tier files under `{server_index_key}` that are not listed in `keep_paths`. */
+	pruneOrphanLibraryTierFiles: (serverIndexKey: string, keepPaths: string[], mediaDir: string | null) => typedError<string[], string>(__TAURI_INVOKE("prune_orphan_library_tier_files", { serverIndexKey, keepPaths, mediaDir })),
+	/**  Remove ephemeral-tier files under `{media}/cache/` not listed in `keep_paths`. */
+	pruneOrphanEphemeralCacheFiles: (keepPaths: string[], mediaDir: string | null) => typedError<string[], string>(__TAURI_INVOKE("prune_orphan_ephemeral_cache_files", { keepPaths, mediaDir })),
+	/**  Evict unindexed ephemeral cache files (oldest first) until tier size ≤ `max_bytes`. */
+	evictEphemeralCacheOrphansToFit: (keepPaths: string[], maxBytes: number, mediaDir: string | null) => typedError<string[], string>(__TAURI_INVOKE("evict_ephemeral_cache_orphans_to_fit", { keepPaths, maxBytes, mediaDir })),
+	/**  Batch existence probe for reconcile (index rows without on-disk bytes). */
+	probeMediaFiles: (localPaths: string[]) => __TAURI_INVOKE<boolean[]>("probe_media_files", { localPaths }),
+	/**  Recursive byte size under `{media}/{cache|library}/`. */
+	getMediaTierSize: (tier: string, mediaDir: string | null) => __TAURI_INVOKE<number>("get_media_tier_size", { tier, mediaDir }),
+	/**  Deletes the entire `{cache|library}/` subtree under the media root. */
+	purgeMediaTier: (tier: string, mediaDir: string | null) => typedError<null, string>(__TAURI_INVOKE("purge_media_tier", { tier, mediaDir })),
+	/**  Deletes one media file and prunes empty parents up to the tier root. */
+	deleteMediaFile: (localPath: string, mediaDir: string | null) => typedError<null, string>(__TAURI_INVOKE("delete_media_file", { localPath, mediaDir })),
+	/**  Removes empty directories under `{media}/{cache|library}/` (post-eviction sweep). */
+	pruneEmptyMediaTierDirs: (tier: string, mediaDir: string | null) => typedError<null, string>(__TAURI_INVOKE("prune_empty_media_tier_dirs", { tier, mediaDir })),
+	/**  Promotes stream-cache bytes into `{media}/cache/…` using library-index paths. */
+	promoteStreamCacheToLocal: (trackId: string, serverIndexKey: string, libraryServerId: string, url: string, suffix: string, mediaDir: string | null) => typedError<{
+	path: string,
+	size: number,
+	layoutFingerprint: string,
+} | null, string>(__TAURI_INVOKE("promote_stream_cache_to_local", { trackId, serverIndexKey, libraryServerId, url, suffix, mediaDir })),
+	/**
+	 *  Scan `psysonic-offline/{segment}/{trackId}.ext`, verify each id in the library
+	 *  index, and relocate live tracks into `{media}/library/…`.
+	 */
+	migrateLegacyOfflineDisk: (mediaDir: string | null, customOfflineDir: string | null, serverIndexKeyFilter: string | null) => typedError<LegacyOfflineMigrationResult[], string>(__TAURI_INVOKE("migrate_legacy_offline_disk", { mediaDir, customOfflineDir, serverIndexKeyFilter })),
+	downloadTrackHotCache: (trackId: string, serverId: string, url: string, suffix: string, customDir: string | null) => typedError<HotCacheDownloadResult, string>(__TAURI_INVOKE("download_track_hot_cache", { trackId, serverId, url, suffix, customDir })),
+	/**
+	 *  Promotes bytes captured by the manual streaming path into hot cache on disk.
+	 *  Returns `Ok(None)` when no completed stream cache is available for this URL.
+	 */
+	promoteStreamCacheToHotCache: (trackId: string, serverId: string, url: string, suffix: string, customDir: string | null) => typedError<{
+	path: string,
+	size: number,
+} | null, string>(__TAURI_INVOKE("promote_stream_cache_to_hot_cache", { trackId, serverId, url, suffix, customDir })),
+	getHotCacheSize: (customDir: string | null) => __TAURI_INVOKE<number>("get_hot_cache_size", { customDir }),
+	deleteHotCacheTrack: (localPath: string, customDir: string | null) => typedError<null, string>(__TAURI_INVOKE("delete_hot_cache_track", { localPath, customDir })),
+	/**  Removes the entire hot cache root (`psysonic-hot-cache` for the active location). */
+	purgeHotCache: (customDir: string | null) => typedError<null, string>(__TAURI_INVOKE("purge_hot_cache", { customDir })),
+	/**
+	 *  Downloads a single track to a USB/SD device using the configured filename template.
+	 *  Emits `device:sync:progress` events with `{ jobId, trackId, status, path? }`.
+	 */
+	syncTrackToDevice: (track: TrackSyncInfo, destDir: string, jobId: string) => typedError<SyncTrackResult, string>(__TAURI_INVOKE("sync_track_to_device", { track, destDir, jobId })),
+	/**
+	 *  Downloads a batch of tracks to a USB/SD device with controlled concurrency.
+	 *  At most 2 parallel writes run simultaneously to prevent I/O choking on USB.
+	 *  Emits throttled `device:sync:progress` events (max once per 500ms) and a
+	 *  final `device:sync:complete` event with the summary.
+	 */
+	syncBatchToDevice: (tracks: TrackSyncInfo[], destDir: string, jobId: string, expectedBytes: number) => typedError<SyncBatchResult, string>(__TAURI_INVOKE("sync_batch_to_device", { tracks, destDir, jobId, expectedBytes })),
+	/**  Signals a running `sync_batch_to_device` job to stop after its current tracks finish. */
+	cancelDeviceSync: (jobId: string) => __TAURI_INVOKE<void>("cancel_device_sync", { jobId }),
+	/**
+	 *  Computes the expected file paths for a batch of tracks under the fixed schema.
+	 *  Used by the cleanup flow to find orphans.
+	 */
+	computeSyncPaths: (tracks: TrackSyncInfo[], destDir: string) => __TAURI_INVOKE<string[]>("compute_sync_paths", { tracks, destDir }),
+	listDeviceDirFiles: (dir: string) => typedError<string[], string>(__TAURI_INVOKE("list_device_dir_files", { dir })),
+	/**
+	 *  Deletes a file from the device and prunes empty parent directories
+	 *  (up to 2 levels: album folder, then artist folder).
+	 */
+	deleteDeviceFile: (path: string) => typedError<null, string>(__TAURI_INVOKE("delete_device_file", { path })),
+	/**
+	 *  Deletes multiple files from the device in one call and prunes empty parent
+	 *  directories. Returns the number of files successfully deleted.
+	 */
+	deleteDeviceFiles: (paths: string[]) => typedError<number, string>(__TAURI_INVOKE("delete_device_files", { paths })),
+	/**
+	 *  Returns all currently mounted removable drives.
+	 *  On Linux these are typically USB sticks / SD cards under /media or /run/media.
+	 *  On macOS they appear under /Volumes. On Windows they are separate drive letters.
+	 */
+	getRemovableDrives: () => __TAURI_INVOKE<RemovableDrive[]>("get_removable_drives"),
+	/**
+	 *  Writes an Extended-M3U playlist at `{dest_dir}/Playlists/{name}/{name}.m3u8`.
+	 *  References are sibling filenames (just `01 - Artist - Title.ext`) so the
+	 *  playlist is self-contained — moving/copying the folder anywhere keeps it
+	 *  working. Tracks are expected to be in playlist order (index starts at 1).
+	 */
+	writePlaylistM3u8: (destDir: string, playlistName: string, tracks: TrackSyncInfo[]) => typedError<null, string>(__TAURI_INVOKE("write_playlist_m3u8", { destDir, playlistName, tracks })),
+	/**
+	 *  Atomically renames files on the device from their old path to the new fixed-
+	 *  schema path. Intended for the migration flow when switching away from the
+	 *  user-configurable template. All paths are relative to `target_dir`.
+	 * 
+	 *  After renaming, removes any directories left empty under `target_dir`
+	 *  (so stale `{OldArtist}/{OldAlbum}/` trees don't linger).
+	 * 
+	 *  Returns a per-entry result so the UI can show which renames succeeded
+	 *  and which failed. Does not roll back on partial failure — each `fs::rename`
+	 *  is atomic, so nothing can be half-renamed.
+	 */
+	renameDeviceFiles: (targetDir: string, pairs: ([string, string])[]) => typedError<RenameResult[], string>(__TAURI_INVOKE("rename_device_files", { targetDir, pairs })),
+	/**
+	 *  Downloads a server-generated ZIP (album/playlist) directly to disk via streaming.
+	 *  Emits `download:zip:progress` events every 500 ms so the frontend can show
+	 *  live MB-counter without holding any binary data in the WebView process.
+	 *  Returns the final destination path on success.
+	 */
+	downloadZip: (id: string, url: string, destPath: string) => typedError<string, string>(__TAURI_INVOKE("download_zip", { id, url, destPath })),
+	/**
+	 *  Returns true if the current Linux system is Arch-based
+	 *  (checks /etc/arch-release and /etc/os-release).
+	 */
+	checkArchLinux: () => __TAURI_INVOKE<boolean>("check_arch_linux"),
+	/**
+	 *  Downloads an update installer/package to the user's Downloads folder.
+	 *  Emits `update:download:progress` events with `{ bytes, total }` every 250 ms.
+	 *  Returns the final absolute file path on success.
+	 */
+	downloadUpdate: (url: string, filename: string) => typedError<string, string>(__TAURI_INVOKE("download_update", { url, filename })),
+	/**
+	 *  Opens a directory in the OS file manager (Explorer / Finder / Nautilus).
+	 *  Uses platform-specific process spawning — tauri-plugin-shell's open() only
+	 *  allows https:// URLs per the capability scope and fails silently for paths.
+	 */
+	openFolder: (path: string) => typedError<null, string>(__TAURI_INVOKE("open_folder", { path })),
+	/**
+	 *  Reads embedded synced / unsynced lyrics from a local audio file.
+	 * 
+	 *  Priority order:
+	 *    MP3  → ID3v2 SYLT (synchronized, ms timestamps) → ID3v2 USLT (plain)
+	 *    FLAC → Vorbis SYNCEDLYRICS (LRC string)          → Vorbis LYRICS (plain)
+	 * 
+	 *  Returns a standard LRC string (`[mm:ss.cc]line\n…`) for synced lyrics,
+	 *  or plain text for unsynced lyrics.  Returns `None` when no lyrics are found.
+	 *  Errors are silenced and mapped to `None` so the frontend falls through to the
+	 *  next lyrics source without crashing.
+	 */
+	getEmbeddedLyrics: (path: string) => __TAURI_INVOKE<string | null>("get_embedded_lyrics", { path }),
+	/**
+	 *  Fetches synced lyrics from Netease Cloud Music for a given artist + title.
+	 *  Performs a track search, then fetches the LRC string for the best match.
+	 *  Returns `None` if no match or no lyrics are found.
+	 */
+	fetchNeteaseLyrics: (artist: string, title: string) => typedError<string | null, string>(__TAURI_INVOKE("fetch_netease_lyrics", { artist, title })),
 };
 
 /* Types */
@@ -207,12 +384,107 @@ export type GenreAlbumCountDto = {
 	songCount: number,
 };
 
+export type HotCacheDownloadResult = {
+	path: string,
+	size: number,
+};
+
+export type LegacyOfflineMigrationResult = {
+	trackId: string,
+	serverIndexKey: string,
+	path: string,
+	size: number,
+	layoutFingerprint: string,
+	relocated: boolean,
+	skippedReason: string | null,
+};
+
+export type LibraryTierDiskHit = {
+	trackId: string,
+	path: string,
+	size: number,
+	layoutFingerprint: string,
+	suffix: string,
+};
+
+export type LibraryTrackProbeResult = {
+	path: string,
+	size: number,
+	layoutFingerprint: string,
+	exists: boolean,
+};
+
+export type LocalTrackDownloadResult = {
+	path: string,
+	size: number,
+	layoutFingerprint: string,
+};
+
 export type LoudnessCachePayload = {
 	integratedLufs: number | null,
 	truePeak: number | null,
 	recommendedGainDb: number | null,
 	targetLufs: number | null,
 	updatedAt: number,
+};
+
+/**  Information about a single mounted removable drive. */
+export type RemovableDrive = {
+	name: string,
+	mount_point: string,
+	available_space: number,
+	total_space: number,
+	file_system: string,
+	is_removable: boolean,
+};
+
+/**  Per-entry result for `rename_device_files`. */
+export type RenameResult = {
+	oldPath: string,
+	newPath: string,
+	ok: boolean,
+	error: string | null,
+};
+
+/**  Summary returned by `sync_batch_to_device` after all tracks are processed. */
+export type SyncBatchResult = {
+	done: number,
+	skipped: number,
+	failed: number,
+};
+
+export type SyncTrackResult = {
+	path: string,
+	skipped: boolean,
+};
+
+export type TrackSyncInfo = {
+	id: string,
+	url: string,
+	suffix: string,
+	/**
+	 *  Track artist — used in Extended M3U (#EXTINF) entries so playlists display
+	 *  the actual performer rather than the album artist.
+	 */
+	artist: string,
+	/**
+	 *  Album artist — used for the top-level folder so compilation albums stay together.
+	 *  Falls back to `artist` in the frontend when the server has no albumArtist tag.
+	 */
+	albumArtist: string,
+	album: string,
+	title: string,
+	trackNumber: number | null,
+	/**  Duration in seconds — needed for Extended M3U (#EXTINF) playlist entries. */
+	duration?: number | null,
+	/**
+	 *  When set, the track belongs to a playlist source and is placed under
+	 *  `Playlists/{name}/` with `playlist_index` as its filename prefix.
+	 *  Same track synced from both an album and a playlist source ends up twice
+	 *  on the device — once in the album tree, once in the playlist folder.
+	 */
+	playlistName?: string | null,
+	playlistIndex?: number | null,
 };
 
 export type WaveformCachePayload = {
