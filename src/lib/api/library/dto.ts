@@ -4,6 +4,7 @@
  * `lib/api/library.ts` god-module; the wrappers (reads/sync/stats/events) and the
  * `@/lib/api/library` barrel re-export these, so consumers are unchanged.
  */
+import type { CatalogYearBoundsDto, GenreAlbumCountDto } from '@/generated/bindings';
 
 export interface TrackRefDto {
   serverId: string;
@@ -363,16 +364,10 @@ export type PlaySessionYearBounds = {
   maxYear: number | null;
 };
 
-export type CatalogYearBounds = {
-  minYear: number | null;
-  maxYear: number | null;
-};
-
-export type GenreAlbumCountRow = {
-  value: string;
-  albumCount: number;
-  songCount: number;
-};
+// Sourced from the tauri-specta contract (single source of truth); kept as named
+// aliases so existing consumers stay unchanged while the shape lives in one place.
+export type CatalogYearBounds = CatalogYearBoundsDto;
+export type GenreAlbumCountRow = GenreAlbumCountDto;
 
 export type LibraryGenreAlbumsRequest = {
   serverId: string;

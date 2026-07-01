@@ -4,6 +4,7 @@
  * `@/lib/api/library` barrel.
  */
 import { invoke } from '@tauri-apps/api/core';
+import { commands } from '@/generated/bindings';
 import { serverIndexKeyForId, mapServerIdFromIndexKey } from './internal';
 import type {
   CatalogYearBounds,
@@ -19,22 +20,23 @@ import type {
   PlaySessionRecentTrack,
 } from './dto';
 
-export function libraryGetCatalogYearBounds(args: { serverId: string }): Promise<CatalogYearBounds> {
+export async function libraryGetCatalogYearBounds(args: {
+  serverId: string;
+}): Promise<CatalogYearBounds> {
   const indexKey = serverIndexKeyForId(args.serverId);
-  return invoke<CatalogYearBounds>('library_get_catalog_year_bounds', {
-    serverId: indexKey,
-  });
+  const res = await commands.libraryGetCatalogYearBounds(indexKey);
+  if (res.status === 'error') throw new Error(res.error);
+  return res.data;
 }
 
-export function libraryGetGenreAlbumCounts(args: {
+export async function libraryGetGenreAlbumCounts(args: {
   serverId: string;
   libraryScope?: string;
 }): Promise<GenreAlbumCountRow[]> {
   const indexKey = serverIndexKeyForId(args.serverId);
-  return invoke<GenreAlbumCountRow[]>('library_get_genre_album_counts', {
-    serverId: indexKey,
-    libraryScope: args.libraryScope,
-  });
+  const res = await commands.libraryGetGenreAlbumCounts(indexKey, args.libraryScope ?? null);
+  if (res.status === 'error') throw new Error(res.error);
+  return res.data;
 }
 
 /** Paginated albums for one genre from the local track index. */
