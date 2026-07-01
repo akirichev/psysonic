@@ -9,6 +9,67 @@ export const commands = {
 	libraryGetCatalogYearBounds: (serverId: string) => typedError<CatalogYearBoundsDto, string>(__TAURI_INVOKE("library_get_catalog_year_bounds", { serverId })),
 	/**  Distinct album counts per track genre — same grouping as genre album browse. */
 	libraryGetGenreAlbumCounts: (serverId: string, libraryScope: string | null) => typedError<GenreAlbumCountDto[], string>(__TAURI_INVOKE("library_get_genre_album_counts", { serverId, libraryScope })),
+	/**
+	 *  Align `album.starred_at` with server favorites: UPDATE existing rows only
+	 *  (no INSERT / stub rows). Clears local stars absent from `starred_albums`.
+	 */
+	libraryReconcileAlbumStars: (serverId: string, starredAlbums: StarredAlbumReconcileItem[]) => typedError<null, string>(__TAURI_INVOKE("library_reconcile_album_stars", { serverId, starredAlbums })),
+	/**  Resolve cover disk + fetch ids from the local library (`album` | `artist` | `track`). */
+	libraryResolveCoverEntry: (serverId: string, entity: string, entityId: string) => typedError<{
+	cacheKind: string,
+	cacheEntityId: string,
+	fetchCoverArtId: string,
+} | null, string>(__TAURI_INVOKE("library_resolve_cover_entry", { serverId, entity, entityId })),
+	libraryAnalysisBackfillBatch: (serverId: string, cursor: string | null, limit: number | null) => typedError<LibraryAnalysisBackfillBatchDto, string>(__TAURI_INVOKE("library_analysis_backfill_batch", { serverId, cursor, limit })),
+	libraryAnalysisProgress: (serverId: string) => typedError<LibraryAnalysisProgressDto, string>(__TAURI_INVOKE("library_analysis_progress", { serverId })),
+	libraryCountLiveTracks: (serverId: string) => typedError<number, string>(__TAURI_INVOKE("library_count_live_tracks", { serverId })),
+	libraryGetStatus: (serverId: string, libraryScope: string | null) => typedError<SyncStateDto, string>(__TAURI_INVOKE("library_get_status", { serverId, libraryScope })),
+	libraryGetArtifact: (serverId: string, trackId: string, artifactKind: string, sourceKind: string | null, sourceId: string | null, format: string | null) => typedError<{
+	serverId: string,
+	trackId: string,
+	artifactKind: string,
+	format: string,
+	sourceKind: string,
+	sourceId: string,
+	language: string | null,
+	contentText: string | null,
+	contentBytes: number,
+	notFound: boolean,
+	contentHash: string | null,
+	fetchedAt: number,
+	expiresAt: number | null,
+} | null, string>(__TAURI_INVOKE("library_get_artifact", { serverId, trackId, artifactKind, sourceKind, sourceId, format })),
+	libraryGetFacts: (serverId: string, trackId: string, factKinds: string[] | null) => typedError<TrackFactDto[], string>(__TAURI_INVOKE("library_get_facts", { serverId, trackId, factKinds })),
+	libraryGetOfflinePath: (serverId: string, trackId: string) => typedError<OfflinePathDto, string>(__TAURI_INVOKE("library_get_offline_path", { serverId, trackId })),
+	libraryGenreTagsInspect: () => typedError<GenreTagsInspectDto, string>(__TAURI_INVOKE("library_genre_tags_inspect")),
+	libraryGenreTagsRun: () => typedError<null, string>(__TAURI_INVOKE("library_genre_tags_run")),
+	librarySyncBindSession: (serverId: string, baseUrl: string, username: string, password: string, libraryScope: string | null) => typedError<null, string>(__TAURI_INVOKE("library_sync_bind_session", { serverId, baseUrl, username, password, libraryScope })),
+	librarySyncClearSession: (serverId: string) => typedError<null, string>(__TAURI_INVOKE("library_sync_clear_session", { serverId })),
+	librarySetPlaybackHint: (hint: string) => typedError<null, string>(__TAURI_INVOKE("library_set_playback_hint", { hint })),
+	libraryGetPlaybackHint: () => typedError<string, string>(__TAURI_INVOKE("library_get_playback_hint")),
+	librarySyncStart: (serverId: string, mode: string, libraryScope: string | null) => typedError<SyncJobDto, string>(__TAURI_INVOKE("library_sync_start", { serverId, mode, libraryScope })),
+	/**
+	 *  Manual «Verify library integrity» — same dispatch shape as
+	 *  `library_sync_start { mode: 'delta' }` but always sets the full
+	 *  `DELTA_MISMATCH_CAP` tombstone budget regardless of the
+	 *  local/server count gap. Per PR-5b review §5 note 2: spec §6.7
+	 *  Mode A user-initiated full reconcile bypasses the threshold
+	 *  check.
+	 */
+	librarySyncVerifyIntegrity: (serverId: string, libraryScope: string | null) => typedError<SyncJobDto, string>(__TAURI_INVOKE("library_sync_verify_integrity", { serverId, libraryScope })),
+	librarySyncCancel: (jobId: string | null) => typedError<null, string>(__TAURI_INVOKE("library_sync_cancel", { jobId })),
+	libraryPutArtifact: (serverId: string, trackId: string, artifact: ArtifactInputDto) => typedError<null, string>(__TAURI_INVOKE("library_put_artifact", { serverId, trackId, artifact })),
+	libraryPutFact: (serverId: string, trackId: string, fact: FactInputDto) => typedError<null, string>(__TAURI_INVOKE("library_put_fact", { serverId, trackId, fact })),
+	libraryRecordPlaySession: (input: PlaySessionInputDto) => typedError<null, string>(__TAURI_INVOKE("library_record_play_session", { input })),
+	libraryGetPlayerStatsYearSummary: (year: number) => typedError<PlaySessionYearSummaryDto, string>(__TAURI_INVOKE("library_get_player_stats_year_summary", { year })),
+	libraryGetPlayerStatsHeatmap: (year: number) => typedError<PlaySessionHeatmapDayDto[], string>(__TAURI_INVOKE("library_get_player_stats_heatmap", { year })),
+	libraryGetPlayerStatsDayDetail: (dateIso: string) => typedError<PlaySessionDayDetailDto, string>(__TAURI_INVOKE("library_get_player_stats_day_detail", { dateIso })),
+	libraryGetPlayerStatsYearBounds: () => typedError<PlaySessionYearBoundsDto, string>(__TAURI_INVOKE("library_get_player_stats_year_bounds")),
+	libraryGetPlayerStatsRecentDays: (limit: number | null) => typedError<PlaySessionRecentDayDto[], string>(__TAURI_INVOKE("library_get_player_stats_recent_days", { limit })),
+	libraryGetRecentPlaySessions: (limit: number | null, sinceMs: number | null) => typedError<PlaySessionDayTrackDto[], string>(__TAURI_INVOKE("library_get_recent_play_sessions", { limit, sinceMs })),
+	libraryPurgeServer: (serverId: string, includeAnalysis: boolean | null, includeOffline: boolean | null) => typedError<PurgeReportDto, string>(__TAURI_INVOKE("library_purge_server", { serverId, includeAnalysis, includeOffline })),
+	libraryMigrateServerIndexKeys: (mappings: LibraryServerKeyMigrationDto[]) => typedError<null, string>(__TAURI_INVOKE("library_migrate_server_index_keys", { mappings })),
+	libraryDeleteServerData: (serverId: string) => typedError<null, string>(__TAURI_INVOKE("library_delete_server_data", { serverId })),
 	audioPause: () => __TAURI_INVOKE<void>("audio_pause"),
 	/**
 	 *  Resume playback.
@@ -597,6 +658,25 @@ export type AnalysisServerKeyMigrationDto = {
 	indexKey: string,
 };
 
+/**
+ *  Input to `library_put_artifact`. Same shape as `TrackArtifactDto`
+ *  minus the server-supplied `server_id` / `track_id` (provided as
+ *  command args) and `fetched_at` (stamped server-side from `now`).
+ */
+export type ArtifactInputDto = {
+	artifactKind: string,
+	format: string,
+	sourceKind: string,
+	sourceId: string,
+	language?: string | null,
+	contentText?: string | null,
+	contentBlob?: number[] | null,
+	contentBytes?: number,
+	notFound?: boolean,
+	contentHash?: string | null,
+	expiresAt?: number | null,
+};
+
 /**  Min/max `year` from indexed tracks for a server (Albums year filter UI). */
 export type CatalogYearBoundsDto = {
 	minYear: number | null,
@@ -691,6 +771,12 @@ export type CoverCacheStatsDto = {
 	entryCount: number,
 };
 
+export type CoverEntryDto = {
+	cacheKind: string,
+	cacheEntityId: string,
+	fetchCoverArtId: string,
+};
+
 /**  Live cover HTTP / WebP-encode slots — mirrors analysis pipeline probe shape. */
 export type CoverPipelineQueueStatsDto = {
 	httpMax: number,
@@ -706,11 +792,34 @@ export type CoverPipelineQueueStatsDto = {
 	uiEnsuredTotal: number,
 };
 
+/**
+ *  Input to `library_put_fact`. Shape matches `TrackFactDto` minus the
+ *  indices.
+ */
+export type FactInputDto = {
+	factKind: string,
+	valueReal?: number | null,
+	valueInt?: number | null,
+	valueText?: string | null,
+	unit?: string | null,
+	sourceKind: string,
+	sourceId: string,
+	confidence?: number | null,
+	contentHash?: string | null,
+	expiresAt?: number | null,
+};
+
 /**  Per-genre album/track totals from the local track catalog (Genres cloud + browse). */
 export type GenreAlbumCountDto = {
 	value: string,
 	albumCount: number,
 	songCount: number,
+};
+
+export type GenreTagsInspectDto = {
+	needed: boolean,
+	totalTracks: number,
+	doneTracks: number,
 };
 
 export type HotCacheDownloadResult = {
@@ -733,6 +842,18 @@ export type LegacyOfflineMigrationResult = {
 	skippedReason: string | null,
 };
 
+export type LibraryAnalysisBackfillBatchDto = {
+	trackIds: string[],
+	nextCursor: string | null,
+	exhausted: boolean,
+};
+
+export type LibraryAnalysisProgressDto = {
+	totalTracks: number,
+	pendingTracks: number,
+	doneTracks: number,
+};
+
 export type LibraryCoverBackfillBatchDto = {
 	items: CoverBackfillItem[],
 	/**  Entity ids only — compatibility shim for older callers. */
@@ -745,6 +866,11 @@ export type LibraryCoverProgressDto = {
 	totalDistinct: number,
 	pending: number,
 	done: number,
+};
+
+export type LibraryServerKeyMigrationDto = {
+	legacyId: string,
+	indexKey: string,
 };
 
 export type LibraryTierDiskHit = {
@@ -818,6 +944,17 @@ export type MigrationScopeInspect = {
 	tables: { [key in string]: number },
 };
 
+/**
+ *  `library_get_offline_path` outcome — either a path string or a
+ *  `missing` flag so the frontend can show a hint without polling.
+ */
+export type OfflinePathDto = {
+	serverId: string,
+	trackId: string,
+	localPath: string | null,
+	missing: boolean,
+};
+
 export type PerfProcessMemory = {
 	label: string,
 	rss_kb: number,
@@ -837,6 +974,90 @@ export type PerformanceCpuSnapshot = {
 	logical_cpus: number,
 	memory: PerfProcessMemory[],
 	thread_cpu_groups: PerfThreadCpuGroup[],
+};
+
+export type PlaySessionDayDetailDto = {
+	totals: PlaySessionDayTotalsDto,
+	tracks: PlaySessionDayTrackDto[],
+};
+
+export type PlaySessionDayTotalsDto = {
+	totalListenedSec: number | null,
+	sessionCount: number,
+	trackPlayCount: number,
+	fullCount: number,
+	partialCount: number,
+};
+
+export type PlaySessionDayTrackDto = {
+	serverId: string,
+	trackId: string,
+	title: string,
+	artist: string | null,
+	listenedSec: number | null,
+	completion: string,
+	startedAtMs: number,
+	album: string | null,
+	albumId: string | null,
+	coverArtId: string | null,
+};
+
+export type PlaySessionHeatmapDayDto = {
+	date: string,
+	trackPlayCount: number,
+};
+
+/**  Input to `library_record_play_session`. */
+export type PlaySessionInputDto = {
+	serverId: string,
+	trackId: string,
+	startedAtMs: number,
+	listenedSec: number | null,
+	positionMaxSec: number | null,
+	endReason: string,
+	/**  Player-known duration when `track.duration_sec` in the index is missing/zero. */
+	durationSecHint?: number | null,
+};
+
+/**  Summary for one day in the recent-days list (no track rows). */
+export type PlaySessionRecentDayDto = {
+	date: string,
+	totalListenedSec: number | null,
+	sessionCount: number,
+	trackPlayCount: number,
+	fullCount: number,
+	partialCount: number,
+};
+
+/**  Earliest/latest calendar years with at least one session (local TZ). */
+export type PlaySessionYearBoundsDto = {
+	minYear: number | null,
+	maxYear: number | null,
+};
+
+/**  Cross-server year summary for the Player stats tab. */
+export type PlaySessionYearSummaryDto = {
+	totalListenedSec: number | null,
+	/**  Listening sessions (plays clustered by idle gap). */
+	sessionCount: number,
+	/**  Individual track plays (`COUNT(*)`). */
+	trackPlayCount: number,
+	/**  Distinct tracks heard at least once in the year. */
+	uniqueTrackCount: number,
+	/**  Calendar days with at least one recorded play. */
+	listeningDayCount: number,
+	fullCount: number,
+	partialCount: number,
+};
+
+/**  `library_purge_server` outcome. */
+export type PurgeReportDto = {
+	tracksDeleted: number,
+	albumsDeleted: number,
+	artistsDeleted: number,
+	offlineRowsDeleted: number,
+	/**  Total bytes freed across the purged scopes (best-effort). */
+	bytesFreed: number,
 };
 
 /**  Information about a single mounted removable drive. */
@@ -862,6 +1083,11 @@ export type ServerIndexMapping = {
 	indexKey: string,
 };
 
+export type StarredAlbumReconcileItem = {
+	id: string,
+	starredAt: number,
+};
+
 /**  Summary returned by `sync_batch_to_device` after all tracks are processed. */
 export type SyncBatchResult = {
 	done: number,
@@ -869,9 +1095,89 @@ export type SyncBatchResult = {
 	failed: number,
 };
 
+/**  `library_sync_start` ack. */
+export type SyncJobDto = {
+	jobId: string,
+	serverId: string,
+	/**  `"initial_sync"` or `"delta_sync"`. */
+	kind: string,
+};
+
+/**
+ *  `library_get_status` payload — mirrors the `sync_state` row plus a
+ *  few derived counters from `track`.
+ */
+export type SyncStateDto = {
+	serverId: string,
+	libraryScope: string,
+	syncPhase?: string,
+	capabilityFlags?: number,
+	libraryTier?: string,
+	lastFullSyncAt: number | null,
+	lastDeltaSyncAt: number | null,
+	nextPollAt: number | null,
+	serverLastScanIso: string | null,
+	indexesLastModifiedMs: number | null,
+	artistsLastModifiedMs: number | null,
+	/**  Space-separated leading articles from the server's `getArtists` response. */
+	ignoredArticles: string | null,
+	localTrackCount: number | null,
+	serverTrackCount: number | null,
+	lastError: string | null,
+	/**
+	 *  `MAX(server_updated_at)` over local non-deleted tracks — the
+	 *  implicit "tracks watermark" the N1-delta uses.
+	 */
+	localTracksMaxUpdatedMs: number | null,
+	/**  Cheap `EXISTS` over `track` — avoids a full `COUNT(*)` on every status read. */
+	hasLocalTracks?: boolean,
+	/**  Active/resumed initial-sync ingest strategy (`n1` / `s1` / `s2`), if any. */
+	ingestStrategy?: string | null,
+	/**  Cursor phase during initial sync (`ingest`, `artist_pass`, …). */
+	ingestPhase?: string | null,
+	/**  Tracks ingested so far per persisted cursor (informational during IS-3). */
+	cursorIngestedCount?: number | null,
+	/**  Server flagged after N1 deep-offset failure — prefers S1/S2 on next run. */
+	n1BulkUnreliable?: boolean | null,
+};
+
 export type SyncTrackResult = {
 	path: string,
 	skipped: boolean,
+};
+
+/**  `library_get_artifact` payload — one row of `track_artifact`. */
+export type TrackArtifactDto = {
+	serverId: string,
+	trackId: string,
+	artifactKind: string,
+	format: string,
+	sourceKind: string,
+	sourceId: string,
+	language: string | null,
+	contentText: string | null,
+	contentBytes: number,
+	notFound: boolean,
+	contentHash: string | null,
+	fetchedAt: number,
+	expiresAt: number | null,
+};
+
+/**  `library_get_facts` row. */
+export type TrackFactDto = {
+	serverId: string,
+	trackId: string,
+	factKind: string,
+	valueReal: number | null,
+	valueInt: number | null,
+	valueText: string | null,
+	unit: string | null,
+	sourceKind: string,
+	sourceId: string,
+	confidence: number | null,
+	contentHash: string | null,
+	fetchedAt: number,
+	expiresAt: number | null,
 };
 
 export type TrackSyncInfo = {
