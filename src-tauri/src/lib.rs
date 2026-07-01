@@ -959,12 +959,34 @@ pub fn run() {
 
 #[cfg(test)]
 mod specta_export {
-    // Headless generator + freshness seed: runs the same export as a debug launch
-    // without a GUI, so `cargo test` regenerates `bindings.ts` and CI can diff it.
+    // Freshness gate. Exports to a throwaway temp path and asserts byte-equality
+    // with the committed `src/generated/bindings.ts`. A Rust command/DTO change
+    // that isn't regenerated diverges here → `cargo test` fails → CI catches the
+    // stale bindings. Crucially the test exports to a temp file, never the tracked
+    // one, so it neither dirties the working tree nor races other export tests.
+    // Regenerate the committed file with a debug launch (`npm run tauri:dev`, which
+    // runs `export_specta_bindings()`), then commit the result.
     #[test]
-    fn bindings_are_exportable() {
+    fn committed_bindings_are_fresh() {
+        let committed_path = "../src/generated/bindings.ts";
+        let tmp = std::env::temp_dir().join(format!(
+            "psysonic-bindings-freshness-{}.ts",
+            std::process::id()
+        ));
+
         super::specta_builder()
-            .export(super::bindings_exporter(), "../src/generated/bindings.ts")
+            .export(super::bindings_exporter(), &tmp)
             .expect("failed to export typescript bindings");
+
+        let generated = std::fs::read_to_string(&tmp).expect("read freshly exported bindings");
+        let _ = std::fs::remove_file(&tmp);
+        let committed =
+            std::fs::read_to_string(committed_path).expect("read committed bindings.ts");
+
+        assert_eq!(
+            committed, generated,
+            "src/generated/bindings.ts is stale — regenerate it via a debug launch \
+             (`npm run tauri:dev`) and commit the result"
+        );
     }
 }
