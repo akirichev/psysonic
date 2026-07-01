@@ -1,4 +1,4 @@
-import { isNewer } from '../utils/componentHelpers/appUpdaterHelpers';
+import { isNewer } from '@/lib/util/appUpdaterHelpers';
 
 // Credits list rendered on the Settings → System tab. Update via PR when adding a contributor.
 const CONTRIBUTOR_ENTRIES = [

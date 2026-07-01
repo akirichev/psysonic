@@ -99,6 +99,7 @@ pub(crate) fn catalog_year_bounds_for_server(
 
 /// Min/max album years from the local track catalog (for Albums browse filter spinners).
 #[tauri::command]
+#[specta::specta]
 pub fn library_get_catalog_year_bounds(
     runtime: State<'_, LibraryRuntime>,
     server_id: String,
@@ -150,6 +151,7 @@ pub(crate) fn genre_album_counts_for_server(
 
 /// Distinct album counts per track genre — same grouping as genre album browse.
 #[tauri::command]
+#[specta::specta]
 pub fn library_get_genre_album_counts(
     runtime: State<'_, LibraryRuntime>,
     server_id: String,

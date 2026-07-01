@@ -382,7 +382,7 @@ pub struct PlaySessionYearBoundsDto {
 }
 
 /// Min/max `year` from indexed tracks for a server (Albums year filter UI).
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct CatalogYearBoundsDto {
     pub min_year: Option<i32>,
@@ -390,7 +390,7 @@ pub struct CatalogYearBoundsDto {
 }
 
 /// Per-genre album/track totals from the local track catalog (Genres cloud + browse).
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct GenreAlbumCountDto {
     pub value: String,

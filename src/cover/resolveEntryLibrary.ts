@@ -4,7 +4,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import { librarySqlServerId } from '../api/coverCache';
+import { librarySqlServerId } from '@/lib/api/coverCache';
 import { useAuthStore } from '../store/authStore';
 import { COVER_SCOPE_ACTIVE, type CoverArtRef, CoverCacheKind, CoverServerScope } from './types';
 import {

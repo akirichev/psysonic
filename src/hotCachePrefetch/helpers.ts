@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { QueueItemRef, Track } from '../store/playerStoreTypes';
+import type { QueueItemRef, Track } from '@/lib/media/trackTypes';
 import { useAuthStore } from '../store/authStore';
-import { HOT_CACHE_PROTECT_AFTER_CURRENT, type HotCacheEntry } from '../store/hotCacheStore';
+import { HOT_CACHE_PROTECT_AFTER_CURRENT, type HotCacheEntry } from '@/features/playback/store/hotCacheStore';
 
 /** Settings → Logging → Debug (`frontend_debug_log` → Rust stderr), same as normalization / lucky-mix. */
 export function hotCacheFrontendDebug(payload: Record<string, unknown>): void {

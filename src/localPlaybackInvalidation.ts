@@ -1,14 +1,14 @@
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
-import { libraryGetTrack } from './api/library';
+import { libraryGetTrack } from '@/lib/api/library';
 import { useAuthStore } from './store/authStore';
 import { useLocalPlaybackStore } from './store/localPlaybackStore';
-import { layoutFingerprintFromLibraryTrack } from './utils/media/mediaLayout';
-import { getMediaDir } from './utils/media/mediaDir';
-import { runLegacyOfflineFileMigration } from './utils/migrations/legacyOfflineFileMigration';
-import { reconcileLibraryTierForServer } from './utils/offline/libraryTierReconcile';
-import { resolveServerIdForIndexKey } from './utils/server/serverLookup';
-import { serverIndexKeyFromUrl } from './utils/server/serverIndexKey';
+import { layoutFingerprintFromLibraryTrack } from '@/lib/media/mediaLayout';
+import { getMediaDir } from '@/lib/media/mediaDir';
+import { runLegacyOfflineFileMigration } from '@/features/offline';
+import { reconcileLibraryTierForServer } from '@/features/offline';
+import { resolveServerIdForIndexKey } from '@/lib/server/serverLookup';
+import { serverIndexKeyFromUrl } from '@/lib/server/serverIndexKey';
 
 async function invalidateEntriesForLibraryServer(libraryServerId: string): Promise<void> {
   const store = useLocalPlaybackStore.getState();

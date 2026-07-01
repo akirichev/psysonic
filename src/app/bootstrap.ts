@@ -1,11 +1,11 @@
-import { installQueueUndoHotkey } from '../store/queueUndoHotkey';
+import { installQueueUndoHotkey } from '@/features/playback/store/queueUndoHotkey';
 import { configureStartupSplash } from './startupSplash';
 import { setupMusicNetworkRuntime } from './musicNetworkBridge';
 import { invoke } from '@tauri-apps/api/core';
 import { getWindowKind } from './windowKind';
-import { migrateThemeSelection } from '../utils/themes/themeMigration';
+import { migrateThemeSelection } from '@/lib/themes/themeMigration';
 import { getScheduledTheme, useThemeStore } from '../store/themeStore';
-import { syncInjectedThemes } from '../utils/themes/themeInjection';
+import { syncInjectedThemes } from '@/lib/themes/themeInjection';
 import { useInstalledThemesStore, type InstalledTheme } from '../store/installedThemesStore';
 
 /** Sync backend HTTP User-Agent from the main webview once at startup. */

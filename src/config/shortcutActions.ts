@@ -48,14 +48,14 @@ export type {
   ActionContext,
   CliContext,
   ShortcutActionMeta,
-} from './shortcutTypes';
+} from '@/config/shortcutTypes';
 
 export {
   SHORTCUT_ACTION_REGISTRY,
   type ShortcutAction,
   type KeyAction,
   type GlobalAction,
-} from './shortcutActionRegistry';
+} from '@/config/shortcutActionRegistry';
 
 export {
   isShortcutAction,
@@ -64,11 +64,11 @@ export {
   executeRuntimeAction,
   executeCliPlayerCommand,
   type RuntimeAction,
-} from './shortcutDispatch';
+} from '@/config/shortcutDispatch';
 
 export {
   IN_APP_SHORTCUT_ACTIONS,
   GLOBAL_SHORTCUT_ACTIONS,
   DEFAULT_IN_APP_BINDINGS,
   DEFAULT_GLOBAL_SHORTCUTS,
-} from './shortcutBindings';
+} from '@/config/shortcutBindings';

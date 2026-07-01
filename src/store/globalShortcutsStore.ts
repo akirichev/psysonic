@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { invoke } from '@tauri-apps/api/core';
 import { MODIFIER_KEY_CODES, formatBinding } from './keybindingsStore';
-import { DEFAULT_GLOBAL_SHORTCUTS, isGlobalShortcutActionId, type GlobalAction } from '../config/shortcutActions';
+import { DEFAULT_GLOBAL_SHORTCUTS, isGlobalShortcutActionId, type GlobalAction } from '@/config/shortcutActions';
 
 /** Dev builds run alongside release — OS-level grabs stay on the release instance. */
 const GLOBAL_SHORTCUTS_OS_ENABLED = !import.meta.env.DEV;
@@ -101,4 +101,4 @@ export const useGlobalShortcutsStore = create<GlobalShortcutsState>()(
   )
 );
 
-export type { GlobalAction } from '../config/shortcutActions';
+export type { GlobalAction } from '@/config/shortcutActions';

@@ -1,10 +1,10 @@
-import type { HiResCrossfadeResampleHz } from '../utils/audio/hiResCrossfadeResample';
-import type { EntityRatingSupportLevel } from '../api/subsonicTypes';
+import type { HiResCrossfadeResampleHz } from '@/lib/audio/hiResCrossfadeResample';
+import type { EntityRatingSupportLevel } from '@/lib/api/subsonicTypes';
 import type {
   AudiomusePluginProbeResult,
   InstantMixProbeResult,
   SubsonicServerIdentity,
-} from '../utils/server/subsonicServerIdentity';
+} from '@/lib/server/subsonicServerIdentity';
 import type { PersistedAccount } from '../music-network';
 
 export type CustomHeaderEntry = {

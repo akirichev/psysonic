@@ -1,10 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '../store/authStore';
-import { usePlayerStore } from '../store/playerStore';
-import { collectPlaybackMiddlePriorityTrackIds } from '../store/loudnessBackfillWindow';
-import { getPlaybackServerId } from '../utils/playback/playbackServer';
-import { analysisSetPlaybackPriorityHints } from '../api/analysis';
-import { serverIndexKeyFromUrl } from '../utils/server/serverIndexKey';
+import { usePlayerStore } from '@/features/playback/store/playerStore';
+import { collectPlaybackMiddlePriorityTrackIds } from '@/features/playback/store/loudnessBackfillWindow';
+import { getPlaybackServerId } from '@/features/playback/utils/playback/playbackServer';
+import { analysisSetPlaybackPriorityHints } from '@/lib/api/analysis';
+import { serverIndexKeyFromUrl } from '@/lib/server/serverIndexKey';
 import { hotCacheFrontendDebug } from './helpers';
 
 let analysisPruneTimer: ReturnType<typeof setTimeout> | null = null;
