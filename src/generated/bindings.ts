@@ -94,9 +94,106 @@ export const commands = {
 	 *  Reopens the stream immediately; frontend must restart playback via audio:device-changed.
 	 */
 	audioSetDevice: (deviceName: string | null) => typedError<null, string>(__TAURI_INVOKE("audio_set_device", { deviceName })),
+	analysisGetWaveform: (trackId: string, md516kb: string, serverId: string | null) => typedError<{
+	bins: number[],
+	binCount: number,
+	isPartial: boolean,
+	knownUntilSec: number | null,
+	durationSec: number | null,
+	updatedAt: number,
+} | null, string>(__TAURI_INVOKE("analysis_get_waveform", { trackId, md516kb, serverId })),
+	analysisGetWaveformForTrack: (trackId: string, serverId: string | null) => typedError<{
+	bins: number[],
+	binCount: number,
+	isPartial: boolean,
+	knownUntilSec: number | null,
+	durationSec: number | null,
+	updatedAt: number,
+} | null, string>(__TAURI_INVOKE("analysis_get_waveform_for_track", { trackId, serverId })),
+	analysisGetLoudnessForTrack: (trackId: string, targetLufs: number | null, serverId: string | null) => typedError<{
+	integratedLufs: number | null,
+	truePeak: number | null,
+	recommendedGainDb: number | null,
+	targetLufs: number | null,
+	updatedAt: number,
+} | null, string>(__TAURI_INVOKE("analysis_get_loudness_for_track", { trackId, targetLufs, serverId })),
+	analysisDeleteLoudnessForTrack: (trackId: string, serverId: string | null) => typedError<number, string>(__TAURI_INVOKE("analysis_delete_loudness_for_track", { trackId, serverId })),
+	analysisDeleteWaveformForTrack: (trackId: string, serverId: string | null) => typedError<number, string>(__TAURI_INVOKE("analysis_delete_waveform_for_track", { trackId, serverId })),
+	analysisDeleteAllWaveforms: () => typedError<number, string>(__TAURI_INVOKE("analysis_delete_all_waveforms")),
+	analysisDeleteAllForServer: (serverId: string) => typedError<AnalysisDeleteServerReportDto, string>(__TAURI_INVOKE("analysis_delete_all_for_server", { serverId })),
+	analysisGetFailedTrackCount: (serverId: string) => typedError<number, string>(__TAURI_INVOKE("analysis_get_failed_track_count", { serverId })),
+	analysisListFailedTracks: (serverId: string, limit: number | null) => typedError<AnalysisFailedTrackDto[], string>(__TAURI_INVOKE("analysis_list_failed_tracks", { serverId, limit })),
+	analysisClearFailedTracks: (serverId: string, trackIds: string[] | null) => typedError<number, string>(__TAURI_INVOKE("analysis_clear_failed_tracks", { serverId, trackIds })),
+	analysisMigrateServerIndexKeys: (mappings: AnalysisServerKeyMigrationDto[]) => typedError<null, string>(__TAURI_INVOKE("analysis_migrate_server_index_keys", { mappings })),
+	analysisEnqueueSeedFromUrl: (trackId: string, url: string, force: boolean | null, serverId: string | null, priority: string | null) => typedError<null, string>(__TAURI_INVOKE("analysis_enqueue_seed_from_url", { trackId, url, force, serverId, priority })),
+	analysisSetPlaybackPriorityHints: (middleTrackRefs: AnalysisPriorityHintDto[]) => typedError<null, string>(__TAURI_INVOKE("analysis_set_playback_priority_hints", { middleTrackRefs })),
+	analysisSetPipelineParallelism: (workers: number) => typedError<null, string>(__TAURI_INVOKE("analysis_set_pipeline_parallelism", { workers })),
+	analysisGetPipelineQueueStats: () => typedError<AnalysisPipelineQueueStatsDto, string>(__TAURI_INVOKE("analysis_get_pipeline_queue_stats")),
+	analysisGetBackfillQueueStats: () => typedError<AnalysisBackfillQueueStatsDto, string>(__TAURI_INVOKE("analysis_get_backfill_queue_stats")),
+	/**
+	 *  Prunes pending analysis work for tracks no longer present in the playback queue.
+	 * 
+	 *  Keeps currently-running jobs untouched; only queued (not-yet-started) jobs are removed.
+	 */
+	analysisPrunePendingToTrackIds: (trackIds: string[], serverId: string) => typedError<AnalysisPrunePendingResult, string>(__TAURI_INVOKE("analysis_prune_pending_to_track_ids", { trackIds, serverId })),
 };
 
 /* Types */
+export type AnalysisBackfillQueueStatsDto = {
+	queued: number,
+	inProgressCount: number,
+	inProgressTrackId: string | null,
+};
+
+export type AnalysisDeleteServerReportDto = {
+	analysisTracks: number,
+	waveforms: number,
+	loudness: number,
+};
+
+export type AnalysisFailedTrackDto = {
+	trackId: string,
+	md516kb: string,
+	updatedAt: number,
+};
+
+export type AnalysisPipelineQueueStatsDto = {
+	pipelineWorkers: number,
+	httpQueued: number,
+	httpQueuedHigh: number,
+	httpQueuedMiddle: number,
+	httpQueuedLow: number,
+	httpDownloadActive: number,
+	httpDownloadActiveHigh: number,
+	httpDownloadActiveMiddle: number,
+	httpDownloadActiveLow: number,
+	cpuQueued: number,
+	cpuQueuedHigh: number,
+	cpuQueuedMiddle: number,
+	cpuQueuedLow: number,
+	cpuDecodeActive: number,
+	cpuDecodeActiveHigh: number,
+	cpuDecodeActiveMiddle: number,
+	cpuDecodeActiveLow: number,
+};
+
+export type AnalysisPriorityHintDto = {
+	serverId: string,
+	trackId: string,
+};
+
+export type AnalysisPrunePendingResult = {
+	keepCount: number,
+	httpRemoved: number,
+	cpuRemovedJobs: number,
+	cpuRemovedWaiters: number,
+};
+
+export type AnalysisServerKeyMigrationDto = {
+	legacyId: string,
+	indexKey: string,
+};
+
 /**  Min/max `year` from indexed tracks for a server (Albums year filter UI). */
 export type CatalogYearBoundsDto = {
 	minYear: number | null,
@@ -108,6 +205,23 @@ export type GenreAlbumCountDto = {
 	value: string,
 	albumCount: number,
 	songCount: number,
+};
+
+export type LoudnessCachePayload = {
+	integratedLufs: number | null,
+	truePeak: number | null,
+	recommendedGainDb: number | null,
+	targetLufs: number | null,
+	updatedAt: number,
+};
+
+export type WaveformCachePayload = {
+	bins: number[],
+	binCount: number,
+	isPartial: boolean,
+	knownUntilSec: number | null,
+	durationSec: number | null,
+	updatedAt: number,
 };
 
 /* Tauri Specta runtime */

@@ -126,6 +126,24 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             audio::device_commands::audio_canonicalize_selected_device,
             audio::device_commands::audio_default_output_device_name,
             audio::device_commands::audio_set_device,
+            // psysonic-analysis (no Value / all ≤10 args — fully typeable)
+            psysonic_analysis::commands::analysis_get_waveform,
+            psysonic_analysis::commands::analysis_get_waveform_for_track,
+            psysonic_analysis::commands::analysis_get_loudness_for_track,
+            psysonic_analysis::commands::analysis_delete_loudness_for_track,
+            psysonic_analysis::commands::analysis_delete_waveform_for_track,
+            psysonic_analysis::commands::analysis_delete_all_waveforms,
+            psysonic_analysis::commands::analysis_delete_all_for_server,
+            psysonic_analysis::commands::analysis_get_failed_track_count,
+            psysonic_analysis::commands::analysis_list_failed_tracks,
+            psysonic_analysis::commands::analysis_clear_failed_tracks,
+            psysonic_analysis::commands::analysis_migrate_server_index_keys,
+            psysonic_analysis::commands::analysis_enqueue_seed_from_url,
+            psysonic_analysis::commands::analysis_set_playback_priority_hints,
+            psysonic_analysis::commands::analysis_set_pipeline_parallelism,
+            psysonic_analysis::commands::analysis_get_pipeline_queue_stats,
+            psysonic_analysis::commands::analysis_get_backfill_queue_stats,
+            psysonic_analysis::commands::analysis_prune_pending_to_track_ids,
         ])
 }
 
