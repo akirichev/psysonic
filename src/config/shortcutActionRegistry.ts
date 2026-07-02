@@ -2,6 +2,7 @@ import { queueSongStar } from '@/features/playback/store/pendingStarSync';
 import { getSong } from '@/lib/api/subsonicLibrary';
 import { songToTrack } from '@/lib/media/songToTrack';
 import { invoke } from '@tauri-apps/api/core';
+import { audioStop } from '@/lib/api/audio';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import i18n from '@/lib/i18n';
 import { usePlayerStore } from '@/features/playback/store/playerStore';
@@ -334,7 +335,7 @@ export const SHORTCUT_ACTION_REGISTRY = {
       const { currentTrack, stop, resetAudioPause, playTrack, initializeFromServerQueue } = store;
       stop();
       resetAudioPause();
-      invoke('audio_stop')
+      audioStop()
         .catch(() => {})
         .then(async () => {
           if (currentTrack) {
