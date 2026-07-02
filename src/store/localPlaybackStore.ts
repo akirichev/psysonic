@@ -215,7 +215,7 @@ export const useLocalPlaybackStore = create<LocalPlaybackState>()(
       evictEphemeralToFit: async (queue, queueIndex, maxBytes, activeServerIndexKey, mediaDir) => {
         if (maxBytes <= 0) return;
 
-        await reconcileEphemeralCache();
+        await reconcileEphemeralCache({ entries: get().entries, removeEntry: get().removeEntry });
 
         let diskBytes = await getEphemeralDiskBytes(mediaDir);
         if (diskBytes <= maxBytes) return;
