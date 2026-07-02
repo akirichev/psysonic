@@ -105,6 +105,18 @@ export function audioPreviewSetVolume(args: { volume: number | null }): Promise<
   return commands.audioPreviewSetVolume(args.volume);
 }
 
+export function audioListDevices(): Promise<string[]> {
+  return commands.audioListDevices();
+}
+
+export function audioDefaultOutputDeviceName(): Promise<string | null> {
+  return commands.audioDefaultOutputDeviceName();
+}
+
+export function audioCanonicalizeSelectedDevice(): Promise<string | null> {
+  return commands.audioCanonicalizeSelectedDevice();
+}
+
 // ── Result-wrapped (facade re-throws so callers keep reject semantics) ────────
 
 export async function audioResume(): Promise<void> {
