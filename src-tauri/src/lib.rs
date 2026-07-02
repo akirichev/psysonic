@@ -92,8 +92,15 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         // (with the same >2^53 truncation JSON.parse does today). The flag only
         // makes the generated types match that reality — it avoids ~200 per-field
         // `#[specta(type = Number)]` casts across the DTOs. `enable_lossless_bigints`
-        // (→ TS `bigint`) is the real behaviour change and stays rejected. Every
-        // IPC integer here (timestamps-ms, counts, byte sizes) is well within 2^53.
+        // (→ TS `bigint`) is the real behaviour change and stays rejected.
+        //
+        // Bigint precision audit (Option-A guard, done 2026-07-02): every returned
+        // i64/u64 field across the collected DTOs is an epoch-ms timestamp (~1e13),
+        // a catalog/play count (~1e7), a byte size (~1e13 for a large library) or a
+        // tiny scalar (year, track/disc no., bpm, rating) — all well under 2^53
+        // (~9e15). No nanosecond timestamps, no integer-encoded hashes (content_hash
+        // is a String), no unbounded accumulators. If a future DTO adds one, model
+        // it as a String at the edge instead of relying on this cast.
         .dangerously_cast_bigints_to_number()
         .commands(tauri_specta::collect_commands![
             crate::lib_commands::app_api::core::greet,
