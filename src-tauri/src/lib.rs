@@ -1250,4 +1250,160 @@ mod specta_export {
             .expect("failed to export typescript bindings");
         std::fs::rename(tmp, target).expect("failed to move regenerated bindings into place");
     }
+
+    // ── G-sync anti-drift guard (Option A) ──────────────────────────────────
+    // Every command registered in the live `generate_handler!` must EITHER be
+    // collected into `collect_commands!` (so the FE gets a typed binding) OR
+    // appear in `UNTYPEABLE` below with the reason it can't be typed under the
+    // pinned specta =2.0.0-rc.25. This fails if a new command lands in the
+    // handler without doing one or the other — so the typed IPC surface can't
+    // silently rot as commands are added. The allowlist is exact and can only
+    // shrink: making a command typeable (a `Value` return replaced by a DTO, an
+    // arg count dropping to ≤10) means collecting it AND removing it here.
+    //
+    // Under Option A `generate_handler!` stays the permanent live handler; this
+    // test — not a handler flip — is what keeps the two lists in sync.
+    #[test]
+    fn typeable_commands_are_all_collected() {
+        // Known-untypeable under specta =2.0.0-rc.25 (see the specta-contract
+        // plan). Three reasons only:
+        const UNTYPEABLE: &[&str] = &[
+            // (1) serde_json::Value / raw-JSON passthrough in the signature —
+            // rc.25 registers `Value` as inline-self-recursive and overflows the
+            // exporter. `raw_json`-carrying library DTO envelopes count too.
+            "audioscrobbler_request",
+            "listenbrainz_request",
+            "maloja_request",
+            "backup_export_full",
+            "backup_import_full",
+            "cli_publish_library_list",
+            "cli_publish_player_snapshot",
+            "cli_publish_search_results",
+            "cli_publish_server_list",
+            "calculate_sync_payload",
+            "read_device_manifest",
+            "write_device_manifest",
+            "cover_revalidate_batch",
+            "fetch_json_url",
+            "get_top_radio_stations",
+            "search_radio_browser",
+            "library_advanced_search",
+            "library_get_artist_lossless_browse",
+            "library_get_track",
+            "library_get_tracks_batch",
+            "library_get_tracks_by_album",
+            "library_list_albums_by_genre",
+            "library_list_lossless_albums",
+            "library_live_search",
+            "library_search",
+            "library_search_cross_server",
+            "library_patch_track",
+            "library_upsert_songs_from_api",
+            "nd_create_playlist",
+            "nd_get_playlist",
+            "nd_list_playlists",
+            "nd_update_playlist",
+            "nd_create_user",
+            "nd_list_users",
+            "nd_update_user",
+            "nd_list_albums_by_artist_role",
+            "nd_list_artists_by_role",
+            "nd_list_libraries",
+            "nd_list_songs",
+            // (2) >10 total params (State/AppHandle/Window included) exceed
+            // specta's SpectaFn arg cap. Typing needs the args bundled into a
+            // struct = an IPC arg-shape change, out of scope for Option A.
+            "audio_play",
+            "audio_chain_preload",
+            "discord_update_presence",
+            // (3) platform-gated — `#[cfg(target_os = "windows")]`, so absent
+            // from the Linux specta export the committed bindings are built from.
+            "update_taskbar_icon",
+        ];
+
+        let src = include_str!("lib.rs");
+        let handler = command_names(src, "generate_handler!");
+        let collected = command_names(src, "collect_commands!");
+        assert!(
+            handler.len() > 200 && collected.len() > 150,
+            "command-list parser found too few entries (handler={}, collected={}) \
+             — the macro formatting probably changed; fix `command_names`",
+            handler.len(),
+            collected.len()
+        );
+
+        let mut uncollected: Vec<&str> =
+            handler.iter().filter(|c| !collected.contains(*c)).map(String::as_str).collect();
+        uncollected.sort_unstable();
+
+        let unexplained: Vec<&str> =
+            uncollected.iter().copied().filter(|c| !UNTYPEABLE.contains(c)).collect();
+        assert!(
+            unexplained.is_empty(),
+            "these commands are in generate_handler! but neither collected into \
+             collect_commands! nor listed in UNTYPEABLE — annotate them with \
+             #[specta::specta] + add to collect_commands!, or add them to \
+             UNTYPEABLE with the reason: {unexplained:?}"
+        );
+
+        let stale: Vec<&str> =
+            UNTYPEABLE.iter().copied().filter(|c| !uncollected.contains(c)).collect();
+        assert!(
+            stale.is_empty(),
+            "these commands are in the UNTYPEABLE allowlist but are no longer \
+             uncollected (they got collected, or left generate_handler!) — remove \
+             them from UNTYPEABLE: {stale:?}"
+        );
+    }
+
+    /// Extract the last `::`-segment identifier of every entry inside a
+    /// `<macro>![ ... ]` invocation. Mirrors the Python worklist parser: one
+    /// command per line, skips `//` comments and `#[..]` attribute lines. Picks
+    /// the real invocation (a `[` follows the macro name), not a doc-comment
+    /// mention of the macro.
+    fn command_names(src: &str, macro_call: &str) -> std::collections::HashSet<String> {
+        let mut out = std::collections::HashSet::new();
+        let open = src.match_indices(macro_call).find_map(|(idx, _)| {
+            let rest = &src[idx + macro_call.len()..];
+            let trimmed = rest.trim_start();
+            trimmed
+                .starts_with('[')
+                .then(|| idx + macro_call.len() + (rest.len() - trimmed.len()))
+        });
+        let Some(open) = open else {
+            return out;
+        };
+
+        let bytes = src.as_bytes();
+        let (mut i, mut depth, mut close) = (open, 0i32, open);
+        while i < bytes.len() {
+            match bytes[i] {
+                b'[' => depth += 1,
+                b']' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        close = i;
+                        break;
+                    }
+                }
+                _ => {}
+            }
+            i += 1;
+        }
+
+        for raw in src[open + 1..close].lines() {
+            let line = raw.trim();
+            if line.is_empty() || line.starts_with("//") || line.starts_with('#') {
+                continue;
+            }
+            let code = line.split("//").next().unwrap_or("").trim().trim_end_matches(',');
+            let seg = code.rsplit("::").next().unwrap_or("").trim();
+            let ok = seg.starts_with(|c: char| c.is_ascii_lowercase())
+                && seg.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_');
+            if ok {
+                out.insert(seg.to_string());
+            }
+        }
+        out
+    }
 }
