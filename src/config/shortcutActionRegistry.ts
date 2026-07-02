@@ -1,7 +1,7 @@
 import { queueSongStar } from '@/features/playback/store/pendingStarSync';
 import { getSong } from '@/lib/api/subsonicLibrary';
 import { songToTrack } from '@/lib/media/songToTrack';
-import { invoke } from '@tauri-apps/api/core';
+import { openMiniPlayer } from '@/lib/api/miniPlayer';
 import { audioStop } from '@/lib/api/audio';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import i18n from '@/lib/i18n';
@@ -171,7 +171,7 @@ export const SHORTCUT_ACTION_REGISTRY = {
     inApp: { defaultBinding: null },
     runInMiniWindow: true,
     run: () => {
-      invoke('open_mini_player').catch(() => {});
+      openMiniPlayer().catch(() => {});
     },
   },
   'start-search': {
