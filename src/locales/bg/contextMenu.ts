@@ -21,7 +21,7 @@ export const contextMenu = {
   removeFromPlaylist: 'Премахни от плейлиста',
   openAlbum: 'Отвори албума',
   goToArtist: 'Отиди при изпълнителя',
-  download: 'Изтегляне (ZIP)',
+  download: 'Изтегли (ZIP)',
   addToPlaylist: 'Добави в плейлист',
   selectedPlaylists: 'Избрани {{count}} плейлиста',
   selectedAlbums: 'Избрани {{count}} албума',

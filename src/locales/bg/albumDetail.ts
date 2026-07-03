@@ -6,7 +6,7 @@ export const albumDetail = {
   enqueue: 'Добави в опашката',
   enqueueTooltip: 'Добави целия албум в опашката',
   artistBio: 'Биография на изпълнителя',
-  download: 'Изтегляне (ZIP)',
+  download: 'Изтегли (ZIP)',
   playTooltip: 'Пусни този албум',
   artistBioTooltip: 'Прочети биографията на изпълнителя',
   downloadTooltip: 'Изтегли този албум като ZIP',
