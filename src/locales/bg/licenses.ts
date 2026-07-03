@@ -7,7 +7,7 @@ export const licenses = {
   loading: 'Зареждане на лицензи…',
   loadError: 'Данните за лицензи не могат да бъдат заредени.',
   noLicenseText: 'Няма приложен текст на лиценз за тази зависимост.',
-  viewSource: 'Вижте източника',
+  viewSource: 'Виж източника',
   totalLine: '{{total}} зависимости — {{cargo}} cargo, {{npm}} npm',
   generatedAt: 'Последно генериран {{date}}',
 };

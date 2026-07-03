@@ -1,5 +1,5 @@
 export const changelog = {
   modalTitle: 'Какво ново',
-  dontShowAgain: 'Не показвайте отново',
+  dontShowAgain: 'Не показвай отново',
   close: 'Разбрах',
 };

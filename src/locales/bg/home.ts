@@ -6,16 +6,16 @@ export const home = {
   losslessAlbums: 'Lossless албуми',
   discover: 'Открий',
   discoverSongs: 'Открий песни',
-  loadMore: 'Заредете още',
+  loadMore: 'Зареди още',
   discoverMore: 'Открий още',
   discoverArtists: 'Открий изпълнители',
   discoverArtistsMore: 'Всички изпълнители',
-  becauseYouLike: 'Защото слушахте…',
-  becauseYouLikeFor: 'Защото слушахте {{artist}}',
+  becauseYouLike: 'Защото слушаше…',
+  becauseYouLikeFor: 'Защото слушаше {{artist}}',
   similarTo: 'Подобно на {{artist}}',
   becauseYouLikeTracks_one: '{{count}} песен',
   becauseYouLikeTracks_other: '{{count}} песни',
-  mainstageEmptyTitle: 'Вашата главна сцена е празна',
-  mainstageEmptyBody: 'Всички секции са изключени. Включете секции обратно или скрийте главната сцена от страничната лента.',
-  mainstageEmptyCta: 'Отворете настройките за персонализация'
+  mainstageEmptyTitle: 'Твоята главна сцена е празна',
+  mainstageEmptyBody: 'Всички секции са изключени. Включи секции обратно или скрий главната сцена от страничната лента.',
+  mainstageEmptyCta: 'Отвори настройките за персонализация'
 };

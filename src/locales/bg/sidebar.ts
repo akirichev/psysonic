@@ -21,7 +21,7 @@ export const sidebar = {
   offlinePinActive: 'Кеширане на «{{name}}»…',
   offlinePinActiveQueued: 'Кеширане на «{{name}}» · +{{queued}} на опашка',
   syncingTracks: 'Синхронизиране {{done}}/{{total}}…',
-  cancelDownload: 'Отменете изтеглянето',
+  cancelDownload: 'Отмени изтеглянето',
   offlineLibrary: 'Офлайн библиотека',
   genres: 'Жанрове',
   tracks: 'Песни',
@@ -41,5 +41,5 @@ export const sidebar = {
 
   themeUpdatesTitle: 'Актуализации на темата',
   themeUpdatesTooltip: 'Налични актуализации на темата',
-  themeUpdatesDismiss: 'Отхвърлете',
+  themeUpdatesDismiss: 'Отхвърли',
 };

@@ -1,6 +1,6 @@
 export const nowPlayingInfo = {
   tab: 'Инфо',
-  empty: 'Пуснете нещо, за да видите информация',
+  empty: 'Пусни нещо, за да видиш информация',
   artist: 'Изпълнител',
   songInfo: 'Инфо за песента',
   onTour: 'На турне',
@@ -12,10 +12,10 @@ export const nowPlayingInfo = {
   showMoreTours_one: 'Покажи още {{count}}',
   showMoreTours_other: 'Покажи още {{count}}',
   showLessTours: 'Покажи по-малко',
-  enableBandsintownPrompt: 'Да видите предстоящи дати от турнета?',
+  enableBandsintownPrompt: 'Да видиш предстоящи дати от турнета?',
   enableBandsintownPromptDesc: 'По избор. Зарежда концерти за текущия изпълнител чрез публичното Bandsintown API.',
-  enableBandsintownPrivacy: 'Когато е активирано, името на текущо пуснатия изпълнител се изпраща към Bandsintown API за извличане на дати от турнета. Никакви акаунти или лични данни не напускат вашето устройство.',
-  enableBandsintownAction: 'Активирайте',
+  enableBandsintownPrivacy: 'Когато е активирано, името на текущо пуснатия изпълнител се изпраща към Bandsintown API за извличане на дати от турнета. Никакви акаунти или лични данни не напускат твоето устройство.',
+  enableBandsintownAction: 'Активирай',
   role: {
     artist: 'Изпълнител',
     albumArtist: 'Изпълнител на албум',

@@ -6,6 +6,6 @@ export const composerDetail = {
   noWorks: 'Не са намерени произведения.',
   workCount_one: '{{count}} произведение',
   workCount_other: '{{count}} произведения',
-  shareComposer: 'Споделете композитор',
+  shareComposer: 'Сподели композитор',
   unknownComposer: 'Композитор',
 };

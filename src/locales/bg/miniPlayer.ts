@@ -3,7 +3,7 @@ export const miniPlayer = {
   hideQueue: 'Скрий опашката',
   pinOnTop: 'Закачи отгоре',
   pinOff: 'Откачи',
-  openMainWindow: 'Отворете основния прозорец',
-  close: 'Затворете',
+  openMainWindow: 'Отвори основния прозорец',
+  close: 'Затвори',
   emptyQueue: 'Опашката е празна',
 };

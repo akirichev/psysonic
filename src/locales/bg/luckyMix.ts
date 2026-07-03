@@ -1,6 +1,6 @@
 export const luckyMix = {
   done: 'Lucky Mix е готов: {{count}} песни',
-  failed: 'Lucky Mix не може да бъде създаден. Опитайте отново.',
+  failed: 'Lucky Mix не може да бъде създаден. Опитай отново.',
   unavailable: 'Lucky Mix не е наличен за този сървър.',
-  cancelTooltip: 'Откажете създаването на Lucky Mix',
+  cancelTooltip: 'Откажи създаването на Lucky Mix',
 };
