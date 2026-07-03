@@ -5,7 +5,7 @@ export const mostPlayed = {
   plays: '{{n}} пускания',
   sortMost: 'Най-много пускания първо',
   sortLeast: 'Най-малко пускания първо',
-  loadMore: 'Зареди още албуми',
+  loadMore: 'Заредете още албуми',
   noData: 'Все още няма данни за пускания. Започнете да слушате!',
   noArtists: 'Всички изпълнители са филтрирани.',
   filterCompilations: 'Скрий изпълнители на компилации (Various Artists, Soundtracks и др.)',

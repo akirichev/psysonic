@@ -6,7 +6,7 @@ export const home = {
   losslessAlbums: 'Lossless албуми',
   discover: 'Открий',
   discoverSongs: 'Открий песни',
-  loadMore: 'Зареди още',
+  loadMore: 'Заредете още',
   discoverMore: 'Открий още',
   discoverArtists: 'Открий изпълнители',
   discoverArtistsMore: 'Всички изпълнители',
@@ -17,5 +17,5 @@ export const home = {
   becauseYouLikeTracks_other: '{{count}} песни',
   mainstageEmptyTitle: 'Вашата главна сцена е празна',
   mainstageEmptyBody: 'Всички секции са изключени. Включете секции обратно или скрийте главната сцена от страничната лента.',
-  mainstageEmptyCta: 'Отвори настройките за персонализация'
+  mainstageEmptyCta: 'Отворете настройките за персонализация'
 };

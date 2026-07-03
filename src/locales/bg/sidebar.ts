@@ -41,5 +41,5 @@ export const sidebar = {
 
   themeUpdatesTitle: 'Актуализации на темата',
   themeUpdatesTooltip: 'Налични актуализации на темата',
-  themeUpdatesDismiss: 'Отхвърли',
+  themeUpdatesDismiss: 'Отхвърлете',
 };

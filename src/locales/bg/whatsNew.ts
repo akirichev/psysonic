@@ -7,6 +7,6 @@ export const whatsNew = {
   empty: 'Все още няма запис в историята за тази версия.',
   bannerTitle: 'История на промените',
   bannerCollapsed: 'Какво ново във v{{version}}',
-  dismiss: 'Отхвърли',
-  close: 'Затвори',
+  dismiss: 'Отхвърлете',
+  close: 'Затворете',
 };

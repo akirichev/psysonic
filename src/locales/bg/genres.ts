@@ -7,9 +7,9 @@ export const genres = {
   empty: 'Не са намерени жанрове.',
   albumsLoading: 'Зареждане на албуми…',
   albumsEmpty: 'Не са намерени албуми за този жанр.',
-  loadMore: 'Зареди още',
+  loadMore: 'Заредете още',
   back: 'Назад',
   playTooltip: 'Пусни (задръж за разбъркване)',
   shuffle: 'Разбъркай',
-  addToQueue: 'Добави в опашката',
+  addToQueue: 'Добавете в опашката',
 };

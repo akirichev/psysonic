@@ -15,7 +15,7 @@ export const nowPlayingInfo = {
   enableBandsintownPrompt: 'Да видите предстоящи дати от турнета?',
   enableBandsintownPromptDesc: 'По избор. Зарежда концерти за текущия изпълнител чрез публичното Bandsintown API.',
   enableBandsintownPrivacy: 'Когато е активирано, името на текущо пуснатия изпълнител се изпраща към Bandsintown API за извличане на дати от турнета. Никакви акаунти или лични данни не напускат вашето устройство.',
-  enableBandsintownAction: 'Активирай',
+  enableBandsintownAction: 'Активирайте',
   role: {
     artist: 'Изпълнител',
     albumArtist: 'Изпълнител на албум',

@@ -38,11 +38,11 @@ export const nowPlaying = {
   rgAutoTooltip: 'ReplayGain (авто)',
   showMoreTracks: 'Покажи още {{count}}',
   showLessTracks: 'Покажи по-малко',
-  hideCard: 'Скрий картата',
+  hideCard: 'Скрийте картата',
   layoutMenu: 'Оформление',
   visibleCards: 'Видими карти',
   hiddenCards: 'Скрити карти',
   noHiddenCards: 'Няма скрити карти',
-  resetLayout: 'Възстанови оформлението',
+  resetLayout: 'Възстановете оформлението',
   emptyColumn: 'Пуснете картите тук',
 };
