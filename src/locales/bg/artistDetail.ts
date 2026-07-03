@@ -27,7 +27,7 @@ export const artistDetail = {
   trackDuration: 'Времетраене',
   favoriteAdd: 'Добави в любими',
   favoriteRemove: 'Премахни от любими',
-  favorite: 'Любимо',
+  favorite: 'Любим',
   albumCount_one: '{{count}} албум',
   albumCount_other: '{{count}} албума',
   openedInBrowser: 'Отворено в браузъра',

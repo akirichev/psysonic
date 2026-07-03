@@ -21,7 +21,7 @@ export const queue = {
   clear: 'Изчисти опашката',
   shuffle: 'Разбъркай опашката',
   gapless: 'Без паузи',
-  crossfade: 'Кросфейд',
+  crossfade: 'Преливане на песни',
   autoDj: 'AutoDJ',
   infiniteQueue: 'Безкрайна опашка',
   playlist: 'Плейлист',

@@ -8,7 +8,7 @@ export const randomMix = {
   trackTitle: 'Заглавие',
   trackArtist: 'Изпълнител',
   trackAlbum: 'Албум',
-  trackFavorite: 'Любимо',
+  trackFavorite: 'Любима',
   trackDuration: 'Продължителност',
   favoriteAdd: 'Добави към любими',
   favoriteRemove: 'Премахни от любими',

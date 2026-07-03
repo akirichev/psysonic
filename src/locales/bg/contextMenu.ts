@@ -11,7 +11,7 @@ export const contextMenu = {
   cliMixNeedsTrack: 'Нищо не се пуска — стартирайте възпроизвеждане, след което изпълнете командата за микс отново.',
   networkLove: 'Хареса в {{provider}}',
   networkUnlove: 'Отхаресай в {{provider}}',
-  favorite: 'Любимо',
+  favorite: 'Добави в любими',
   favoriteArtist: 'Любим изпълнител',
   favoriteAlbum: 'Любим албум',
   unfavorite: 'Премахни от любими',
