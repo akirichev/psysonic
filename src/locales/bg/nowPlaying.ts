@@ -8,7 +8,7 @@ export const nowPlaying = {
     paused: 'На пауза',
     idle: 'Неактивен',
   },
-  nothingPlaying: 'Все още нищо не се пуска. Пуснете песен!',
+  nothingPlaying: 'Все още нищо не се възпроизвежда. Пуснете песен!',
   aboutArtist: 'За изпълнителя',
   fromAlbum: 'От този албум',
   viewAlbum: 'Виж албум',

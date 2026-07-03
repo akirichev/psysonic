@@ -16,7 +16,7 @@ export const login = {
   urlRequired: 'Моля, въведете URL на сървъра.',
   savedServers: 'Запазени сървъри',
   addNew: 'Или добави нов сървър',
-  orMagicString: 'Или магически низ',
-  magicStringPlaceholder: 'Поставете низ за споделяне (psysonic1-…)',
-  magicStringInvalid: 'Невалиден или нечетлив магически низ.',
+  orMagicString: 'Или магически код',
+  magicStringPlaceholder: 'Поставете код за споделяне (psysonic1-…)',
+  magicStringInvalid: 'Невалиден или нечетлив магически код.',
 };

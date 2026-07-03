@@ -49,7 +49,7 @@ export const player = {
   equalizer: 'Еквалайзер',
   playbackRate: 'Скорост на възпроизвеждане',
   miniPlayer: 'Мини плейър',
-  lyrics: 'Текст на песента',
+  lyrics: 'Текст',
   fsNowPlaying: 'Сега свири…',
   fsTrackPosition: 'Песен {{current}} / {{total}}',
   fsNext: 'Следваща',

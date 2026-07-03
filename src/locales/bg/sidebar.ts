@@ -9,7 +9,7 @@ export const sidebar = {
   composers: 'Композитори',
   randomMix: 'Случаен микс',
   favorites: 'Любими',
-  nowPlaying: 'Сега се пуска',
+  nowPlaying: 'В момента звучи',
   system: 'Система',
   statistics: 'Статистика',
   settings: 'Настройки',

@@ -34,7 +34,7 @@ export const statistics = {
   lfmPeriod6month: '6 месеца',
   lfmPeriod12month: '12 месеца',
   lfmRecentTracks: 'Скорошни скроблинги',
-  lfmNowPlaying: 'В момента се пуска',
+  lfmNowPlaying: 'В момента звучи',
   lfmJustNow: 'току-що',
   lfmMinutesAgo: 'преди {{n}} мин',
   lfmHoursAgo: 'преди {{n}} ч',
